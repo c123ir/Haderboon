@@ -18,7 +18,7 @@ const aiProviderService = {
    * @param data اطلاعات سرویس‌دهنده جدید
    * @returns سرویس‌دهنده ایجاد شده
    */
-  export const createProvider = async (data: AIProviderInput) => {
+  async createProvider(data: AIProviderInput) { // اصلاح: حذف export const و تبدیل به متد
     return prisma.aIProvider.create({
       data: {
         name: data.name,
@@ -26,8 +26,8 @@ const aiProviderService = {
         description: data.description, 
         // logoUrl: data.logoUrl, // این فیلد در schema.prisma وجود ندارد
         baseUrl: data.baseUrl,
-        isActive: data.isActive || false,
-        priority: data.priority || 0, // اطمینان از وجود فیلد در schema
+        isActive: data.isActive !== undefined ? data.isActive : false, // مقدار پیش فرض false اگر تعریف نشده باشد
+        priority: data.priority === undefined ? 0 : data.priority, // اطمینان از وجود فیلد در schema و مقدار پیش فرض
         // settings: data.settings as any, // این فیلد در schema.prisma وجود ندارد
       },
     });
@@ -90,7 +90,7 @@ const aiProviderService = {
    * @param data اطلاعات جدید
    * @returns سرویس‌دهنده به‌روزرسانی شده
    */
-  export const updateProvider = async (id: string, data: AIProviderUpdateInput) => {
+  async updateProvider(id: string, data: AIProviderUpdateInput) { // اصلاح: حذف export const و تبدیل به متد
     return prisma.aIProvider.update({
       where: { id },
       data: {
