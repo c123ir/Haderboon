@@ -4,15 +4,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { CreateProjectDto, UpdateProjectDto } from '../types/project.types';
-
-// تعریف interface برای درخواست احراز هویت شده
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email?: string;
-    username?: string;
-  };
-}
+import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
 // ایجاد نمونه از Prisma Client
 const prisma = new PrismaClient();
