@@ -1,8 +1,8 @@
 // frontend/src/services/api.ts
-// این فایل شامل توابع مربوط به ارتباط با API بک‌اند است
+// این فایل شامل توابع مربوذذ به ارتباط با API بک‌اند است
 
 import axios from 'axios';
-import { LoginUserInput, RegisterUserInput } from '../utils/types';
+import { LoginUserInput, RegisterUserInput } from '../types'; // تغییر مسیر
 
 // آدرس پایه API بک‌اند
 const API_URL = 'http://localhost:5550/api/v1';
@@ -70,4 +70,4 @@ export const checkServerStatus = async () => {
   }
 };
 
-export default api; 
+export default api;
