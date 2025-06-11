@@ -2,16 +2,29 @@
 // سرویس مربوط به چت هوشمند
 
 import api from './api';
-import { AIChatRequest, AIChatResponse, AISession } from '../utils/types';
+import { AIChatRequest, AIChatResponse, AISession, AIMessage } from '../utils/types';
 
 class AIService {
   /**
    * ارسال پیام به چت هوشمند
-   * @param request - درخواست چت شامل پیام و شناسه جلسه
-   * @returns Promise<AIChatResponse> - پاسخ چت هوشمند
+   * @param data - درخواست چت شامل پیام، شناسه جلسه، مدل و ارائه‌دهنده
+   * @returns Promise<{message: AIMessage, session: AISession}> - پاسخ چت هوشمند
    */
-  async sendMessage(request: AIChatRequest): Promise<AIChatResponse> {
-    const response = await api.post('/ai/chat', request);
+  async sendMessage(data: {
+    message: string;
+    sessionId: string;
+    modelId?: string;
+    providerId?: string;
+  }): Promise<{
+    message: AIMessage;
+    session: AISession;
+  }> {
+    const response = await api.post('/ai/chat', {
+      message: data.message,
+      sessionId: data.sessionId,
+      modelId: data.modelId,
+      providerId: data.providerId
+    });
     return response.data;
   }
 
@@ -62,37 +75,6 @@ class AIService {
   async updateSessionTitle(sessionId: string, title: string): Promise<AISession> {
     const response = await api.put(`/ai/sessions/${sessionId}`, { title });
     return response.data;
-  }
-
-  // در تابع sendMessage:
-  async sendMessage(data: {
-    message: string;
-    sessionId: string;
-    modelId?: string;
-    providerId?: string;
-  }): Promise<{
-    message: AIMessage;
-    session: AISession;
-  }> {
-    const response = await fetch(`${this.baseURL}/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getToken()}`
-      },
-      body: JSON.stringify({
-        message: data.message,
-        sessionId: data.sessionId,
-        modelId: data.modelId,
-        providerId: data.providerId
-      })
-    });
-  
-    if (!response.ok) {
-      throw new Error('خطا در ارسال پیام');
-    }
-  
-    return response.json();
   }
 }
 
