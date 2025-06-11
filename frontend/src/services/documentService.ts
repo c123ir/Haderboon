@@ -1,9 +1,7 @@
 // frontend/src/services/documentService.ts
 // سرویس مدیریت مستندات در ایجنت هادربون
 
-import axios from 'axios';
-import { API_URL } from '../config';
-import { getAuthHeader } from '../utils/auth';
+import api from './api';
 
 /**
  * سرویس مدیریت مستندات
@@ -15,11 +13,7 @@ const documentService = {
    */
   createDocument: async (documentData: any) => {
     try {
-      const response = await axios.post(
-        `${API_URL}/documents`, 
-        documentData,
-        { headers: getAuthHeader() }
-      );
+      const response = await api.post('/documents', documentData);
       return response.data;
     } catch (error) {
       console.error('خطا در ایجاد مستند:', error);
@@ -33,10 +27,7 @@ const documentService = {
    */
   getProjectDocuments: async (projectId: string) => {
     try {
-      const response = await axios.get(
-        `${API_URL}/documents/project/${projectId}`,
-        { headers: getAuthHeader() }
-      );
+      const response = await api.get(`/documents/project/${projectId}`);
       return response.data;
     } catch (error) {
       console.error('خطا در دریافت مستندات پروژه:', error);
@@ -50,10 +41,7 @@ const documentService = {
    */
   getDocumentById: async (documentId: string) => {
     try {
-      const response = await axios.get(
-        `${API_URL}/documents/${documentId}`,
-        { headers: getAuthHeader() }
-      );
+      const response = await api.get(`/documents/${documentId}`);
       return response.data;
     } catch (error) {
       console.error('خطا در دریافت مستند:', error);
@@ -68,11 +56,7 @@ const documentService = {
    */
   updateDocument: async (documentId: string, documentData: any) => {
     try {
-      const response = await axios.put(
-        `${API_URL}/documents/${documentId}`,
-        documentData,
-        { headers: getAuthHeader() }
-      );
+      const response = await api.put(`/documents/${documentId}`, documentData);
       return response.data;
     } catch (error) {
       console.error('خطا در به‌روزرسانی مستند:', error);
@@ -86,10 +70,7 @@ const documentService = {
    */
   deleteDocument: async (documentId: string) => {
     try {
-      const response = await axios.delete(
-        `${API_URL}/documents/${documentId}`,
-        { headers: getAuthHeader() }
-      );
+      const response = await api.delete(`/documents/${documentId}`);
       return response.data;
     } catch (error) {
       console.error('خطا در حذف مستند:', error);
@@ -104,11 +85,7 @@ const documentService = {
    */
   createDocumentVersion: async (documentId: string, versionData: any) => {
     try {
-      const response = await axios.post(
-        `${API_URL}/documents/${documentId}/versions`,
-        versionData,
-        { headers: getAuthHeader() }
-      );
+      const response = await api.post(`/documents/${documentId}/versions`, versionData);
       return response.data;
     } catch (error) {
       console.error('خطا در ایجاد نسخه جدید مستند:', error);
@@ -123,10 +100,7 @@ const documentService = {
    */
   getDocumentVersion: async (documentId: string, versionNumber: number) => {
     try {
-      const response = await axios.get(
-        `${API_URL}/documents/${documentId}/versions/${versionNumber}`,
-        { headers: getAuthHeader() }
-      );
+      const response = await api.get(`/documents/${documentId}/versions/${versionNumber}`);
       return response.data;
     } catch (error) {
       console.error('خطا در دریافت نسخه مستند:', error);
