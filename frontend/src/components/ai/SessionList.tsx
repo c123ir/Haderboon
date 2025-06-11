@@ -17,12 +17,15 @@ interface SessionListProps {
  * این کامپوننت لیست جلسات چت کاربر را نمایش می‌دهد
  */
 export const SessionList: React.FC<SessionListProps> = ({
-  sessions,
+  sessions = [], // مقدار پیش‌فرض
   currentSessionId,
   onSelectSession,
   onNewSession,
   onDeleteSession
 }) => {
+  // اطمینان از اینکه sessions یک آرایه است
+  const safeSessions = Array.isArray(sessions) ? sessions : [];
+  
   return (
     <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
       {/* هدر */}
@@ -37,12 +40,12 @@ export const SessionList: React.FC<SessionListProps> = ({
 
       {/* لیست جلسات */}
       <div className="flex-1 overflow-y-auto">
-        {sessions.length === 0 ? (
+        {safeSessions.length === 0 ? (
           <div className="p-4 text-center text-gray-500 font-vazirmatn">
             هیچ جلسه‌ای وجود ندارد
           </div>
         ) : (
-          sessions.map((session) => (
+          safeSessions.map((session) => (
             <div
               key={session.id}
               className={`p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-100 ${
