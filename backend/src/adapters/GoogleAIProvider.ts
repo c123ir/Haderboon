@@ -208,8 +208,8 @@ class GoogleAIProvider extends BaseAIProvider {
       const embeddingModel = model || 'embedding-001';
       const client = this.createClient(apiKey);
       
-      // درخواست embedding
-      const embeddingResult = await client.embedContent(embeddingModel, text);
+      // درخواست embedding با API صحیح
+      const embeddingResult = await client.getGenerativeModel({ model: embeddingModel }).embedContent(text);
       
       return embeddingResult.embedding.values;
     } catch (error) {
@@ -219,4 +219,4 @@ class GoogleAIProvider extends BaseAIProvider {
   }
 }
 
-export default GoogleAIProvider; 
+export default GoogleAIProvider;
