@@ -166,7 +166,19 @@ const aiApiKeyService = {
     
     try {
       // رمزگشایی کلید API
-      const decryptedKey = decrypt(apiKey.key);
+      // تغییر key به keyValue:
+      const decryptedKey = decrypt(apiKey.keyValue); // به جای apiKey.key
+      
+      // برای ایجاد API key:
+      const apiKey = await prisma.aIApiKey.create({
+        data: {
+          name: data.name,
+          keyValue: encryptedKey, // به جای key
+          providerId: data.providerId,
+          userId: data.userId,
+          expiresAt: data.expiresAt || null
+        }
+      });
       return {
         ...apiKey,
         key: decryptedKey,
@@ -178,4 +190,4 @@ const aiApiKeyService = {
   },
 };
 
-export default aiApiKeyService; 
+export default aiApiKeyService;
