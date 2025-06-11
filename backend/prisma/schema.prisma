@@ -16,13 +16,14 @@ datasource db {
 
 // مدل کاربر برای ایجنت هادربون
 model User {
-  id        String    @id @default(uuid()) // شناسه منحصر به فرد کاربر
-  email     String    @unique // ایمیل کاربر (منحصر به فرد)
-  username  String    @unique // نام کاربری (منحصر به فرد)
-  password  String   // پسورد هش شده کاربر
+  id        String   @id @default(uuid()) // شناسه منحصر به فرد کاربر
+  email     String   @unique // ایمیل کاربر (منحصر به فرد)
+  username  String   @unique // نام کاربری (منحصر به فرد)
+  password  String // پسورد هش شده کاربر
   name      String?
-  createdAt DateTime  @default(now()) // زمان ایجاد حساب کاربری
-  updatedAt DateTime  @updatedAt // زمان آخرین به‌روزرسانی
+  role      String   @default("USER") // نقش کاربر (USER, ADMIN)
+  createdAt DateTime @default(now()) // زمان ایجاد حساب کاربری
+  updatedAt DateTime @updatedAt // زمان آخرین به‌روزرسانی
   
   // ارتباط با سایر مدل‌ها
   projects  Project[] @relation("ProjectOwner")
