@@ -63,25 +63,41 @@ class OpenAIProvider extends BaseAIProvider {
    * @param apiKey کلید API
    * @returns لیست مدل‌ها
    */
-  async getAvailableModels(apiKey: string): Promise<Array<{
+  // تصحیح تابع getAvailableModels:
+  async getAvailableModels(apiKey: string): Promise<{
     id: string;
     name: string;
     capabilities: string[];
     contextSize?: number;
-  }>> {
+  }[]> {
     try {
       const client = this.createClient(apiKey);
       const response = await client.models.list();
       
       // تبدیل مدل‌های OpenAI به فرمت استاندارد
-      // اضافه کردن type annotation برای parameter
       return response.data.map((model: any) => {
-        // implementation
+        return { // اضافه کردن return
+          id: model.id,
+          name: model.id,
+          capabilities: ['chat', 'completion'],
+          contextSize: this.getModelContextSize(model.id)
+        };
       });
     } catch (error) {
       console.error('خطا در دریافت لیست مدل‌های OpenAI:', error);
       throw new Error('خطا در دریافت لیست مدل‌های OpenAI');
     }
+  }
+  
+  // اضافه کردن تابع کمکی:
+  private getModelContextSize(modelId: string): number {
+    const contextSizes: { [key: string]: number } = {
+      'gpt-4': 8192,
+      'gpt-4-turbo': 128000,
+      'gpt-3.5-turbo': 4096,
+      'gpt-3.5-turbo-16k': 16384
+    };
+    return contextSizes[modelId] || 4096;
   }
   
   /**

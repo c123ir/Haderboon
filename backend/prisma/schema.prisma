@@ -113,14 +113,15 @@ model AIModel {
   displayName  String
   description  String?
   maxTokens    Int?
-  capabilities String[] @default([]) // اضافه کردن این فیلد
+  contextSize  Int?     @default(4096) // اضافه کردن این فیلد
+  capabilities String[] @default([])
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   providerId   String
 
   // Relations
-  provider AIProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  provider AIProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
   sessions AISession[]
 
   @@map("ai_models")
