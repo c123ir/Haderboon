@@ -3,9 +3,9 @@
 // کنترلر مدیریت پروژه‌ها در ایجنت هادربون
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteProject = exports.updateProject = exports.getProjectById = exports.getAllProjects = exports.createProject = void 0;
-const prisma_1 = require("../generated/prisma");
+const client_1 = require("@prisma/client");
 // ایجاد نمونه از Prisma Client
-const prisma = new prisma_1.PrismaClient();
+const prisma = new client_1.PrismaClient();
 /**
  * ایجاد پروژه جدید
  * POST /api/v1/projects

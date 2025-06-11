@@ -3,9 +3,9 @@
 // کنترلر مدیریت مستندات در ایجنت هادربون
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDocumentVersion = exports.createDocumentVersion = exports.deleteDocument = exports.updateDocument = exports.getDocumentById = exports.getProjectDocuments = exports.createDocument = void 0;
-const prisma_1 = require("../generated/prisma");
+const client_1 = require("@prisma/client");
 // ایجاد نمونه از Prisma Client
-const prisma = new prisma_1.PrismaClient();
+const prisma = new client_1.PrismaClient();
 /**
  * ایجاد مستند جدید به همراه نسخه اولیه
  * POST /api/v1/documents

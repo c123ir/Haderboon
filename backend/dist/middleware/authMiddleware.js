@@ -3,10 +3,10 @@
 // این فایل شامل میدل‌ور احراز هویت برای محافظت از مسیرهای خاص است
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.admin = exports.protect = void 0;
-const prisma_1 = require("../generated/prisma");
+const client_1 = require("@prisma/client");
 const authUtils_1 = require("../utils/authUtils");
 // ایجاد نمونه Prisma برای تعامل با پایگاه داده
-const prisma = new prisma_1.PrismaClient();
+const prisma = new client_1.PrismaClient();
 /**
  * میدل‌ور احراز هویت برای بررسی توکن JWT
  * و بارگذاری اطلاعات کاربر در درخواست

@@ -4,9 +4,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loginUser = exports.registerUser = void 0;
 const authUtils_1 = require("../utils/authUtils");
-const prisma_1 = require("../generated/prisma");
+const client_1 = require("@prisma/client");
 // ایجاد نمونه Prisma برای تعامل با پایگاه داده
-const prisma = new prisma_1.PrismaClient();
+const prisma = new client_1.PrismaClient();
 /**
  * کنترلر ثبت‌نام کاربر جدید
  * @route POST /api/v1/auth/register

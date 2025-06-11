@@ -2,7 +2,7 @@
 // کنترلر مدیریت مستندات در ایجنت هادربون
 
 import { Request, Response } from 'express';
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { 
   CreateDocumentDto, 
   UpdateDocumentDto, 
@@ -649,4 +649,4 @@ export const getDocumentVersion = async (req: AuthenticatedRequest, res: Respons
       error: error.message 
     });
   }
-}; 
+};
