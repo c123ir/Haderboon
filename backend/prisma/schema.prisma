@@ -90,12 +90,13 @@ model AIProvider {
 }
 
 model AIApiKey {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   name       String
-  keyValue   String
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  keyValue   String    // این فیلد موجود است
+  isActive   Boolean   @default(true)
+  expiresAt  DateTime? // اضافه کردن این فیلد
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
   providerId String
   userId     String
 
@@ -107,18 +108,19 @@ model AIApiKey {
 }
 
 model AIModel {
-  id          String   @id @default(cuid())
-  name        String
-  displayName String
-  description String?
-  maxTokens   Int?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  providerId  String
+  id           String   @id @default(cuid())
+  name         String
+  displayName  String
+  description  String?
+  maxTokens    Int?
+  capabilities String[] @default([]) // اضافه کردن این فیلد
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  providerId   String
 
   // Relations
-  provider AIProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  provider AIProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
   sessions AISession[]
 
   @@map("ai_models")
