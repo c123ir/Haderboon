@@ -2,7 +2,7 @@
 // کنترلر مدیریت پروژه‌ها در ایجنت هادربون
 
 import { Request, Response } from 'express';
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { CreateProjectDto, UpdateProjectDto } from '../types/project.types';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
@@ -282,4 +282,4 @@ export const deleteProject = async (req: AuthenticatedRequest, res: Response) =>
       error: error.message 
     });
   }
-}; 
+};
