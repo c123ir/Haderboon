@@ -448,7 +448,7 @@ class AIController {
       res.json({
         success: true,
         data: {
-          sessions: sessions.map(session => ({
+          sessions: sessions.map((session: any) => ({
             ...session,
             messageCount: session._count.messages
           })),
@@ -519,4 +519,4 @@ class AIController {
   };
 }
 
-export default AIController; 
+export default AIController;
