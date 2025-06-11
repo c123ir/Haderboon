@@ -3,8 +3,8 @@
 
 import express from 'express';
 import AIController from '../controllers/AIController';
-import authenticate from '../middlewares/authenticate';
-import authorize from '../middlewares/authorize';
+import { protect as authenticate } from '../middleware/authMiddleware';
+import { admin as authorize } from '../middleware/authMiddleware';
 
 const router = express.Router();
 const aiController = new AIController();
@@ -21,28 +21,28 @@ router.get('/providers', authenticate, aiController.getProviders);
  * @desc    دریافت لیست کلیدهای API
  * @access  Private (Admin)
  */
-router.get('/api-keys', authenticate, authorize(['admin']), aiController.getApiKeys);
+router.get('/api-keys', authenticate, authorize, aiController.getApiKeys);
 
 /**
  * @route   POST /api/ai/api-keys
  * @desc    ایجاد کلید API جدید
  * @access  Private (Admin)
  */
-router.post('/api-keys', authenticate, authorize(['admin']), aiController.createApiKey);
+router.post('/api-keys', authenticate, authorize, aiController.createApiKey);
 
 /**
  * @route   PUT /api/ai/api-keys/:id
  * @desc    به‌روزرسانی کلید API
  * @access  Private (Admin)
  */
-router.put('/api-keys/:id', authenticate, authorize(['admin']), aiController.updateApiKey);
+router.put('/api-keys/:id', authenticate, authorize, aiController.updateApiKey);
 
 /**
  * @route   DELETE /api/ai/api-keys/:id
  * @desc    حذف کلید API
  * @access  Private (Admin)
  */
-router.delete('/api-keys/:id', authenticate, authorize(['admin']), aiController.deleteApiKey);
+router.delete('/api-keys/:id', authenticate, authorize, aiController.deleteApiKey);
 
 /**
  * @route   GET /api/ai/models
@@ -56,7 +56,7 @@ router.get('/models', authenticate, aiController.getModels);
  * @desc    دریافت لیست مدل‌های موجود از API سرویس‌دهنده
  * @access  Private (Admin)
  */
-router.get('/providers/:providerId/models', authenticate, authorize(['admin']), aiController.getAvailableModels);
+router.get('/providers/:providerId/models', authenticate, authorize, aiController.getAvailableModels);
 
 /**
  * @route   POST /api/ai/chat
