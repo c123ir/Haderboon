@@ -137,4 +137,273 @@ export interface AIMultiChatResponse {
   }[];
   summary?: string;        // جمع‌بندی پاسخ‌ها (اختیاری)
   sessionId: string;       // شناسه جلسه
+}
+
+/**
+ * تنظیمات درخواست چت
+ */
+export interface AIChatSettings {
+  /**
+   * دمای مدل (0.0 تا 1.0)
+   * مقادیر کمتر: پاسخ‌های متمرکزتر و قابل پیش‌بینی‌تر
+   * مقادیر بیشتر: پاسخ‌های متنوع‌تر و خلاقانه‌تر
+   */
+  temperature?: number;
+  
+  /**
+   * حداکثر تعداد توکن‌های پاسخ
+   */
+  maxTokens?: number;
+  
+  /**
+   * احتمال نمونه‌برداری هسته (nucleus sampling)
+   * مدل فقط از توکن‌هایی استفاده می‌کند که احتمال تجمعی آن‌ها کمتر از مقدار تعیین شده است
+   */
+  topP?: number;
+  
+  /**
+   * جریمه برای تکرار توکن‌ها
+   * مقادیر مثبت: کاهش احتمال تکرار کلمات و عبارات
+   */
+  frequencyPenalty?: number;
+  
+  /**
+   * جریمه برای استفاده از توکن‌های جدید
+   * مقادیر مثبت: افزایش احتمال صحبت درباره موضوعات جدید
+   */
+  presencePenalty?: number;
+  
+  /**
+   * انتخاب تصادفی از میان K توکن احتمالی بالا
+   */
+  topK?: number;
+}
+
+/**
+ * اطلاعات استفاده از توکن‌ها
+ */
+export interface AITokenUsage {
+  /**
+   * تعداد توکن‌های پرامپت
+   */
+  promptTokens: number;
+  
+  /**
+   * تعداد توکن‌های پاسخ
+   */
+  completionTokens: number;
+  
+  /**
+   * تعداد کل توکن‌ها
+   */
+  totalTokens: number;
+}
+
+/**
+ * اطلاعات یک سرویس‌دهنده AI
+ */
+export interface AIProviderInfo {
+  /**
+   * شناسه منحصر به فرد
+   */
+  id: string;
+  
+  /**
+   * نام سرویس‌دهنده
+   */
+  name: string;
+  
+  /**
+   * آدرس وب‌سایت
+   */
+  website?: string;
+  
+  /**
+   * توضیحات
+   */
+  description?: string;
+  
+  /**
+   * نیاز به کلید API
+   */
+  requiresApiKey: boolean;
+}
+
+/**
+ * اطلاعات یک مدل AI
+ */
+export interface AIModelInfo {
+  /**
+   * شناسه منحصر به فرد
+   */
+  id: string;
+  
+  /**
+   * نام نمایشی
+   */
+  name: string;
+  
+  /**
+   * نام سرویس‌دهنده
+   */
+  provider: string;
+  
+  /**
+   * قابلیت‌ها
+   */
+  capabilities: string[];
+  
+  /**
+   * اندازه حافظه متن (تعداد توکن‌ها)
+   */
+  contextSize?: number;
+  
+  /**
+   * توضیحات
+   */
+  description?: string;
+  
+  /**
+   * هزینه تقریبی به ازای 1000 توکن (به دلار)
+   */
+  costPer1KTokens?: {
+    input?: number;
+    output?: number;
+  };
+}
+
+/**
+ * نوع محتوای پیام
+ */
+export enum AIMessageContentType {
+  TEXT = 'text',
+  IMAGE = 'image',
+  AUDIO = 'audio',
+  VIDEO = 'video',
+  FILE = 'file'
+}
+
+/**
+ * نقش پیام
+ */
+export enum AIMessageRole {
+  USER = 'user',
+  ASSISTANT = 'assistant',
+  SYSTEM = 'system',
+  TOOL = 'tool'
+}
+
+/**
+ * محتوای پیام
+ */
+export interface AIMessageContent {
+  /**
+   * نوع محتوا
+   */
+  type: AIMessageContentType;
+  
+  /**
+   * متن یا URL محتوا
+   */
+  data: string;
+  
+  /**
+   * نام فایل (برای محتوای فایل)
+   */
+  filename?: string;
+  
+  /**
+   * اطلاعات اضافی (اختیاری)
+   */
+  meta?: Record<string, any>;
+}
+
+/**
+ * پیام جلسه AI
+ */
+export interface AIMessage {
+  /**
+   * شناسه منحصر به فرد
+   */
+  id: string;
+  
+  /**
+   * شناسه جلسه
+   */
+  sessionId: string;
+  
+  /**
+   * نقش پیام
+   */
+  role: AIMessageRole;
+  
+  /**
+   * محتوای پیام
+   */
+  content: AIMessageContent[] | string;
+  
+  /**
+   * زمان ایجاد
+   */
+  createdAt: Date;
+  
+  /**
+   * اطلاعات استفاده از توکن‌ها (برای پیام‌های دستیار)
+   */
+  usage?: AITokenUsage;
+}
+
+/**
+ * جلسه AI
+ */
+export interface AISession {
+  /**
+   * شناسه منحصر به فرد
+   */
+  id: string;
+  
+  /**
+   * عنوان جلسه
+   */
+  title: string;
+  
+  /**
+   * شناسه کاربر
+   */
+  userId: string;
+  
+  /**
+   * شناسه مدل
+   */
+  modelId: string;
+  
+  /**
+   * نام سرویس‌دهنده
+   */
+  provider: string;
+  
+  /**
+   * زمان ایجاد
+   */
+  createdAt: Date;
+  
+  /**
+   * آخرین به‌روزرسانی
+   */
+  updatedAt: Date;
+  
+  /**
+   * پیام سیستمی (دستورالعمل‌ها)
+   */
+  systemPrompt?: string;
+  
+  /**
+   * تنظیمات جلسه
+   */
+  settings?: AIChatSettings;
+  
+  /**
+   * تعداد پیام‌ها
+   */
+  messageCount: number;
 } 
