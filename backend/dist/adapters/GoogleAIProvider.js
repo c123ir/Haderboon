@@ -191,9 +191,10 @@ class GoogleAIProvider extends BaseAIProvider_1.default {
             }
             const client = this.createClient(apiKey);
             const embeddingModel = 'embedding-001';
-            // استفاده از متد صحیح برای embedding
+            // استفاده از متد صحیح برای embedding با اضافه کردن role
             const embeddingResult = await client.getGenerativeModel({ model: embeddingModel }).embedContent({
                 content: {
+                    role: 'user',
                     parts: [{ text }]
                 }
             });
