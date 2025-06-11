@@ -75,3 +75,78 @@ model DocumentVersion {
   changelog   String?
   isPublished Boolean   @default(false)
 }
+
+// مدل سرویس‌دهنده هوش مصنوعی
+model AIProvider {
+  id          String        @id @default(uuid())
+  name        String        // نام سرویس (OpenAI, Google, OpenRouter, ...)
+  displayName String        // نام نمایشی
+  description String?       // توضیحات
+  logoUrl     String?       // آدرس لوگو
+  baseUrl     String?       // آدرس پایه API
+  isActive    Boolean       @default(false)
+  priority    Int           @default(0)  // اولویت استفاده در حالت خودکار
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  apiKeys     AIApiKey[]    // کلیدهای API مرتبط با این سرویس
+  models      AIModel[]     // مدل‌های این سرویس
+  settings    Json?         // تنظیمات خاص سرویس به صورت JSON
+  sessions    AISession[]   // جلسات مکالمه با این سرویس
+}
+
+// مدل کلید API هوش مصنوعی
+model AIApiKey {
+  id          String      @id @default(uuid())
+  providerId  String      // ارتباط با سرویس
+  provider    AIProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name        String      // نام نمایشی برای کلید
+  key         String      // کلید API (رمزنگاری‌شده)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  expiresAt   DateTime?   // تاریخ انقضای کلید (اختیاری)
+}
+
+// مدل مدل هوش مصنوعی
+model AIModel {
+  id          String      @id @default(uuid())
+  providerId  String      // ارتباط با سرویس
+  provider    AIProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name        String      // نام مدل (gpt-4, claude-2, ...)
+  displayName String      // نام نمایشی
+  description String?     // توضیحات
+  isActive    Boolean     @default(true)
+  capabilities String[]   // قابلیت‌های مدل (chat, embedding, ...)
+  contextSize Int         // حداکثر اندازه متن ورودی
+  settings    Json?       // تنظیمات خاص مدل
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  sessions    AISession[]
+}
+
+// مدل جلسه چت با هوش مصنوعی
+model AISession {
+  id          String      @id @default(uuid())
+  title       String      // عنوان جلسه
+  providerId  String      // ارتباط با سرویس
+  provider    AIProvider  @relation(fields: [providerId], references: [id])
+  modelId     String      // ارتباط با مدل
+  model       AIModel     @relation(fields: [modelId], references: [id])
+  userId      String      // کاربر ایجادکننده
+  projectId   String?     // پروژه مرتبط (اختیاری)
+  documentId  String?     // مستند مرتبط (اختیاری)
+  messages    AIMessage[] // پیام‌های این جلسه
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  settings    Json?       // تنظیمات خاص این جلسه
+}
+
+// مدل پیام چت با هوش مصنوعی
+model AIMessage {
+  id          String      @id @default(uuid())
+  sessionId   String      // ارتباط با جلسه
+  session     AISession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role        String      // نقش پیام (user, assistant, system)
+  content     String      // محتوای پیام
+  createdAt   DateTime    @default(now())
+}
