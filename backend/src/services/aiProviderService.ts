@@ -23,7 +23,7 @@ const aiProviderService = {
       data: {
         name: data.name,
         displayName: data.displayName,
-        description: data.description, // اطمینان از وجود فیلد در schema
+        description: data.description, 
         // logoUrl: data.logoUrl, // این فیلد در schema.prisma وجود ندارد
         baseUrl: data.baseUrl,
         isActive: data.isActive || false,
@@ -95,7 +95,7 @@ const aiProviderService = {
       where: { id },
       data: {
         displayName: data.displayName,
-        description: data.description, // اطمینان از وجود فیلد در schema
+        description: data.description, 
         // logoUrl: data.logoUrl, // این فیلد در schema.prisma وجود ندارد
         baseUrl: data.baseUrl,
         isActive: data.isActive,
