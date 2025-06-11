@@ -2,7 +2,7 @@
 // کنترلر مدیریت مستندات در ایجنت هادربون
 
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { 
   CreateDocumentDto, 
   UpdateDocumentDto, 
@@ -77,7 +77,7 @@ export const createDocument = async (req: AuthenticatedRequest, res: Response) =
     }
 
     // ایجاد مستند جدید با تراکنش
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // ایجاد مستند
       const newDocument = await tx.document.create({
         data: {
@@ -189,11 +189,11 @@ export const getProjectDocuments = async (req: AuthenticatedRequest, res: Respon
     });
 
     // تبدیل به ساختار درختی
-    const documentsWithLatestVersion = documents.map(doc => ({
+    const documentsWithLatestVersion = documents.map((doc: any) => ({
       ...doc,
       latestVersion: doc.versions[0] || null,
       versions: undefined,
-      children: doc.children.map(child => ({
+      children: doc.children.map((child: any) => ({
         ...child,
         latestVersion: child.versions[0] || null,
         versions: undefined
@@ -295,7 +295,7 @@ export const getDocumentById = async (req: AuthenticatedRequest, res: Response) 
     const documentWithLatestVersion = {
       ...document,
       latestVersion,
-      children: document.children.map(child => ({
+      children: document.children.map((child: any) => ({
         ...child,
         latestVersion: child.versions[0] || null,
         versions: undefined
