@@ -1,32 +1,82 @@
 // backend/src/routes/aiRoutes.ts
-// مسیرهای API مربوط به هوش مصنوعی
+// مسیرهای API برای سیستم هوش مصنوعی
 
-import { Router } from 'express';
-import { 
-  createProvider,
-  getAllProviders,
-  getActiveProviders,
-  getProviderById,
-  updateProvider,
-  deleteProvider
-} from '../controllers/aiProviderController';
-import { protect, admin } from '../middleware/authMiddleware';
+import express from 'express';
+import AIController from '../controllers/AIController';
+import authenticate from '../middlewares/authenticate';
+import authorize from '../middlewares/authorize';
 
-const router = Router();
+const router = express.Router();
+const aiController = new AIController();
 
-// محافظت از تمام مسیرها با میدل‌ور احراز هویت
-router.use(protect);
+/**
+ * @route   GET /api/ai/providers
+ * @desc    دریافت لیست سرویس‌دهنده‌های هوش مصنوعی
+ * @access  Private
+ */
+router.get('/providers', authenticate, aiController.getProviders);
 
-// مسیرهای سرویس‌دهنده‌های هوش مصنوعی
-router.route('/providers')
-  .get(getAllProviders)          // دریافت همه سرویس‌دهنده‌ها
-  .post(admin, createProvider);  // ایجاد سرویس‌دهنده جدید (فقط مدیر)
+/**
+ * @route   GET /api/ai/api-keys
+ * @desc    دریافت لیست کلیدهای API
+ * @access  Private (Admin)
+ */
+router.get('/api-keys', authenticate, authorize(['admin']), aiController.getApiKeys);
 
-router.get('/providers/active', getActiveProviders); // دریافت سرویس‌دهنده‌های فعال
+/**
+ * @route   POST /api/ai/api-keys
+ * @desc    ایجاد کلید API جدید
+ * @access  Private (Admin)
+ */
+router.post('/api-keys', authenticate, authorize(['admin']), aiController.createApiKey);
 
-router.route('/providers/:id')
-  .get(getProviderById)           // دریافت یک سرویس‌دهنده
-  .put(admin, updateProvider)     // به‌روزرسانی سرویس‌دهنده (فقط مدیر)
-  .delete(admin, deleteProvider); // حذف سرویس‌دهنده (فقط مدیر)
+/**
+ * @route   PUT /api/ai/api-keys/:id
+ * @desc    به‌روزرسانی کلید API
+ * @access  Private (Admin)
+ */
+router.put('/api-keys/:id', authenticate, authorize(['admin']), aiController.updateApiKey);
+
+/**
+ * @route   DELETE /api/ai/api-keys/:id
+ * @desc    حذف کلید API
+ * @access  Private (Admin)
+ */
+router.delete('/api-keys/:id', authenticate, authorize(['admin']), aiController.deleteApiKey);
+
+/**
+ * @route   GET /api/ai/models
+ * @desc    دریافت لیست مدل‌های هوش مصنوعی
+ * @access  Private
+ */
+router.get('/models', authenticate, aiController.getModels);
+
+/**
+ * @route   GET /api/ai/providers/:providerId/models
+ * @desc    دریافت لیست مدل‌های موجود از API سرویس‌دهنده
+ * @access  Private (Admin)
+ */
+router.get('/providers/:providerId/models', authenticate, authorize(['admin']), aiController.getAvailableModels);
+
+/**
+ * @route   POST /api/ai/chat
+ * @desc    ارسال درخواست چت
+ * @access  Private
+ */
+router.post('/chat', authenticate, aiController.chat);
+
+/**
+ * @route   GET /api/ai/sessions
+ * @desc    دریافت لیست جلسات چت
+ * @access  Private
+ */
+router.get('/sessions', authenticate, aiController.getSessions);
+
+/**
+ * @route   GET /api/ai/sessions/:sessionId/messages
+ * @desc    دریافت پیام‌های یک جلسه
+ * @access  Private
+ */
+router.get('/sessions/:sessionId/messages', authenticate, aiController.getSessionMessages);
 
 export default router; 
