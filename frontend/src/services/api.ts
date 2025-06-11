@@ -32,9 +32,12 @@ export const setAuthToken = (token: string | null) => {
 export const loadToken = () => {
   const token = localStorage.getItem('token');
   if (token) {
-    setAuthToken(token);
+    // تنظیم هدر Authorization برای تمام درخواست‌های بعدی
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    console.log('توکن از localStorage بارگذاری شد:', token);
     return token;
   }
+  console.log('توکن در localStorage یافت نشد');
   return null;
 };
 
@@ -44,12 +47,24 @@ export const loadToken = () => {
 export const register = async (userData: RegisterUserInput) => {
   const { confirmPassword, ...registerData } = userData; // حذف confirmPassword از داده‌های ارسالی
   const response = await api.post('/auth/register', registerData);
+  
+  // ذخیره توکن در صورت موفقیت‌آمیز بودن درخواست
+  if (response.data && response.data.data && response.data.data.token) {
+    setAuthToken(response.data.data.token);
+  }
+  
   return response.data;
 };
 
 // ورود کاربر
 export const login = async (userData: LoginUserInput) => {
   const response = await api.post('/auth/login', userData);
+  
+  // ذخیره توکن در صورت موفقیت‌آمیز بودن درخواست
+  if (response.data && response.data.data && response.data.data.token) {
+    setAuthToken(response.data.data.token);
+  }
+  
   return response.data;
 };
 
@@ -61,8 +76,16 @@ export const getCurrentUser = async () => {
 
 // دریافت لیست پروژه‌ها
 export const fetchProjects = async (): Promise<Project[]> => {
-  const response = await api.get('/projects');
-  return response.data;
+  // اطمینان از تنظیم توکن قبل از درخواست
+  loadToken();
+  
+  try {
+    const response = await api.get('/projects');
+    return response.data.data || [];
+  } catch (error) {
+    console.error('خطا در دریافت پروژه‌ها:', error);
+    throw error;
+  }
 };
 
 // ابزار بررسی وضعیت سرور
