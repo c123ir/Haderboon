@@ -2,7 +2,7 @@
 // کنترلر مدیریت پروژه‌ها در ایجنت هادربون
 
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/prisma';
 import { CreateProjectDto, UpdateProjectDto } from '../types/project.types';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
