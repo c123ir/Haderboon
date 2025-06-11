@@ -145,9 +145,10 @@ model AISession {
 // مدل پیام چت با هوش مصنوعی
 model AIMessage {
   id          String      @id @default(uuid())
-  sessionId   String      // ارتباط با جلسه
+  sessionId   String      
   session     AISession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  role        String      // نقش پیام (user, assistant, system)
-  content     String      // محتوای پیام
+  role        String      
+  content     String      
+  usage       Json?       // اضافه کردن فیلد usage به صورت JSON
   createdAt   DateTime    @default(now())
 }
