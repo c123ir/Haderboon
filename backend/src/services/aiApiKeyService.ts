@@ -1,4 +1,4 @@
-// backend/src/services/aiApiKeyService.ts
+// مسیر فایل: src/services/aiApiKeyService.ts
 // سرویس مدیریت کلیدهای API هوش مصنوعی
 
 import { PrismaClient } from '@prisma/client';
@@ -16,7 +16,14 @@ const aiApiKeyService = {
    * @param data اطلاعات کلید API جدید
    * @returns کلید API ایجاد شده
    */
-  async createApiKey(data: AIApiKeyInput) {
+  async createApiKey(data: {
+    providerId: string;
+    name: string;
+    key: string;
+    isActive?: boolean;
+    expiresAt?: Date;
+    userId: string;
+  }) {
     // رمزنگاری کلید API قبل از ذخیره‌سازی
     const encryptedKey = encrypt(data.key);
     
@@ -24,9 +31,10 @@ const aiApiKeyService = {
       data: {
         providerId: data.providerId,
         name: data.name,
-        key: encryptedKey,
+        keyValue: encryptedKey, // استفاده از keyValue به جای key
         isActive: data.isActive !== undefined ? data.isActive : true,
         expiresAt: data.expiresAt,
+        userId: data.userId,
       },
     });
   },
@@ -50,7 +58,6 @@ const aiApiKeyService = {
    */
   async getActiveApiKeys(providerId: string) {
     const now = new Date();
-    
     return prisma.aIApiKey.findMany({
       where: {
         providerId,
@@ -65,44 +72,14 @@ const aiApiKeyService = {
   },
 
   /**
-   * دریافت یک کلید API با شناسه
+   * دریافت کلید API با شناسه
    * @param id شناسه کلید API
-   * @returns اطلاعات کلید API
+   * @returns کلید API
    */
   async getApiKeyById(id: string) {
     return prisma.aIApiKey.findUnique({
       where: { id },
-      include: {
-        provider: true,
-      },
     });
-  },
-
-  /**
-   * دریافت کلید API با رمزگشایی
-   * @param id شناسه کلید API
-   * @returns کلید API رمزگشایی شده
-   */
-  async getDecryptedApiKey(id: string) {
-    const apiKey = await prisma.aIApiKey.findUnique({
-      where: { id },
-    });
-    
-    if (!apiKey) {
-      return null;
-    }
-    
-    try {
-      // رمزگشایی کلید API
-      const decryptedKey = decrypt(apiKey.key);
-      return {
-        ...apiKey,
-        key: decryptedKey,
-      };
-    } catch (error) {
-      console.error('خطا در رمزگشایی کلید API:', error);
-      throw new Error('خطا در رمزگشایی کلید API');
-    }
   },
 
   /**
@@ -112,15 +89,12 @@ const aiApiKeyService = {
    * @returns کلید API به‌روزرسانی شده
    */
   async updateApiKey(id: string, data: AIApiKeyUpdateInput) {
-    const updateData: any = {
-      name: data.name,
-      isActive: data.isActive,
-      expiresAt: data.expiresAt,
-    };
+    const updateData: any = { ...data };
     
-    // اگر کلید جدید ارائه شده باشد، آن را رمزنگاری می‌کنیم
+    // اگر کلید جدید ارائه شده، آن را رمزنگاری کن
     if (data.key) {
-      updateData.key = encrypt(data.key);
+      updateData.keyValue = encrypt(data.key);
+      delete updateData.key;
     }
     
     return prisma.aIApiKey.update({
@@ -132,7 +106,7 @@ const aiApiKeyService = {
   /**
    * حذف کلید API
    * @param id شناسه کلید API
-   * @returns نتیجه حذف
+   * @returns کلید API حذف شده
    */
   async deleteApiKey(id: string) {
     return prisma.aIApiKey.delete({
@@ -141,13 +115,12 @@ const aiApiKeyService = {
   },
 
   /**
-   * دریافت کلید API فعال برای یک سرویس‌دهنده
+   * دریافت کلید API فعال برای استفاده
    * @param providerId شناسه سرویس‌دهنده
-   * @returns کلید API فعال با رمزگشایی
+   * @returns کلید API رمزگشایی شده
    */
-  async getActiveApiKeyForProvider(providerId: string) {
+  async getDecryptedApiKey(providerId: string) {
     const now = new Date();
-    
     const apiKey = await prisma.aIApiKey.findFirst({
       where: {
         providerId,
@@ -166,40 +139,7 @@ const aiApiKeyService = {
     
     try {
       // رمزگشایی کلید API
-      // تغییر key به keyValue:
-      // تصحیح تابع createApiKey:
-      async createApiKey(data: {
-        providerId: string;
-        name: string;
-        key: string;
-        isActive?: boolean;
-        expiresAt?: Date;
-        userId: string;
-      }) {
-        const encryptedKey = encrypt(data.key);
-        
-        return prisma.aIApiKey.create({
-          data: {
-            providerId: data.providerId,
-            name: data.name,
-            keyValue: encryptedKey, // تغییر از key به keyValue
-            isActive: data.isActive !== undefined ? data.isActive : true,
-            expiresAt: data.expiresAt,
-            userId: data.userId, // اضافه کردن userId
-          },
-        });
-      }
-      
-      // برای ایجاد API key:
-      const apiKey = await prisma.aIApiKey.create({
-        data: {
-          name: data.name,
-          keyValue: encryptedKey, // به جای key
-          providerId: data.providerId,
-          userId: data.userId,
-          expiresAt: data.expiresAt || null
-        }
-      });
+      const decryptedKey = decrypt(apiKey.keyValue);
       return {
         ...apiKey,
         key: decryptedKey,
