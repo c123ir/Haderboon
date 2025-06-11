@@ -99,6 +99,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // بررسی توکن و بارگذاری اطلاعات کاربر در هنگام بارگذاری اپلیکیشن
   useEffect(() => {
     const loadUser = async () => {
+      // تنظیم وضعیت بارگذاری
+      dispatch({ type: AuthActionTypes.SET_LOADING, payload: true });
+      
+      // بارگذاری توکن از localStorage
       const token = authService.loadToken();
       
       if (!token) {
@@ -107,10 +111,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-        const { user } = await authService.getCurrentUser();
-        dispatch({ type: AuthActionTypes.USER_LOADED, payload: user });
+        // دریافت اطلاعات کاربر از سرور
+        const data = await authService.getCurrentUser();
+        if (data && data.data && data.data.user) {
+          dispatch({ type: AuthActionTypes.USER_LOADED, payload: data.data.user });
+        } else {
+          throw new Error('خطا در دریافت اطلاعات کاربر');
+        }
       } catch (error) {
-        dispatch({ type: AuthActionTypes.AUTH_ERROR, payload: 'نشست شما منقضی شده است. لطفاً دوباره وارد شوید.' });
+        console.error('خطا در احراز هویت:', error);
+        dispatch({ 
+          type: AuthActionTypes.AUTH_ERROR, 
+          payload: 'نشست شما منقضی شده است. لطفاً دوباره وارد شوید.' 
+        });
       }
     };
 
@@ -122,10 +135,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       dispatch({ type: AuthActionTypes.SET_LOADING, payload: true });
       const data = await authService.login(userData);
-      dispatch({
-        type: AuthActionTypes.LOGIN_SUCCESS,
-        payload: { user: data.user, token: data.token },
-      });
+      
+      if (data && data.data) {
+        dispatch({
+          type: AuthActionTypes.LOGIN_SUCCESS,
+          payload: { user: data.data.user, token: data.data.token },
+        });
+      } else {
+        throw new Error('داده‌های ورود معتبر نیستند');
+      }
     } catch (error: any) {
       const message = error.response?.data?.message || 'خطا در ورود به سیستم';
       dispatch({ type: AuthActionTypes.AUTH_ERROR, payload: message });
@@ -137,10 +155,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       dispatch({ type: AuthActionTypes.SET_LOADING, payload: true });
       const data = await authService.register(userData);
-      dispatch({
-        type: AuthActionTypes.REGISTER_SUCCESS,
-        payload: { user: data.user, token: data.token },
-      });
+      
+      if (data && data.data) {
+        dispatch({
+          type: AuthActionTypes.REGISTER_SUCCESS,
+          payload: { user: data.data.user, token: data.data.token },
+        });
+      } else {
+        throw new Error('داده‌های ثبت‌نام معتبر نیستند');
+      }
     } catch (error: any) {
       const message = error.response?.data?.message || 'خطا در ثبت‌نام';
       dispatch({ type: AuthActionTypes.AUTH_ERROR, payload: message });
