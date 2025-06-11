@@ -9,6 +9,7 @@ import { AISession, AIMessage } from '../utils/types';
 import SessionList from '../components/ai/SessionList';
 import ChatMessage from '../components/ai/ChatMessage';
 import ChatInput from '../components/ai/ChatInput';
+import { useSettings } from '../hooks/useSettings';
 
 /**
  * صفحه چت هوشمند
@@ -18,6 +19,7 @@ const AIChat: React.FC = () => {
   const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { settings, getApiKey, getModel, isProviderConfigured } = useSettings();
 
   // State مدیریت جلسات و پیام‌ها
   const [sessions, setSessions] = useState<AISession[]>([]);
@@ -25,6 +27,8 @@ const AIChat: React.FC = () => {
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
+  const [selectedProvider, setSelectedProvider] = useState<'openai' | 'anthropic' | 'google'>('openai');
+  const [selectedModel, setSelectedModel] = useState<string>('');
 
   // هدایت به صفحه ورود اگر کاربر احراز هویت نشده است
   useEffect(() => {
@@ -112,17 +116,30 @@ const AIChat: React.FC = () => {
     }
   };
 
+  // تنظیم مدل پیش‌فرض بر اساس provider انتخاب شده
+  useEffect(() => {
+    const model = getModel(selectedProvider);
+    if (model) {
+      setSelectedModel(model);
+    }
+  }, [selectedProvider, getModel]);
+
   const handleSendMessage = async (messageContent: string) => {
     if (!currentSession) {
-      // اگر جلسه‌ای وجود ندارد، ابتدا یکی ایجاد کن
       await handleNewSession();
+      return;
+    }
+
+    // بررسی اینکه provider انتخاب شده پیکربندی شده باشد
+    if (!isProviderConfigured(selectedProvider)) {
+      alert(`لطفاً ابتدا کلید API برای ${selectedProvider} را در تنظیمات وارد کنید.`);
+      navigate('/settings');
       return;
     }
 
     try {
       setIsLoading(true);
       
-      // اضافه کردن پیام کاربر به لیست پیام‌ها
       const userMessage: AIMessage = {
         id: Date.now().toString(),
         content: messageContent,
@@ -133,27 +150,22 @@ const AIChat: React.FC = () => {
       
       setMessages(prev => [...prev, userMessage]);
       
-      // ارسال پیام به سرور
+      // ارسال پیام با مدل انتخاب شده
       const response = await aiService.sendMessage({
         message: messageContent,
-        sessionId: currentSession.id
+        sessionId: currentSession.id,
+        modelId: selectedModel,
+        providerId: selectedProvider
       });
       
-      // اضافه کردن پاسخ دستیار
       setMessages(prev => [...prev, response.message]);
-      
-      // به‌روزرسانی جلسه فعلی
       setCurrentSession(response.session);
-      
-      // به‌روزرسانی لیست جلسات
       setSessions(prev => 
         prev.map(s => s.id === response.session.id ? response.session : s)
       );
       
     } catch (error) {
       console.error('خطا در ارسال پیام:', error);
-      // حذف پیام کاربر در صورت خطا
-      setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
@@ -181,17 +193,79 @@ const AIChat: React.FC = () => {
 
       {/* منطقه اصلی چت */}
       <div className="flex-1 flex flex-col">
+        // در بخش JSX، قبل از منطقه پیام‌ها:
         {/* هدر */}
-        <div className="bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-800 font-vazirmatn">
-            {currentSession ? currentSession.title : 'چت هوشمند هادربون'}
-          </h1>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800 font-vazirmatn"
-          >
-            بازگشت به داشبورد
-          </button>
+        <div className="bg-white border-b border-gray-200 p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-xl font-bold text-gray-800 font-vazirmatn">
+              {currentSession ? currentSession.title : 'چت هوشمند هادربون'}
+            </h1>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 font-vazirmatn"
+            >
+              بازگشت به داشبورد
+            </button>
+          </div>
+          
+          {/* انتخابگر مدل */}
+          <div className="flex gap-4 items-center">
+            <div className="flex gap-2">
+              <label className="text-sm font-medium text-gray-700 font-vazirmatn">ارائه‌دهنده:</label>
+              <select
+                value={selectedProvider}
+                onChange={(e) => setSelectedProvider(e.target.value as 'openai' | 'anthropic' | 'google')}
+                className="px-3 py-1 border border-gray-300 rounded text-sm font-vazirmatn"
+              >
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic</option>
+                <option value="google">Google AI</option>
+              </select>
+            </div>
+            
+            <div className="flex gap-2">
+              <label className="text-sm font-medium text-gray-700 font-vazirmatn">مدل:</label>
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="px-3 py-1 border border-gray-300 rounded text-sm font-vazirmatn"
+                disabled={!isProviderConfigured(selectedProvider)}
+              >
+                {selectedProvider === 'openai' && (
+                  <>
+                    <option value="gpt-4">GPT-4</option>
+                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                  </>
+                )}
+                {selectedProvider === 'anthropic' && (
+                  <>
+                    <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                    <option value="claude-3-sonnet-20240229">Claude 3 Sonnet</option>
+                    <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+                  </>
+                )}
+                {selectedProvider === 'google' && (
+                  <>
+                    <option value="gemini-pro">Gemini Pro</option>
+                    <option value="gemini-pro-vision">Gemini Pro Vision</option>
+                  </>
+                )}
+              </select>
+            </div>
+            
+            {!isProviderConfigured(selectedProvider) && (
+              <div className="text-sm text-red-600 font-vazirmatn">
+                <span>کلید API تنظیم نشده - </span>
+                <button
+                  onClick={() => navigate('/settings')}
+                  className="underline hover:text-red-800"
+                >
+                  تنظیمات
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* منطقه پیام‌ها */}
