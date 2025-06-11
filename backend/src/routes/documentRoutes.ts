@@ -4,10 +4,11 @@
 import { Router } from 'express';
 import { 
   createDocument, 
-  // getProjectDocuments, // این تابع در کنترلر وجود ندارد
+  getUserDocuments, // اضافه شد
   getDocumentById, 
   updateDocument, 
   deleteDocument,
+  // getProjectDocuments, // این تابع در کنترلر وجود ندارد
   // createDocumentVersion, // این تابع در کنترلر وجود ندارد
   // getDocumentVersion // این تابع در کنترلر وجود ندارد
 } from '../controllers/documentController';
@@ -20,6 +21,7 @@ router.use(protect);
 
 // مسیرهای مستندات
 router.post('/', createDocument);
+router.get('/', getUserDocuments); // اضافه شد: مسیر برای دریافت تمام اسناد کاربر (می‌تواند با کوئری پارامتر projectId فیلتر شود)
 router.get('/:id', getDocumentById);
 router.put('/:id', updateDocument);
 router.delete('/:id', deleteDocument);
@@ -29,6 +31,6 @@ router.delete('/:id', deleteDocument);
 // router.get('/:id/versions/:versionNumber', getDocumentVersion); // این تابع در کنترلر وجود ندارد
 
 // دریافت مستندات یک پروژه
-// router.get('/project/:projectId', getProjectDocuments); // این تابع در کنترلر وجود ندارد
+// router.get('/project/:projectId', getProjectDocuments); // این تابع در کنترلر وجود ندارد و عملکرد مشابه با GET /?projectId=xxx دارد
 
 export default router;
