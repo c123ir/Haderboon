@@ -21,10 +21,12 @@ export const setAuthToken = (token: string | null) => {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     // ذخیره توکن در localStorage
     localStorage.setItem('token', token);
+    console.log('توکن در localStorage ذخیره شد');
   } else {
     delete api.defaults.headers.common['Authorization'];
     // حذف توکن از localStorage
     localStorage.removeItem('token');
+    console.log('توکن از localStorage حذف شد');
   }
 };
 
@@ -70,8 +72,16 @@ export const login = async (userData: LoginUserInput) => {
 
 // دریافت اطلاعات کاربر فعلی
 export const getCurrentUser = async () => {
-  const response = await api.get('/auth/me');
-  return response.data;
+  try {
+    // اطمینان از تنظیم توکن قبل از درخواست
+    loadToken();
+    
+    const response = await api.get('/auth/me');
+    return response.data;
+  } catch (error) {
+    console.error('خطا در دریافت اطلاعات کاربر:', error);
+    throw error;
+  }
 };
 
 // دریافت لیست پروژه‌ها
@@ -80,10 +90,21 @@ export const fetchProjects = async (): Promise<Project[]> => {
   loadToken();
   
   try {
+    console.log('در حال دریافت پروژه‌ها از سرور...');
     const response = await api.get('/projects');
-    return response.data.data || [];
+    
+    if (response.status === 200 && response.data.success) {
+      console.log('پروژه‌ها با موفقیت دریافت شدند:', response.data.data);
+      return response.data.data || [];
+    } else {
+      console.warn('پاسخ غیرمنتظره از API:', response.data);
+      return [];
+    }
   } catch (error) {
     console.error('خطا در دریافت پروژه‌ها:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      console.error('جزئیات خطای API:', error.response.data);
+    }
     throw error;
   }
 };
