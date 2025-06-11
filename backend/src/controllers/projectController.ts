@@ -5,6 +5,15 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { CreateProjectDto, UpdateProjectDto } from '../types/project.types';
 
+// تعریف interface برای درخواست احراز هویت شده
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    email?: string;
+    username?: string;
+  };
+}
+
 // ایجاد نمونه از Prisma Client
 const prisma = new PrismaClient();
 
@@ -12,7 +21,7 @@ const prisma = new PrismaClient();
  * ایجاد پروژه جدید
  * POST /api/v1/projects
  */
-export const createProject = async (req: Request, res: Response) => {
+export const createProject = async (req: AuthenticatedRequest, res: Response) => {
   try {
     // دریافت اطلاعات پروژه از بدنه درخواست
     const { name, description, path } = req.body as CreateProjectDto;
@@ -65,7 +74,7 @@ export const createProject = async (req: Request, res: Response) => {
  * دریافت همه پروژه‌های کاربر
  * GET /api/v1/projects
  */
-export const getAllProjects = async (req: Request, res: Response) => {
+export const getAllProjects = async (req: AuthenticatedRequest, res: Response) => {
   try {
     // دریافت شناسه کاربر از احراز هویت
     const userId = req.user?.id;
@@ -107,7 +116,7 @@ export const getAllProjects = async (req: Request, res: Response) => {
  * دریافت اطلاعات یک پروژه با شناسه
  * GET /api/v1/projects/:id
  */
-export const getProjectById = async (req: Request, res: Response) => {
+export const getProjectById = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
@@ -162,7 +171,7 @@ export const getProjectById = async (req: Request, res: Response) => {
  * بروزرسانی اطلاعات یک پروژه
  * PUT /api/v1/projects/:id
  */
-export const updateProject = async (req: Request, res: Response) => {
+export const updateProject = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { name, description, path } = req.body as UpdateProjectDto;
@@ -228,7 +237,7 @@ export const updateProject = async (req: Request, res: Response) => {
  * حذف یک پروژه
  * DELETE /api/v1/projects/:id
  */
-export const deleteProject = async (req: Request, res: Response) => {
+export const deleteProject = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
