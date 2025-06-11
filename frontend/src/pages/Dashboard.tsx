@@ -1,14 +1,17 @@
 // frontend/src/pages/Dashboard.tsx
 // این فایل شامل صفحه داشبورد کاربران است
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import projectService from '../services/projectService';
 
 // صفحه داشبورد
 const Dashboard: React.FC = () => {
   const { isAuthenticated, user, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const [projects, setProjects] = useState<any[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState<boolean>(true);
 
   // هدایت به صفحه ورود اگر کاربر احراز هویت نشده است
   useEffect(() => {
@@ -16,6 +19,25 @@ const Dashboard: React.FC = () => {
       navigate('/login');
     }
   }, [isAuthenticated, loading, navigate]);
+
+  // بارگذاری اطلاعات پروژه‌ها
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
+      const fetchProjects = async () => {
+        try {
+          setIsLoadingProjects(true);
+          const response = await projectService.getAllProjects();
+          setProjects(response.data || []);
+        } catch (error) {
+          console.error('خطا در بارگذاری پروژه‌ها:', error);
+        } finally {
+          setIsLoadingProjects(false);
+        }
+      };
+
+      fetchProjects();
+    }
+  }, [isAuthenticated, loading]);
 
   // مدیریت خروج از حساب کاربری
   const handleLogout = () => {
@@ -63,7 +85,7 @@ const Dashboard: React.FC = () => {
             </div>
           )}
           <p className="mt-4 text-right text-gray-600 font-vazirmatn">
-            این یک صفحه داشبورد ساده است. در نسخه‌های بعدی، قابلیت‌های بیشتری به این صفحه اضافه خواهد شد.
+            از طریق کارت‌های زیر می‌توانید به بخش‌های مختلف ایجنت هادربون دسترسی داشته باشید.
           </p>
           
           {/* کارت‌های دسترسی سریع */}
@@ -79,11 +101,24 @@ const Dashboard: React.FC = () => {
                 </div>
               </Link>
               
-              {/* کارت‌های دیگر برای بخش‌های آینده */}
-              <div className="block p-6 transition-shadow bg-white border rounded-lg shadow-sm opacity-50">
-                <h4 className="mb-2 text-lg font-semibold text-right text-gray-800 font-vazirmatn">مستندات</h4>
-                <p className="text-right text-gray-600 font-vazirmatn">مدیریت مستندات پروژه‌ها (به زودی)</p>
-              </div>
+              {/* کارت مستندات */}
+              {projects.length > 0 ? (
+                <Link to={`/projects/${projects[0].id}/documents`} className="block p-6 transition-shadow bg-white border rounded-lg shadow-sm hover:shadow-md">
+                  <h4 className="mb-2 text-lg font-semibold text-right text-gray-800 font-vazirmatn">مستندات</h4>
+                  <p className="text-right text-gray-600 font-vazirmatn">مدیریت مستندات پروژه‌ها، ایجاد و ویرایش مستندات</p>
+                  <div className="flex justify-end mt-4">
+                    <span className="px-3 py-1 text-xs text-white bg-green-600 rounded-full">مشاهده مستندات</span>
+                  </div>
+                </Link>
+              ) : (
+                <Link to="/projects" className="block p-6 transition-shadow bg-white border rounded-lg shadow-sm hover:shadow-md">
+                  <h4 className="mb-2 text-lg font-semibold text-right text-gray-800 font-vazirmatn">مستندات</h4>
+                  <p className="text-right text-gray-600 font-vazirmatn">برای مشاهده مستندات ابتدا یک پروژه ایجاد کنید</p>
+                  <div className="flex justify-end mt-4">
+                    <span className="px-3 py-1 text-xs text-white bg-green-600 rounded-full">ایجاد پروژه</span>
+                  </div>
+                </Link>
+              )}
               
               <div className="block p-6 transition-shadow bg-white border rounded-lg shadow-sm opacity-50">
                 <h4 className="mb-2 text-lg font-semibold text-right text-gray-800 font-vazirmatn">چت هوشمند</h4>
