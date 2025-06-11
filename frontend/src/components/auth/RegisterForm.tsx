@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { RegisterUserInput } from '../../utils/types';
+import { RegisterUserInput } from '../../types'; // تغییر مسیر
 
 // کامپوننت فرم ثبت‌نام
 const RegisterForm: React.FC = () => {
@@ -159,4 +159,4 @@ const RegisterForm: React.FC = () => {
   );
 };
 
-export default RegisterForm; 
+export default RegisterForm;
