@@ -204,7 +204,13 @@ class GoogleAIProvider extends BaseAIProvider {
    */
   async generateEmbedding(text: string): Promise<number[]> {
     try {
-      const client = this.getClient();
+      // دریافت کلید API از تنظیمات
+      const apiKey = this.config?.apiKey;
+      if (!apiKey) {
+        throw new Error('کلید API Google AI تنظیم نشده است');
+      }
+      
+      const client = this.createClient(apiKey);
       const embeddingModel = 'embedding-001';
       
       // استفاده از متد صحیح برای embedding
