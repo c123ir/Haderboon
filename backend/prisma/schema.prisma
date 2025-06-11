@@ -121,7 +121,7 @@ model AIModel {
   providerId   String
 
   // Relations
-  provider AIProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  provider AIProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
   sessions AISession[]
 
   @@map("ai_models")
