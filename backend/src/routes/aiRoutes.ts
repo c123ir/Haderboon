@@ -3,7 +3,7 @@
 import express from 'express';
 import {
   createProvider,
-  getProviders,
+  getAllProviders, // تغییر از getProviders به getAllProviders
   getProviderById,
   updateProvider,
   deleteProvider,
@@ -26,7 +26,7 @@ router.use(protect);
 // مسیرهای مدیریت ارائه‌دهندگان AI
 // این مسیرها ممکن است نیاز به دسترسی ادمین داشته باشند (adminProtect)
 router.route('/providers')
-  .get(getProviders) // همه کاربران می‌توانند لیست را ببینند
+  .get(getAllProviders) // تغییر از getProviders به getAllProviders
   .post(createProvider); // TODO: .post(adminProtect, createProvider) - فقط ادمین‌ها می‌توانند ایجاد کنند
 
 router.route('/providers/:id')
