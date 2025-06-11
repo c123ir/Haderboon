@@ -3,7 +3,7 @@
 
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { AuthContextType } from '../utils/types';
+import { AuthContextType } from '../types'; // تغییر مسیر
 
 // هوک سفارشی برای دسترسی به کانتکست احراز هویت
 export const useAuth = (): AuthContextType => {
@@ -14,4 +14,4 @@ export const useAuth = (): AuthContextType => {
   }
   
   return context;
-}; 
+};
