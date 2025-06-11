@@ -63,6 +63,37 @@ class AIService {
     const response = await api.put(`/ai/sessions/${sessionId}`, { title });
     return response.data;
   }
+
+  // در تابع sendMessage:
+  async sendMessage(data: {
+    message: string;
+    sessionId: string;
+    modelId?: string;
+    providerId?: string;
+  }): Promise<{
+    message: AIMessage;
+    session: AISession;
+  }> {
+    const response = await fetch(`${this.baseURL}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.getToken()}`
+      },
+      body: JSON.stringify({
+        message: data.message,
+        sessionId: data.sessionId,
+        modelId: data.modelId,
+        providerId: data.providerId
+      })
+    });
+  
+    if (!response.ok) {
+      throw new Error('خطا در ارسال پیام');
+    }
+  
+    return response.json();
+  }
 }
 
 export default new AIService();
