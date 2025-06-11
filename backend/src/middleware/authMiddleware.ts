@@ -3,16 +3,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
+import { AuthRequest } from '../types/auth'; // استفاده از نوع AuthRequest تعریف شده
 
 const prisma = new PrismaClient();
-
-interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
-}
 
 /**
  * میدل‌ویر احراز هویت
@@ -32,9 +25,11 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
+    
+    // استفاده از userId بجای id
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id }
+      where: { id: decoded.userId }
     });
 
     if (!user) {
@@ -52,9 +47,10 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
 
     next();
   } catch (error) {
+    console.error('خطا در تأیید توکن:', error);
     return res.status(401).json({
       success: false,
-      message: 'توکن نامعتبر'
+      message: 'توکن نامعتبر یا منقضی شده'
     });
   }
 };
