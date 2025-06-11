@@ -4,6 +4,7 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes';
 import projectRoutes from './routes/projectRoutes';
 import documentRoutes from './routes/documentRoutes';
+import aiRoutes from './routes/aiRoutes';
 import morgan from 'morgan';
 import helmet from 'helmet';
 
@@ -27,7 +28,10 @@ app.use(morgan('dev'));
 app.use('/api/v1/auth', authRoutes);
 // مسیرهای مدیریت پروژه‌ها
 app.use('/api/v1/projects', projectRoutes);
+// مسیرهای مدیریت مستندات
 app.use('/api/v1/documents', documentRoutes);
+// مسیرهای مدیریت هوش مصنوعی
+app.use('/api/v1/ai', aiRoutes);
 
 // مسیر تست برای اطمینان از عملکرد صحیح سرور
 app.get('/', (req: Request, res: Response) => {
