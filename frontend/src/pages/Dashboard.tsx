@@ -2,7 +2,7 @@
 // این فایل شامل صفحه داشبورد کاربران است
 
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 // صفحه داشبورد
@@ -65,6 +65,32 @@ const Dashboard: React.FC = () => {
           <p className="mt-4 text-right text-gray-600 font-vazirmatn">
             این یک صفحه داشبورد ساده است. در نسخه‌های بعدی، قابلیت‌های بیشتری به این صفحه اضافه خواهد شد.
           </p>
+          
+          {/* کارت‌های دسترسی سریع */}
+          <div className="mt-8">
+            <h3 className="mb-4 text-lg font-semibold text-right text-gray-800 font-vazirmatn">دسترسی سریع</h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {/* کارت پروژه‌ها */}
+              <Link to="/projects" className="block p-6 transition-shadow bg-white border rounded-lg shadow-sm hover:shadow-md">
+                <h4 className="mb-2 text-lg font-semibold text-right text-gray-800 font-vazirmatn">پروژه‌های من</h4>
+                <p className="text-right text-gray-600 font-vazirmatn">مدیریت پروژه‌های خود، ایجاد پروژه جدید و مشاهده جزئیات پروژه‌ها</p>
+                <div className="flex justify-end mt-4">
+                  <span className="px-3 py-1 text-xs text-white bg-indigo-600 rounded-full">مشاهده پروژه‌ها</span>
+                </div>
+              </Link>
+              
+              {/* کارت‌های دیگر برای بخش‌های آینده */}
+              <div className="block p-6 transition-shadow bg-white border rounded-lg shadow-sm opacity-50">
+                <h4 className="mb-2 text-lg font-semibold text-right text-gray-800 font-vazirmatn">مستندات</h4>
+                <p className="text-right text-gray-600 font-vazirmatn">مدیریت مستندات پروژه‌ها (به زودی)</p>
+              </div>
+              
+              <div className="block p-6 transition-shadow bg-white border rounded-lg shadow-sm opacity-50">
+                <h4 className="mb-2 text-lg font-semibold text-right text-gray-800 font-vazirmatn">چت هوشمند</h4>
+                <p className="text-right text-gray-600 font-vazirmatn">گفتگو با ایجنت هوشمند هادربون (به زودی)</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
