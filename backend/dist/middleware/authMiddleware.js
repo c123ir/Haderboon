@@ -1,105 +1,93 @@
 "use strict";
 // backend/src/middleware/authMiddleware.ts
-// این فایل شامل میدل‌ور احراز هویت برای محافظت از مسیرهای خاص است
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.admin = exports.protect = void 0;
+exports.authorize = exports.protect = void 0;
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const client_1 = require("@prisma/client");
-const authUtils_1 = require("../utils/authUtils");
-// ایجاد نمونه Prisma برای تعامل با پایگاه داده
 const prisma = new client_1.PrismaClient();
 /**
- * میدل‌ور احراز هویت برای بررسی توکن JWT
- * و بارگذاری اطلاعات کاربر در درخواست
+ * میدل‌ویر احراز هویت
+ * بررسی اعتبار JWT token و اضافه کردن اطلاعات کاربر به request
  */
 const protect = async (req, res, next) => {
     try {
-        // دریافت توکن از هدر Authorization
         let token;
+        // بررسی وجود token در header
         if (req.headers.authorization &&
             req.headers.authorization.startsWith('Bearer')) {
-            // جدا کردن توکن از "Bearer "
             token = req.headers.authorization.split(' ')[1];
         }
-        // اگر توکن وجود نداشت
+        // اگر token وجود نداشت
         if (!token) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
-                message: 'توکن احراز هویت وجود ندارد، لطفاً وارد سیستم شوید',
+                message: 'دسترسی غیرمجاز - توکن ارائه نشده است'
             });
+            return;
         }
-        // بررسی اعتبار توکن
-        const userId = (0, authUtils_1.verifyToken)(token);
-        if (!userId) {
-            return res.status(401).json({
-                success: false,
-                message: 'توکن نامعتبر یا منقضی شده است، لطفاً مجدداً وارد سیستم شوید',
-            });
-        }
-        // یافتن کاربر با شناسه استخراج شده از توکن
+        // تأیید اعتبار token
+        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+        // یافتن کاربر در پایگاه داده
         const user = await prisma.user.findUnique({
-            where: { id: userId },
+            where: { id: decoded.id },
             select: {
                 id: true,
                 email: true,
                 username: true,
-            },
+                role: true,
+                isActive: true
+            }
         });
-        // اگر کاربر در پایگاه داده وجود نداشت
-        if (!user) {
-            return res.status(401).json({
+        // بررسی وجود کاربر و فعال بودن آن
+        if (!user || !user.isActive) {
+            res.status(401).json({
                 success: false,
-                message: 'کاربر متعلق به این توکن یافت نشد',
+                message: 'کاربر یافت نشد یا غیرفعال است'
             });
+            return;
         }
-        // افزودن اطلاعات کاربر به درخواست برای استفاده در کنترلرهای بعدی
-        req.user = user;
-        // ادامه به کنترلر بعدی
+        // اضافه کردن اطلاعات کاربر به request
+        req.user = {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            role: user.role
+        };
         next();
     }
     catch (error) {
-        console.error('خطا در میدل‌ور احراز هویت:', error);
-        return res.status(500).json({
+        console.error('خطا در میدل‌ویر احراز هویت:', error);
+        res.status(401).json({
             success: false,
-            message: 'خطای سرور در احراز هویت',
+            message: 'توکن نامعتبر است'
         });
     }
 };
 exports.protect = protect;
 /**
- * میدل‌ور بررسی دسترسی ادمین
- * فقط کاربران با نقش admin اجازه دسترسی دارند
+ * میدل‌ویر بررسی نقش کاربر
+ * @param roles - نقش‌های مجاز
  */
-const admin = async (req, res, next) => {
-    try {
-        // بررسی وجود اطلاعات کاربر (باید قبلاً authenticate شده باشد)
-        const authenticatedReq = req;
-        if (!authenticatedReq.user) {
-            return res.status(401).json({
+const authorize = (...roles) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            res.status(401).json({
                 success: false,
-                message: 'کاربر احراز هویت نشده است',
+                message: 'دسترسی غیرمجاز'
             });
+            return;
         }
-        // دریافت اطلاعات کامل کاربر از پایگاه داده
-        const user = await prisma.user.findUnique({
-            where: { id: authenticatedReq.user.id },
-            select: { id: true, email: true, username: true, role: true }
-        });
-        // بررسی نقش کاربر
-        if (!user || user.role !== 'ADMIN') {
-            return res.status(403).json({
+        if (!roles.includes(req.user.role)) {
+            res.status(403).json({
                 success: false,
-                message: 'دسترسی مجاز نیست - نیاز به دسترسی ادمین',
+                message: 'دسترسی ممنوع - نقش کاربری مناسب نیست'
             });
+            return;
         }
-        // ادامه به کنترلر بعدی
         next();
-    }
-    catch (error) {
-        console.error('خطا در میدل‌ور ادمین:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'خطای سرور در بررسی دسترسی ادمین',
-        });
-    }
+    };
 };
-exports.admin = admin;
+exports.authorize = authorize;
