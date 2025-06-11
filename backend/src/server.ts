@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import authRoutes from './routes/authRoutes';
+import projectRoutes from './routes/projectRoutes';
 
 // بارگذاری متغیرهای محیطی از فایل .env
 dotenv.config();
@@ -18,6 +19,8 @@ app.use(express.json());
 // ثبت مسیرهای API
 // مسیرهای احراز هویت (ثبت‌نام و ورود)
 app.use('/api/v1/auth', authRoutes);
+// مسیرهای مدیریت پروژه‌ها
+app.use('/api/v1/projects', projectRoutes);
 
 // مسیر تست برای اطمینان از عملکرد صحیح سرور
 app.get('/', (req, res) => {
