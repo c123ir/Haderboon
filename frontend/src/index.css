@@ -1,0 +1,13 @@
+        /* frontend/src/index.css */
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
+
+        /* اضافه کردن فونت وزیرمتن از Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap');
+
+        /* اعمال فونت وزیرمتن به صورت سراسری */
+        body {
+          font-family: 'Vazirmatn', sans-serif;
+          direction: rtl;
+        }
