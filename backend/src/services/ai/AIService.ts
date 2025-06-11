@@ -125,7 +125,7 @@ class AIService {
       
       return {
         ...response,
-        sessionId
+        sessionId: sessionId || '' // اطمینان از وجود مقدار
       };
     } catch (error) {
       Logger.error(`خطا در ارسال درخواست چت: ${error}`);
@@ -235,4 +235,4 @@ class AIService {
   }
 }
 
-export default AIService; 
+export default AIService;
