@@ -18,11 +18,11 @@ const aiProviderService = {
             data: {
                 name: data.name,
                 displayName: data.displayName,
-                description: data.description, // اطمینان از وجود فیلد در schema
+                description: data.description,
                 // logoUrl: data.logoUrl, // این فیلد در schema.prisma وجود ندارد
                 baseUrl: data.baseUrl,
-                isActive: data.isActive || false,
-                priority: data.priority || 0, // اطمینان از وجود فیلد در schema
+                isActive: data.isActive !== undefined ? data.isActive : false, // مقدار پیش فرض false اگر تعریف نشده باشد
+                priority: data.priority === undefined ? 0 : data.priority, // اطمینان از وجود فیلد در schema و مقدار پیش فرض
                 // settings: data.settings as any, // این فیلد در schema.prisma وجود ندارد
             },
         });
