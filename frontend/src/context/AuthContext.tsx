@@ -2,7 +2,7 @@
 // این فایل شامل کانتکست احراز هویت برای مدیریت وضعیت ورود و ثبت‌نام کاربر است
 
 import React, { createContext, useReducer, useEffect } from 'react';
-import { AuthContextType, AuthState, LoginUserInput, RegisterUserInput } from '../utils/types';
+import { AuthContextType, AuthState, LoginUserInput, RegisterUserInput } from '../types'; // تغییر مسیر
 import * as authService from '../services/api';
 
 // وضعیت اولیه احراز هویت
@@ -177,4 +177,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
-}; 
+};
