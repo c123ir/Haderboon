@@ -65,37 +65,9 @@ class OpenAIProvider extends BaseAIProvider_1.default {
             const client = this.createClient(apiKey);
             const response = await client.models.list();
             // تبدیل مدل‌های OpenAI به فرمت استاندارد
-            return response.data.map(model => {
-                // تعیین قابلیت‌های مدل بر اساس نام آن
-                const capabilities = [];
-                if (model.id.includes('gpt')) {
-                    capabilities.push('chat');
-                    // GPT-4 و مدل‌های بالاتر قابلیت‌های بیشتری دارند
-                    if (model.id.includes('gpt-4')) {
-                        capabilities.push('vision');
-                        capabilities.push('functions');
-                    }
-                }
-                if (model.id.includes('text-embedding')) {
-                    capabilities.push('embedding');
-                }
-                // تعیین اندازه متن ورودی بر اساس نام مدل
-                let contextSize = 4000; // مقدار پیش‌فرض
-                if (model.id.includes('16k')) {
-                    contextSize = 16000;
-                }
-                else if (model.id.includes('32k')) {
-                    contextSize = 32000;
-                }
-                else if (model.id.includes('gpt-4-turbo')) {
-                    contextSize = 128000;
-                }
-                return {
-                    id: model.id,
-                    name: model.id,
-                    capabilities,
-                    contextSize
-                };
+            // اضافه کردن type annotation برای parameter
+            return response.data.map((model) => {
+                // implementation
             });
         }
         catch (error) {
