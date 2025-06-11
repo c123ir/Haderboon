@@ -2,7 +2,7 @@
 // این فایل شامل توابع مربوذذ به ارتباط با API بک‌اند است
 
 import axios from 'axios';
-import { LoginUserInput, RegisterUserInput } from '../types'; // تغییر مسیر
+import { LoginUserInput, RegisterUserInput, Project } from '../utils/types'; // تغییر مسیر
 
 // آدرس پایه API بک‌اند
 const API_URL = 'http://localhost:5550/api/v1';
@@ -56,6 +56,12 @@ export const login = async (userData: LoginUserInput) => {
 // دریافت اطلاعات کاربر فعلی
 export const getCurrentUser = async () => {
   const response = await api.get('/auth/me');
+  return response.data;
+};
+
+// دریافت لیست پروژه‌ها
+export const fetchProjects = async (): Promise<Project[]> => {
+  const response = await api.get('/projects');
   return response.data;
 };
 
