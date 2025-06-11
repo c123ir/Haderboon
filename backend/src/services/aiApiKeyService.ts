@@ -1,9 +1,11 @@
 // مسیر فایل: src/services/aiApiKeyService.ts
 // سرویس مدیریت کلیدهای API هوش مصنوعی
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, AIApiKey } from '@prisma/client'; // AIApiKey اضافه شد
 import { encrypt, decrypt } from '../utils/encryption';
-import { AIApiKeyInput, AIApiKeyUpdateInput } from '../types/ai.types';
+// AIApiKeyInput و AIApiKeyUpdateInput از types/ai.types.ts باید باشند
+// اگر وجود ندارند باید ایجاد شوند. فعلا از any استفاده می‌کنیم و بعدا اصلاح می‌شود.
+// import { AIApiKeyCreateInput, AIApiKeyUpdateInput } from '../types/ai.types'; 
 
 const prisma = new PrismaClient();
 
@@ -13,17 +15,17 @@ const prisma = new PrismaClient();
 const aiApiKeyService = {
   /**
    * ایجاد کلید API جدید
-   * @param data اطلاعات کلید API جدید
-   * @returns کلید API ایجاد شده
+   * @param data - اطلاعات کلید API جدید شامل providerId, name, key, userId و اختیاری isActive, expiresAt
+   * @returns Promise<AIApiKey> - کلید API ایجاد شده
    */
   async createApiKey(data: {
     providerId: string;
     name: string;
-    key: string;
+    key: string; // کلید خام قبل از رمزنگاری
     isActive?: boolean;
-    expiresAt?: Date;
+    expiresAt?: Date | null; // می‌تواند null هم باشد
     userId: string;
-  }) {
+  }): Promise<AIApiKey> {
     // رمزنگاری کلید API قبل از ذخیره‌سازی
     const encryptedKey = encrypt(data.key);
     
@@ -31,7 +33,7 @@ const aiApiKeyService = {
       data: {
         providerId: data.providerId,
         name: data.name,
-        keyValue: encryptedKey, // استفاده از keyValue به جای key
+        keyValue: encryptedKey, // نام فیلد در schema.prisma
         isActive: data.isActive !== undefined ? data.isActive : true,
         expiresAt: data.expiresAt,
         userId: data.userId,
@@ -40,97 +42,131 @@ const aiApiKeyService = {
   },
 
   /**
-   * دریافت همه کلیدهای API یک سرویس‌دهنده
-   * @param providerId شناسه سرویس‌دهنده
-   * @returns لیست کلیدهای API
+   * دریافت همه کلیدهای API یک کاربر برای یک سرویس‌دهنده خاص
+   * @param userId - شناسه کاربر
+   * @param providerId - شناسه سرویس‌دهنده (اختیاری)
+   * @returns Promise<AIApiKey[]> - لیست کلیدهای API
    */
-  async getProviderApiKeys(providerId: string) {
+  async getUserApiKeys(userId: string, providerId?: string): Promise<AIApiKey[]> {
+    const whereClause: any = { userId };
+    if (providerId) {
+      whereClause.providerId = providerId;
+    }
     return prisma.aIApiKey.findMany({
-      where: { providerId },
+      where: whereClause,
       orderBy: { createdAt: 'desc' },
+      include: { // اضافه کردن اطلاعات provider
+        provider: {
+          select: {
+            id: true,
+            name: true,
+            displayName: true
+          }
+        }
+      }
     });
   },
 
   /**
-   * دریافت کلیدهای API فعال یک سرویس‌دهنده
-   * @param providerId شناسه سرویس‌دهنده
-   * @returns لیست کلیدهای API فعال
+   * دریافت کلید API با شناسه (متعلق به کاربر مشخص)
+   * @param id - شناسه کلید API
+   * @param userId - شناسه کاربر
+   * @returns Promise<AIApiKey | null> - کلید API یا null اگر یافت نشود یا متعلق به کاربر نباشد
    */
-  async getActiveApiKeys(providerId: string) {
-    const now = new Date();
-    return prisma.aIApiKey.findMany({
-      where: {
-        providerId,
-        isActive: true,
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: now } },
-        ],
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-  },
-
-  /**
-   * دریافت کلید API با شناسه
-   * @param id شناسه کلید API
-   * @returns کلید API
-   */
-  async getApiKeyById(id: string) {
-    return prisma.aIApiKey.findUnique({
-      where: { id },
+  async getApiKeyById(id: string, userId: string): Promise<AIApiKey | null> {
+    return prisma.aIApiKey.findFirst({
+      where: { id, userId },
+      include: {
+        provider: {
+          select: {
+            id: true,
+            name: true,
+            displayName: true
+          }
+        }
+      }
     });
   },
 
   /**
    * به‌روزرسانی کلید API
-   * @param id شناسه کلید API
-   * @param data اطلاعات جدید
-   * @returns کلید API به‌روزرسانی شده
+   * @param id - شناسه کلید API
+   * @param userId - شناسه کاربر (برای بررسی مالکیت)
+   * @param data - اطلاعات جدید شامل name, key (اختیاری), isActive, expiresAt
+   * @returns Promise<AIApiKey | null> - کلید API به‌روزرسانی شده یا null
    */
-  async updateApiKey(id: string, data: AIApiKeyUpdateInput) {
-    const updateData: any = { ...data };
+  async updateApiKey(id: string, userId: string, data: {
+    name?: string;
+    key?: string; // کلید خام جدید، اختیاری
+    isActive?: boolean;
+    expiresAt?: Date | null;
+  }): Promise<AIApiKey | null> {
+    // ابتدا بررسی می‌کنیم که آیا کلید API متعلق به این کاربر است
+    const existingApiKey = await prisma.aIApiKey.findFirst({
+      where: { id, userId }
+    });
+
+    if (!existingApiKey) {
+      return null; // یا throw new Error('API Key not found or access denied');
+    }
+
+    const updateData: any = { ...data }; // کپی از داده‌های ورودی
     
-    // اگر کلید جدید ارائه شده، آن را رمزنگاری کن
+    // اگر کلید جدید ارائه شده، آن را رمزنگاری کن و فیلد key را حذف کن
     if (data.key) {
       updateData.keyValue = encrypt(data.key);
-      delete updateData.key;
+      delete updateData.key; // حذف key خام از داده‌های آپدیت
     }
     
+    // حذف فیلدهایی که undefined هستند تا Prisma آنها را آپدیت نکند
+    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
     return prisma.aIApiKey.update({
-      where: { id },
+      where: { id }, // آپدیت بر اساس شناسه کلید
       data: updateData,
     });
   },
 
   /**
    * حذف کلید API
-   * @param id شناسه کلید API
-   * @returns کلید API حذف شده
+   * @param id - شناسه کلید API
+   * @param userId - شناسه کاربر (برای بررسی مالکیت)
+   * @returns Promise<AIApiKey | null> - کلید API حذف شده یا null
    */
-  async deleteApiKey(id: string) {
+  async deleteApiKey(id: string, userId: string): Promise<AIApiKey | null> {
+     // ابتدا بررسی می‌کنیم که آیا کلید API متعلق به این کاربر است
+    const existingApiKey = await prisma.aIApiKey.findFirst({
+      where: { id, userId }
+    });
+
+    if (!existingApiKey) {
+      return null; // یا throw new Error('API Key not found or access denied');
+    }
+
     return prisma.aIApiKey.delete({
       where: { id },
     });
   },
 
   /**
-   * دریافت کلید API فعال برای استفاده
-   * @param providerId شناسه سرویس‌دهنده
-   * @returns کلید API رمزگشایی شده
+   * دریافت کلید API فعال و رمزگشایی شده برای استفاده توسط یک کاربر خاص
+   * @param providerId - شناسه سرویس‌دهنده
+   * @param userId - شناسه کاربر
+   * @returns Promise<{ key: string } & AIApiKey | null> - کلید API رمزگشایی شده یا null
    */
-  async getDecryptedApiKey(providerId: string) {
+  async getDecryptedApiKeyForUser(providerId: string, userId: string): Promise<({ key: string } & AIApiKey) | null> {
     const now = new Date();
     const apiKey = await prisma.aIApiKey.findFirst({
       where: {
         providerId,
+        userId,
         isActive: true,
         OR: [
           { expiresAt: null },
           { expiresAt: { gt: now } },
         ],
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'desc' }, // یا بر اساس اولویت اگر فیلدی برای آن دارید
     });
     
     if (!apiKey) {
@@ -142,10 +178,12 @@ const aiApiKeyService = {
       const decryptedKey = decrypt(apiKey.keyValue);
       return {
         ...apiKey,
-        key: decryptedKey,
+        key: decryptedKey, // برگرداندن کلید رمزگشایی شده
       };
     } catch (error) {
       console.error('خطا در رمزگشایی کلید API:', error);
+      // در این حالت بهتر است خطا را مدیریت کرده و null برگردانیم یا خطا را throw کنیم
+      // بسته به نیاز، ممکن است بخواهید یک لاگ دقیق‌تر ثبت کنید
       return null;
     }
   },
