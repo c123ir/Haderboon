@@ -11,6 +11,11 @@ import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
+// کامپوننت‌های پروژه
+import NewProjectPage from './pages/project/NewProjectPage';
+import ProjectDetailsPage from './pages/project/ProjectDetailsPage';
+import EditProjectPage from './pages/project/EditProjectPage';
+
 // کامپوننت‌های احراز هویت
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -30,6 +35,11 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/settings" element={<Settings />} />
+              
+              {/* مسیرهای پروژه */}
+              <Route path="/projects/new" element={<NewProjectPage />} />
+              <Route path="/projects/:id" element={<ProjectDetailsPage />} />
+              <Route path="/projects/:id/edit" element={<EditProjectPage />} />
             </Route>
             
             {/* صفحه ۴۰۴ و مسیرهای ناشناخته */}
