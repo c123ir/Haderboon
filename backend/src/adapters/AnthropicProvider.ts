@@ -147,13 +147,13 @@ class AnthropicProvider extends BaseAIProvider {
       if (request.systemPrompt) {
         // برای Claude، پیام سیستمی را به صورت بخشی از پیام کاربر ارسال می‌کنیم
         messages.push({
-          role: 'user' as const,
+          role: 'user',
           content: `<system>${request.systemPrompt}</system>\n\n${request.message}`
         });
       } else {
         // افزودن پیام کاربر بدون پیام سیستمی
         messages.push({
-          role: 'user' as const,
+          role: 'user',
           content: request.message
         });
       }
