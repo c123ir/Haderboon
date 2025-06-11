@@ -120,10 +120,13 @@ const Dashboard: React.FC = () => {
                 </Link>
               )}
               
-              <div className="block p-6 transition-shadow bg-white border rounded-lg shadow-sm opacity-50">
+              <Link to="/ai-chat" className="block p-6 transition-shadow bg-white border rounded-lg shadow-sm hover:shadow-md">
                 <h4 className="mb-2 text-lg font-semibold text-right text-gray-800 font-vazirmatn">چت هوشمند</h4>
-                <p className="text-right text-gray-600 font-vazirmatn">گفتگو با ایجنت هوشمند هادربون (به زودی)</p>
-              </div>
+                <p className="text-right text-gray-600 font-vazirmatn">گفتگو با ایجنت هوشمند هادربون برای دریافت راهنمایی و مشاوره</p>
+                <div className="flex justify-end mt-4">
+                  <span className="px-3 py-1 text-xs text-white bg-purple-600 rounded-full">شروع چت</span>
+                </div>
+              </Link>
             </div>
           </div>
         </div>
@@ -132,4 +135,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
