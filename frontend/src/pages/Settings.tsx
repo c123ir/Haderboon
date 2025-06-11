@@ -3,22 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-
-interface AIProviderSettings {
-  openai?: {
-    apiKey: string;
-    model: string;
-  };
-  anthropic?: {
-    apiKey: string;
-    model: string;
-  };
-  google?: {
-    apiKey: string;
-    model: string;
-  };
-}
+import { useAuth } from '../context/AuthContext';
+import { AIProviderSettings } from '../utils/types';
 
 /**
  * صفحه تنظیمات برنامه
@@ -29,9 +15,9 @@ const Settings: React.FC = () => {
   const navigate = useNavigate();
   
   const [settings, setSettings] = useState<AIProviderSettings>({
-    openai: { apiKey: '', model: 'gpt-4' },
-    anthropic: { apiKey: '', model: 'claude-3-sonnet-20240229' },
-    google: { apiKey: '', model: 'gemini-pro' }
+    provider: 'openai',
+    apiKey: '',
+    model: 'gpt-4'
   });
   
   const [isSaving, setIsSaving] = useState(false);
@@ -57,13 +43,10 @@ const Settings: React.FC = () => {
     }
   }, []);
 
-  const handleInputChange = (provider: keyof AIProviderSettings, field: string, value: string) => {
+  const handleInputChange = (field: string, value: string) => {
     setSettings(prev => ({
       ...prev,
-      [provider]: {
-        ...prev[provider],
-        [field]: value
-      }
+      [field]: value
     }));
   };
 
@@ -87,9 +70,9 @@ const Settings: React.FC = () => {
 
   const handleReset = () => {
     setSettings({
-      openai: { apiKey: '', model: 'gpt-4' },
-      anthropic: { apiKey: '', model: 'claude-3-sonnet-20240229' },
-      google: { apiKey: '', model: 'gemini-pro' }
+      provider: 'openai',
+      apiKey: '',
+      model: 'gpt-4'
     });
     localStorage.removeItem('aiProviderSettings');
     setSaveMessage('تنظیمات بازنشانی شد!');
@@ -130,179 +113,95 @@ const Settings: React.FC = () => {
           </div>
 
           <div className="p-6 space-y-8">
-            {/* تنظیمات OpenAI */}
+            {/* انتخاب مدل */}
             <div className="border border-gray-200 rounded-lg p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-white font-bold text-sm">AI</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 font-vazirmatn">OpenAI (ChatGPT)</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 font-vazirmatn mb-2">
-                    کلید API
-                  </label>
-                  <input
-                    type="password"
-                    value={settings.openai?.apiKey || ''}
-                    onChange={(e) => handleInputChange('openai', 'apiKey', e.target.value)}
-                    placeholder="sk-..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 font-vazirmatn mb-2">
-                    مدل
-                  </label>
-                  <select
-                    value={settings.openai?.model || 'gpt-4'}
-                    onChange={(e) => handleInputChange('openai', 'model', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="gpt-4">GPT-4</option>
-                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* تنظیمات Anthropic */}
-            <div className="border border-gray-200 rounded-lg p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-white font-bold text-sm">C</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 font-vazirmatn">Anthropic (Claude)</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 font-vazirmatn mb-2">
-                    کلید API
-                  </label>
-                  <input
-                    type="password"
-                    value={settings.anthropic?.apiKey || ''}
-                    onChange={(e) => handleInputChange('anthropic', 'apiKey', e.target.value)}
-                    placeholder="sk-ant-..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 font-vazirmatn mb-2">
-                    مدل
-                  </label>
-                  <select
-                    value={settings.anthropic?.model || 'claude-3-sonnet-20240229'}
-                    onChange={(e) => handleInputChange('anthropic', 'model', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="claude-3-opus-20240229">Claude 3 Opus</option>
-                    <option value="claude-3-sonnet-20240229">Claude 3 Sonnet</option>
-                    <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* تنظیمات Google */}
-            <div className="border border-gray-200 rounded-lg p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-white font-bold text-sm">G</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 font-vazirmatn">Google (Gemini)</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 font-vazirmatn mb-2">
-                    کلید API
-                  </label>
-                  <input
-                    type="password"
-                    value={settings.google?.apiKey || ''}
-                    onChange={(e) => handleInputChange('google', 'apiKey', e.target.value)}
-                    placeholder="AIza..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 font-vazirmatn mb-2">
-                    مدل
-                  </label>
-                  <select
-                    value={settings.google?.model || 'gemini-pro'}
-                    onChange={(e) => handleInputChange('google', 'model', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="gemini-pro">Gemini Pro</option>
-                    <option value="gemini-pro-vision">Gemini Pro Vision</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* دکمه‌های عملیات */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
-            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-800 font-vazirmatn mb-4">انتخاب مدل هوش مصنوعی</h3>
               <div>
-                {saveMessage && (
-                  <span className={`text-sm font-vazirmatn ${
-                    saveMessage.includes('موفقیت') ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {saveMessage}
-                  </span>
-                )}
+                <label className="block text-sm font-medium text-gray-700 font-vazirmatn mb-2">
+                  ارائه‌دهنده
+                </label>
+                <select
+                  value={settings.provider}
+                  onChange={(e) => handleInputChange('provider', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="openai">OpenAI (ChatGPT)</option>
+                  <option value="anthropic">Anthropic (Claude)</option>
+                  <option value="azure">Azure OpenAI</option>
+                </select>
               </div>
-              <div className="flex space-x-3 space-x-reverse">
-                <button
-                  onClick={handleReset}
-                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 font-vazirmatn"
+              
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 font-vazirmatn mb-2">
+                  کلید API
+                </label>
+                <input
+                  type="password"
+                  value={settings.apiKey}
+                  onChange={(e) => handleInputChange('apiKey', e.target.value)}
+                  placeholder="کلید API را وارد کنید..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 font-vazirmatn mb-2">
+                  مدل
+                </label>
+                <select
+                  value={settings.model}
+                  onChange={(e) => handleInputChange('model', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  بازنشانی
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="px-6 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 font-vazirmatn"
-                >
-                  {isSaving ? 'در حال ذخیره...' : 'ذخیره تنظیمات'}
-                </button>
+                  {settings.provider === 'openai' && (
+                    <>
+                      <option value="gpt-4">GPT-4</option>
+                      <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                      <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                    </>
+                  )}
+                  {settings.provider === 'anthropic' && (
+                    <>
+                      <option value="claude-3-opus">Claude 3 Opus</option>
+                      <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                      <option value="claude-3-haiku">Claude 3 Haiku</option>
+                    </>
+                  )}
+                  {settings.provider === 'azure' && (
+                    <>
+                      <option value="gpt-4">GPT-4</option>
+                      <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                    </>
+                  )}
+                </select>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* راهنمای دریافت کلید API */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-800 font-vazirmatn mb-4">راهنمای دریافت کلید API</h3>
-          <div className="space-y-3 text-sm text-blue-700 font-vazirmatn">
-            <div>
-              <strong>OpenAI:</strong> از 
-              <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">
-                platform.openai.com/api-keys
-              </a>
-              {' '}کلید API خود را دریافت کنید.
+            {/* دکمه‌های عملیات */}
+            <div className="flex justify-end space-x-2 space-x-reverse">
+              <button
+                onClick={handleReset}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none"
+              >
+                بازنشانی
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className={`px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none ${
+                  isSaving ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
+              >
+                {isSaving ? 'در حال ذخیره...' : 'ذخیره تنظیمات'}
+              </button>
             </div>
-            <div>
-              <strong>Anthropic:</strong> از 
-              <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">
-                console.anthropic.com
-              </a>
-              {' '}کلید API خود را دریافت کنید.
-            </div>
-            <div>
-              <strong>Google:</strong> از 
-              <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">
-                makersuite.google.com/app/apikey
-              </a>
-              {' '}کلید API خود را دریافت کنید.
-            </div>
+            
+            {/* پیام موفقیت */}
+            {saveMessage && (
+              <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md text-center">
+                {saveMessage}
+              </div>
+            )}
           </div>
         </div>
       </div>
