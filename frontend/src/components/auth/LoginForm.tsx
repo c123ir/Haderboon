@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LoginUserInput } from '../../utils/types';
+import { LoginUserInput } from '../../types'; // تغییر مسیر
 
 // کامپوننت فرم ورود
 const LoginForm: React.FC = () => {
@@ -106,4 +106,4 @@ const LoginForm: React.FC = () => {
   );
 };
 
-export default LoginForm; 
+export default LoginForm;
