@@ -6,7 +6,7 @@ import { IAIProvider } from '../interfaces/IAIProvider';
 import OpenAIProvider from '../adapters/OpenAIProvider';
 import GrokAIProvider from '../adapters/GrokAIProvider';
 import OpenRouterProvider from '../adapters/OpenRouterProvider';
-// حذف این خطوط:
+// حذف imports مفقود از بالای فایل:
 // import GoogleAIProvider from '../adapters/GoogleAIProvider';
 // import AnthropicProvider from '../adapters/AnthropicProvider';
 
@@ -53,18 +53,19 @@ class AIProviderFactory {
       case this.PROVIDERS.OPENAI:
         provider = new OpenAIProvider(config);
         break;
-      case this.PROVIDERS.GOOGLE:
-        provider = new GoogleAIProvider(config);
-        break;
-      case this.PROVIDERS.ANTHROPIC:
-        provider = new AnthropicProvider(config);
-        break;
       case this.PROVIDERS.OPENROUTER:
         provider = new OpenRouterProvider(config);
         break;
       case this.PROVIDERS.GROK:
         provider = new GrokAIProvider(config);
         break;
+      // حذف case های Google و Anthropic:
+      // case this.PROVIDERS.GOOGLE:
+      //   provider = new GoogleAIProvider(config);
+      //   break;
+      // case this.PROVIDERS.ANTHROPIC:
+      //   provider = new AnthropicProvider(config);
+      //   break;
       default:
         throw new Error(`سرویس‌دهنده هوش مصنوعی '${providerName}' پشتیبانی نمی‌شود`);
     }
