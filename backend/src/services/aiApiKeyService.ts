@@ -167,7 +167,28 @@ const aiApiKeyService = {
     try {
       // رمزگشایی کلید API
       // تغییر key به keyValue:
-      const decryptedKey = decrypt(apiKey.keyValue); // به جای apiKey.key
+      // تصحیح تابع createApiKey:
+      async createApiKey(data: {
+        providerId: string;
+        name: string;
+        key: string;
+        isActive?: boolean;
+        expiresAt?: Date;
+        userId: string;
+      }) {
+        const encryptedKey = encrypt(data.key);
+        
+        return prisma.aIApiKey.create({
+          data: {
+            providerId: data.providerId,
+            name: data.name,
+            keyValue: encryptedKey, // تغییر از key به keyValue
+            isActive: data.isActive !== undefined ? data.isActive : true,
+            expiresAt: data.expiresAt,
+            userId: data.userId, // اضافه کردن userId
+          },
+        });
+      }
       
       // برای ایجاد API key:
       const apiKey = await prisma.aIApiKey.create({
