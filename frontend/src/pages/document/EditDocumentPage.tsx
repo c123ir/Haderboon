@@ -1,7 +1,7 @@
 // frontend/src/pages/document/EditDocumentPage.tsx
 // صفحه ویرایش مستند در ایجنت هادربون
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DocumentForm from '../../components/document/DocumentForm';
 import documentService from '../../services/documentService';
@@ -20,6 +20,17 @@ const EditDocumentPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // بررسی اینکه آیا یک مستند از فرزندان مستند فعلی است (برای جلوگیری از ایجاد چرخه)
+  const isDescendantOf = useCallback((doc: any, parentId: string): boolean => {
+    if (!doc.children || doc.children.length === 0) {
+      return false;
+    }
+    
+    return doc.children.some((child: any) => {
+      return child.id === parentId || isDescendantOf(child, parentId);
+    });
+  }, []);
 
   // بارگذاری اطلاعات پایه مورد نیاز
   useEffect(() => {
@@ -57,18 +68,7 @@ const EditDocumentPage: React.FC = () => {
     };
     
     fetchData();
-  }, [documentId]);
-
-  // بررسی اینکه آیا یک مستند از فرزندان مستند فعلی است (برای جلوگیری از ایجاد چرخه)
-  const isDescendantOf = (doc: any, parentId: string): boolean => {
-    if (!doc.children || doc.children.length === 0) {
-      return false;
-    }
-    
-    return doc.children.some((child: any) => {
-      return child.id === parentId || isDescendantOf(child, parentId);
-    });
-  };
+  }, [documentId, isDescendantOf]);
 
   // ارسال فرم ویرایش مستند
   const handleSubmit = async (data: any) => {
