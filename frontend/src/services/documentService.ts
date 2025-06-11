@@ -2,7 +2,7 @@
 // سرویس مدیریت مستندات در ایجنت هادربون
 
 import axios from 'axios';
-import { API_URL } from '../configconfig';
+import { API_URL } from '../config';
 import { getAuthHeader } from '../utils/auth';
 
 /**
