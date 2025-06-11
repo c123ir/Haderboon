@@ -84,4 +84,48 @@ export const protect = async (
       message: 'خطای سرور در احراز هویت',
     });
   }
-}; 
+};
+
+/**
+ * میدل‌ور بررسی دسترسی ادمین
+ * فقط کاربران با نقش admin اجازه دسترسی دارند
+ */
+export const admin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // بررسی وجود اطلاعات کاربر (باید قبلاً authenticate شده باشد)
+    const authenticatedReq = req as AuthenticatedRequest;
+    if (!authenticatedReq.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'کاربر احراز هویت نشده است',
+      });
+    }
+
+    // دریافت اطلاعات کامل کاربر از پایگاه داده
+    const user = await prisma.user.findUnique({
+      where: { id: authenticatedReq.user.id },
+      select: { id: true, email: true, username: true, role: true }
+    });
+
+    // بررسی نقش کاربر
+    if (!user || user.role !== 'ADMIN') {
+      return res.status(403).json({
+        success: false,
+        message: 'دسترسی مجاز نیست - نیاز به دسترسی ادمین',
+      });
+    }
+
+    // ادامه به کنترلر بعدی
+    next();
+  } catch (error) {
+    console.error('خطا در میدل‌ور ادمین:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'خطای سرور در بررسی دسترسی ادمین',
+    });
+  }
+};
