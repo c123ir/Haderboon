@@ -141,19 +141,19 @@ class AnthropicProvider extends BaseAIProvider {
       const modelId = request.modelId || 'claude-3-haiku-20240307';
       
       // آماده‌سازی پیام‌ها
-      const messages = [];
+      const messages: Array<{role: "user" | "assistant", content: string}> = [];
       
       // افزودن پیام سیستمی اگر وجود داشته باشد
       if (request.systemPrompt) {
         // برای Claude، پیام سیستمی را به صورت بخشی از پیام کاربر ارسال می‌کنیم
         messages.push({
-          role: 'user',
+          role: 'user' as const,
           content: `<system>${request.systemPrompt}</system>\n\n${request.message}`
         });
       } else {
         // افزودن پیام کاربر بدون پیام سیستمی
         messages.push({
-          role: 'user',
+          role: 'user' as const,
           content: request.message
         });
       }
@@ -209,4 +209,4 @@ class AnthropicProvider extends BaseAIProvider {
   }
 }
 
-export default AnthropicProvider; 
+export default AnthropicProvider;
