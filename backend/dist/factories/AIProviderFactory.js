@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const OpenAIProvider_1 = __importDefault(require("../adapters/OpenAIProvider"));
 const GrokAIProvider_1 = __importDefault(require("../adapters/GrokAIProvider"));
 const OpenRouterProvider_1 = __importDefault(require("../adapters/OpenRouterProvider"));
-// حذف این خطوط:
+// حذف imports مفقود از بالای فایل:
 // import GoogleAIProvider from '../adapters/GoogleAIProvider';
 // import AnthropicProvider from '../adapters/AnthropicProvider';
 /**
@@ -35,18 +35,19 @@ class AIProviderFactory {
             case this.PROVIDERS.OPENAI:
                 provider = new OpenAIProvider_1.default(config);
                 break;
-            case this.PROVIDERS.GOOGLE:
-                provider = new GoogleAIProvider(config);
-                break;
-            case this.PROVIDERS.ANTHROPIC:
-                provider = new AnthropicProvider(config);
-                break;
             case this.PROVIDERS.OPENROUTER:
                 provider = new OpenRouterProvider_1.default(config);
                 break;
             case this.PROVIDERS.GROK:
                 provider = new GrokAIProvider_1.default(config);
                 break;
+            // حذف case های Google و Anthropic:
+            // case this.PROVIDERS.GOOGLE:
+            //   provider = new GoogleAIProvider(config);
+            //   break;
+            // case this.PROVIDERS.ANTHROPIC:
+            //   provider = new AnthropicProvider(config);
+            //   break;
             default:
                 throw new Error(`سرویس‌دهنده هوش مصنوعی '${providerName}' پشتیبانی نمی‌شود`);
         }
