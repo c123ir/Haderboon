@@ -154,7 +154,7 @@ const getProjectDocuments = async (req, res) => {
             }
         });
         // تبدیل به ساختار درختی
-        const documentsWithLatestVersion = documents.map(doc => (Object.assign(Object.assign({}, doc), { latestVersion: doc.versions[0] || null, versions: undefined, children: doc.children.map(child => (Object.assign(Object.assign({}, child), { latestVersion: child.versions[0] || null, versions: undefined }))) })));
+        const documentsWithLatestVersion = documents.map((doc) => (Object.assign(Object.assign({}, doc), { latestVersion: doc.versions[0] || null, versions: undefined, children: doc.children.map((child) => (Object.assign(Object.assign({}, child), { latestVersion: child.versions[0] || null, versions: undefined }))) })));
         return res.status(200).json({
             success: true,
             message: 'مستندات با موفقیت دریافت شدند',
@@ -243,7 +243,7 @@ const getDocumentById = async (req, res) => {
         }
         // تنظیم ساختار پاسخ
         const latestVersion = document.versions[0] || null;
-        const documentWithLatestVersion = Object.assign(Object.assign({}, document), { latestVersion, children: document.children.map(child => (Object.assign(Object.assign({}, child), { latestVersion: child.versions[0] || null, versions: undefined }))) });
+        const documentWithLatestVersion = Object.assign(Object.assign({}, document), { latestVersion, children: document.children.map((child) => (Object.assign(Object.assign({}, child), { latestVersion: child.versions[0] || null, versions: undefined }))) });
         return res.status(200).json({
             success: true,
             message: 'مستند با موفقیت دریافت شد',
