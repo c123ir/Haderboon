@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 
 // صفحه اصلی
 const Home: React.FC = () => {
