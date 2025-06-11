@@ -39,11 +39,8 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
       });
     }
 
-    req.user = {
-      id: user.id,
-      email: user.email,
-      role: user.role
-    };
+    // تنظیم اطلاعات کاربر
+    req.user = user;
 
     next();
   } catch (error) {
