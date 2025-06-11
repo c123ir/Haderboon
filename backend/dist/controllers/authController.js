@@ -18,7 +18,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.logout = exports.getProfile = exports.login = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const client_1 = require("@prisma/client");
+const client_1 = require("@prisma/client"); // UserRole اضافه شد
 const joi_1 = __importDefault(require("joi"));
 const prisma = new client_1.PrismaClient();
 /**
@@ -28,8 +28,9 @@ const registerSchema = joi_1.default.object({
     email: joi_1.default.string().email().required(),
     username: joi_1.default.string().min(3).max(30).required(),
     password: joi_1.default.string().min(6).required(),
-    firstName: joi_1.default.string().optional(),
-    lastName: joi_1.default.string().optional()
+    firstName: joi_1.default.string().optional().allow(''), // اجازه دادن به رشته خالی
+    lastName: joi_1.default.string().optional().allow(''), // اجازه دادن به رشته خالی
+    role: joi_1.default.string().valid(...Object.values(client_1.UserRole)).optional() // اضافه کردن نقش
 });
 /**
  * اسکیمای اعتبارسنجی ورود
@@ -40,6 +41,8 @@ const loginSchema = joi_1.default.object({
 });
 /**
  * ثبت‌نام کاربر جدید
+ * @param req - درخواست HTTP
+ * @param res - پاسخ HTTP
  */
 const register = async (req, res) => {
     try {
@@ -52,7 +55,7 @@ const register = async (req, res) => {
                 error: error.details[0].message
             });
         }
-        const { email, username, password, firstName, lastName } = value;
+        const { email, username, password, firstName, lastName, role } = value;
         // بررسی وجود کاربر
         const existingUser = await prisma.user.findFirst({
             where: {
@@ -76,8 +79,9 @@ const register = async (req, res) => {
                 email,
                 username,
                 password: hashedPassword,
-                firstName,
-                lastName
+                firstName: firstName || null, // اگر خالی بود null ذخیره شود
+                lastName: lastName || null, // اگر خالی بود null ذخیره شود
+                role: role || client_1.UserRole.USER, // نقش پیش‌فرض اگر ارائه نشود
             },
             select: {
                 id: true,
@@ -90,7 +94,8 @@ const register = async (req, res) => {
             }
         });
         // تولید JWT توکن
-        const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '7d' });
+        const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role }, // اضافه کردن نقش به توکن
+        process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '7d' });
         res.status(201).json({
             success: true,
             message: 'کاربر با موفقیت ثبت‌نام شد',
@@ -111,6 +116,8 @@ const register = async (req, res) => {
 exports.register = register;
 /**
  * ورود کاربر
+ * @param req - درخواست HTTP
+ * @param res - پاسخ HTTP
  */
 const login = async (req, res) => {
     try {
@@ -150,7 +157,8 @@ const login = async (req, res) => {
             });
         }
         // تولید JWT توکن
-        const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '7d' });
+        const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role }, // اضافه کردن نقش به توکن
+        process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '7d' });
         // حذف رمز عبور از پاسخ
         const { password: _ } = user, userWithoutPassword = __rest(user, ["password"]);
         res.json({
@@ -173,11 +181,19 @@ const login = async (req, res) => {
 exports.login = login;
 /**
  * دریافت اطلاعات کاربر فعلی
+ * @param req - درخواست HTTP احراز هویت شده
+ * @param res - پاسخ HTTP
  */
 const getProfile = async (req, res) => {
     var _a;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // دسترسی به کاربر از طریق req.user
+        if (!userId) { // بررسی اضافی برای اطمینان
+            return res.status(401).json({
+                success: false,
+                message: 'کاربر احراز هویت نشده است'
+            });
+        }
         const user = await prisma.user.findUnique({
             where: { id: userId },
             select: {
@@ -213,6 +229,8 @@ const getProfile = async (req, res) => {
 exports.getProfile = getProfile;
 /**
  * خروج کاربر (در صورت نیاز به blacklist کردن توکن)
+ * @param req - درخواست HTTP
+ * @param res - پاسخ HTTP
  */
 const logout = async (req, res) => {
     try {

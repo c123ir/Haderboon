@@ -1,12 +1,12 @@
 "use strict";
-// backend/src/routes/authRoutes.ts
+// مسیر فایل: backend/src/routes/authRoutes.ts
 // این فایل شامل مسیرهای مربوط به احراز هویت (ثبت‌نام و ورود) است
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const authController_1 = require("../controllers/authController");
+const express_1 = __importDefault(require("express")); // Request حذف شد
+const authController_1 = require("../controllers/authController"); // getProfile و logout اضافه شد
 const authMiddleware_1 = require("../middleware/authMiddleware");
 // ایجاد روتر Express
 const router = express_1.default.Router();
@@ -15,21 +15,23 @@ const router = express_1.default.Router();
  * @desc ثبت‌نام کاربر جدید
  * @access عمومی
  */
-// تغییر نام‌های route handler:
 router.post('/register', authController_1.register);
+/**
+ * @route POST /api/v1/auth/login
+ * @desc ورود کاربر
+ * @access عمومی
+ */
 router.post('/login', authController_1.login);
 /**
  * @route GET /api/v1/auth/me
  * @desc دریافت اطلاعات کاربر فعلی
  * @access خصوصی (فقط کاربران احراز هویت شده)
  */
-router.get('/me', authMiddleware_1.protect, (req, res) => {
-    // از آنجایی که میدل‌ور protect قبلاً اجرا شده، اطلاعات کاربر در req.user موجود است
-    const user = req.user;
-    res.status(200).json({
-        success: true,
-        message: 'اطلاعات کاربر فعلی',
-        user,
-    });
-});
+router.get('/me', authMiddleware_1.protect, authController_1.getProfile); // استفاده از getProfile کنترلر
+/**
+ * @route POST /api/v1/auth/logout
+ * @desc خروج کاربر
+ * @access خصوصی
+ */
+router.post('/logout', authMiddleware_1.protect, authController_1.logout); // اضافه کردن مسیر خروج
 exports.default = router;
