@@ -3,8 +3,9 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client'; // UserRole اضافه شد
 import Joi from 'joi';
+import { AuthRequest } from '../types/auth'; // اضافه کردن AuthRequest
 
 const prisma = new PrismaClient();
 
@@ -15,8 +16,9 @@ const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   username: Joi.string().min(3).max(30).required(),
   password: Joi.string().min(6).required(),
-  firstName: Joi.string().optional(),
-  lastName: Joi.string().optional()
+  firstName: Joi.string().optional().allow(''), // اجازه دادن به رشته خالی
+  lastName: Joi.string().optional().allow(''), // اجازه دادن به رشته خالی
+  role: Joi.string().valid(...Object.values(UserRole)).optional() // اضافه کردن نقش
 });
 
 /**
@@ -29,6 +31,8 @@ const loginSchema = Joi.object({
 
 /**
  * ثبت‌نام کاربر جدید
+ * @param req - درخواست HTTP
+ * @param res - پاسخ HTTP
  */
 export const register = async (req: Request, res: Response) => {
   try {
@@ -42,7 +46,7 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    const { email, username, password, firstName, lastName } = value;
+    const { email, username, password, firstName, lastName, role } = value;
 
     // بررسی وجود کاربر
     const existingUser = await prisma.user.findFirst({
@@ -70,8 +74,9 @@ export const register = async (req: Request, res: Response) => {
         email,
         username,
         password: hashedPassword,
-        firstName,
-        lastName
+        firstName: firstName || null, // اگر خالی بود null ذخیره شود
+        lastName: lastName || null,  // اگر خالی بود null ذخیره شود
+        role: role || UserRole.USER, // نقش پیش‌فرض اگر ارائه نشود
       },
       select: {
         id: true,
@@ -86,7 +91,7 @@ export const register = async (req: Request, res: Response) => {
 
     // تولید JWT توکن
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, role: user.role }, // اضافه کردن نقش به توکن
       process.env.JWT_SECRET || 'fallback-secret',
       { expiresIn: '7d' }
     );
@@ -111,6 +116,8 @@ export const register = async (req: Request, res: Response) => {
 
 /**
  * ورود کاربر
+ * @param req - درخواست HTTP
+ * @param res - پاسخ HTTP
  */
 export const login = async (req: Request, res: Response) => {
   try {
@@ -157,7 +164,7 @@ export const login = async (req: Request, res: Response) => {
 
     // تولید JWT توکن
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, role: user.role }, // اضافه کردن نقش به توکن
       process.env.JWT_SECRET || 'fallback-secret',
       { expiresIn: '7d' }
     );
@@ -185,10 +192,19 @@ export const login = async (req: Request, res: Response) => {
 
 /**
  * دریافت اطلاعات کاربر فعلی
+ * @param req - درخواست HTTP احراز هویت شده
+ * @param res - پاسخ HTTP
  */
-export const getProfile = async (req: Request, res: Response) => {
+export const getProfile = async (req: AuthRequest, res: Response) => { // استفاده از AuthRequest
   try {
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.id; // دسترسی به کاربر از طریق req.user
+
+    if (!userId) { // بررسی اضافی برای اطمینان
+        return res.status(401).json({
+            success: false,
+            message: 'کاربر احراز هویت نشده است'
+        });
+    }
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -227,6 +243,8 @@ export const getProfile = async (req: Request, res: Response) => {
 
 /**
  * خروج کاربر (در صورت نیاز به blacklist کردن توکن)
+ * @param req - درخواست HTTP
+ * @param res - پاسخ HTTP
  */
 export const logout = async (req: Request, res: Response) => {
   try {
