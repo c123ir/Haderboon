@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AIChat from './pages/AIChat';
 
@@ -37,6 +38,9 @@ function App() {
           {/* مسیرهای محافظت شده (نیاز به احراز هویت) */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            
+            {/* مسیر تنظیمات */}
+            <Route path="/settings" element={<Settings />} />
             
             {/* مسیر چت هوشمند */}
             <Route path="/ai-chat" element={<AIChat />} />
