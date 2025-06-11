@@ -199,17 +199,20 @@ class GoogleAIProvider extends BaseAIProvider {
    * @param apiKey کلید API
    * @returns بردار‌های متنی
    */
-  async getEmbedding(text: string, model?: string, apiKey?: string): Promise<number[]> {
-    if (!apiKey) {
-      throw new Error('کلید API برای دریافت embedding الزامی است');
-    }
-    
+  /**
+   * دریافت embedding برای متن
+   */
+  async generateEmbedding(text: string): Promise<number[]> {
     try {
-      const embeddingModel = model || 'embedding-001';
-      const client = this.createClient(apiKey);
+      const client = this.getClient();
+      const embeddingModel = 'embedding-001';
       
-      // درخواست embedding با API صحیح
-      const embeddingResult = await client.getGenerativeModel({ model: embeddingModel }).embedContent(text);
+      // استفاده از متد صحیح برای embedding
+      const embeddingResult = await client.getGenerativeModel({ model: embeddingModel }).embedContent({
+        content: {
+          parts: [{ text }]
+        }
+      });
       
       return embeddingResult.embedding.values;
     } catch (error) {
