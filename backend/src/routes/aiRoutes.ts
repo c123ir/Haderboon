@@ -3,8 +3,7 @@
 
 import express from 'express';
 import AIController from '../controllers/AIController';
-import { protect as authenticate, admin as authorize } from '../middleware/authMiddleware';
-// حذف import authorize چون وجود ندارد
+import { protect as authenticate } from '../middleware/authMiddleware';
 
 const router = express.Router();
 const aiController = new AIController();
