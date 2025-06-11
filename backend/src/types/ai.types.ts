@@ -51,6 +51,7 @@ export interface AIModelInput {
   capabilities?: string[]; // قابلیت‌های مدل (chat, embedding, ...)
   contextSize?: number;    // حداکثر اندازه متن ورودی
   settings?: Record<string, any>; // تنظیمات خاص مدل
+  priority?: number;        // اولویت استفاده در حالت خودکار
 }
 
 // تایپ به‌روزرسانی مدل
@@ -61,6 +62,7 @@ export interface AIModelUpdateInput {
   capabilities?: string[];
   contextSize?: number;
   settings?: Record<string, any>;
+  priority?: number;
 }
 
 // تایپ ایجاد جلسه چت
@@ -406,4 +408,4 @@ export interface AISession {
    * تعداد پیام‌ها
    */
   messageCount: number;
-} 
+}
