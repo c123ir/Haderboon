@@ -28,6 +28,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
     case AuthActionTypes.LOGIN_SUCCESS:
     case AuthActionTypes.REGISTER_SUCCESS:
+      console.log('ورود/ثبت‌نام موفق:', action.payload);
       authService.setAuthToken(action.payload.token);
       return {
         ...state,
@@ -38,6 +39,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         error: null,
       };
     case AuthActionTypes.USER_LOADED:
+      console.log('کاربر بارگذاری شد:', action.payload);
       return {
         ...state,
         isAuthenticated: true,
@@ -46,6 +48,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         error: null,
       };
     case AuthActionTypes.AUTH_ERROR:
+      console.error('خطای احراز هویت:', action.payload);
       authService.setAuthToken(null);
       return {
         ...state,
@@ -56,6 +59,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         error: action.payload,
       };
     case AuthActionTypes.LOGOUT:
+      console.log('کاربر از سیستم خارج شد');
       authService.setAuthToken(null);
       return {
         ...state,
@@ -106,16 +110,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = authService.loadToken();
       
       if (!token) {
+        console.log('توکن یافت نشد، احراز هویت غیرفعال شد');
         dispatch({ type: AuthActionTypes.SET_LOADING, payload: false });
         return;
       }
 
       try {
+        console.log('در حال بارگذاری اطلاعات کاربر با توکن موجود...');
         // دریافت اطلاعات کاربر از سرور
         const data = await authService.getCurrentUser();
+        console.log('پاسخ از سرور در getCurrentUser:', data);
+        
         if (data && data.data && data.data.user) {
           dispatch({ type: AuthActionTypes.USER_LOADED, payload: data.data.user });
+          console.log('کاربر با موفقیت بارگذاری شد');
         } else {
+          console.error('خطا در ساختار پاسخ API:', data);
           throw new Error('خطا در دریافت اطلاعات کاربر');
         }
       } catch (error) {
@@ -134,18 +144,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (userData: LoginUserInput) => {
     try {
       dispatch({ type: AuthActionTypes.SET_LOADING, payload: true });
+      console.log('در حال ارسال درخواست ورود...');
+      
       const data = await authService.login(userData);
+      console.log('پاسخ درخواست ورود:', data);
       
       if (data && data.data) {
         dispatch({
           type: AuthActionTypes.LOGIN_SUCCESS,
           payload: { user: data.data.user, token: data.data.token },
         });
+        console.log('ورود موفقیت‌آمیز');
       } else {
+        console.error('خطا در ساختار پاسخ API ورود:', data);
         throw new Error('داده‌های ورود معتبر نیستند');
       }
     } catch (error: any) {
       const message = error.response?.data?.message || 'خطا در ورود به سیستم';
+      console.error('خطا در ورود:', message);
       dispatch({ type: AuthActionTypes.AUTH_ERROR, payload: message });
     }
   };
@@ -154,18 +170,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (userData: RegisterUserInput) => {
     try {
       dispatch({ type: AuthActionTypes.SET_LOADING, payload: true });
+      console.log('در حال ارسال درخواست ثبت‌نام...');
+      
       const data = await authService.register(userData);
+      console.log('پاسخ درخواست ثبت‌نام:', data);
       
       if (data && data.data) {
         dispatch({
           type: AuthActionTypes.REGISTER_SUCCESS,
           payload: { user: data.data.user, token: data.data.token },
         });
+        console.log('ثبت‌نام موفقیت‌آمیز');
       } else {
+        console.error('خطا در ساختار پاسخ API ثبت‌نام:', data);
         throw new Error('داده‌های ثبت‌نام معتبر نیستند');
       }
     } catch (error: any) {
       const message = error.response?.data?.message || 'خطا در ثبت‌نام';
+      console.error('خطا در ثبت‌نام:', message);
       dispatch({ type: AuthActionTypes.AUTH_ERROR, payload: message });
     }
   };
