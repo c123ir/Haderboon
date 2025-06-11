@@ -2,7 +2,7 @@
 // backend/src/middleware/authMiddleware.ts
 // این فایل شامل میدل‌ور احراز هویت برای محافظت از مسیرهای خاص است
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.protect = void 0;
+exports.admin = exports.protect = void 0;
 const prisma_1 = require("../generated/prisma");
 const authUtils_1 = require("../utils/authUtils");
 // ایجاد نمونه Prisma برای تعامل با پایگاه داده
@@ -65,3 +65,41 @@ const protect = async (req, res, next) => {
     }
 };
 exports.protect = protect;
+/**
+ * میدل‌ور بررسی دسترسی ادمین
+ * فقط کاربران با نقش admin اجازه دسترسی دارند
+ */
+const admin = async (req, res, next) => {
+    try {
+        // بررسی وجود اطلاعات کاربر (باید قبلاً authenticate شده باشد)
+        const authenticatedReq = req;
+        if (!authenticatedReq.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'کاربر احراز هویت نشده است',
+            });
+        }
+        // دریافت اطلاعات کامل کاربر از پایگاه داده
+        const user = await prisma.user.findUnique({
+            where: { id: authenticatedReq.user.id },
+            select: { id: true, email: true, username: true, role: true }
+        });
+        // بررسی نقش کاربر
+        if (!user || user.role !== 'ADMIN') {
+            return res.status(403).json({
+                success: false,
+                message: 'دسترسی مجاز نیست - نیاز به دسترسی ادمین',
+            });
+        }
+        // ادامه به کنترلر بعدی
+        next();
+    }
+    catch (error) {
+        console.error('خطا در میدل‌ور ادمین:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'خطای سرور در بررسی دسترسی ادمین',
+        });
+    }
+};
+exports.admin = admin;

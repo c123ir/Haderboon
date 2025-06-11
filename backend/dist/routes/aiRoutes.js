@@ -8,8 +8,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const AIController_1 = __importDefault(require("../controllers/AIController"));
 const authMiddleware_1 = require("../middleware/authMiddleware");
-// حذف import admin چون وجود ندارد
-// import { admin as authorize } from '../middleware/authMiddleware';
 const router = express_1.default.Router();
 const aiController = new AIController_1.default();
 /**
@@ -21,39 +19,33 @@ router.get('/providers', authMiddleware_1.protect, aiController.getProviders);
 /**
  * @route   GET /api/ai/api-keys
  * @desc    دریافت لیست کلیدهای API
- * @access  Private (Admin)
+ * @access  Private (فقط authenticate)
  */
-router.get('/api-keys', authMiddleware_1.protect, authorize, aiController.getApiKeys);
+router.get('/api-keys', authMiddleware_1.protect, aiController.getApiKeys);
 /**
  * @route   POST /api/ai/api-keys
  * @desc    ایجاد کلید API جدید
- * @access  Private (Admin)
+ * @access  Private (فقط authenticate)
  */
-router.post('/api-keys', authMiddleware_1.protect, authorize, aiController.createApiKey);
+router.post('/api-keys', authMiddleware_1.protect, aiController.createApiKey);
 /**
  * @route   PUT /api/ai/api-keys/:id
  * @desc    به‌روزرسانی کلید API
- * @access  Private (Admin)
+ * @access  Private (فقط authenticate)
  */
-router.put('/api-keys/:id', authMiddleware_1.protect, authorize, aiController.updateApiKey);
+router.put('/api-keys/:id', authMiddleware_1.protect, aiController.updateApiKey);
 /**
  * @route   DELETE /api/ai/api-keys/:id
  * @desc    حذف کلید API
- * @access  Private (Admin)
+ * @access  Private (فقط authenticate)
  */
-router.delete('/api-keys/:id', authMiddleware_1.protect, authorize, aiController.deleteApiKey);
-/**
- * @route   GET /api/ai/models
- * @desc    دریافت لیست مدل‌های هوش مصنوعی
- * @access  Private
- */
-router.get('/models', authMiddleware_1.protect, aiController.getModels);
+router.delete('/api-keys/:id', authMiddleware_1.protect, aiController.deleteApiKey);
 /**
  * @route   GET /api/ai/providers/:providerId/models
- * @desc    دریافت لیست مدل‌های موجود از API سرویس‌دهنده
- * @access  Private (Admin)
+ * @desc    دریافت مدل‌های موجود برای یک سرویس‌دهنده
+ * @access  Private (فقط authenticate)
  */
-router.get('/providers/:providerId/models', authMiddleware_1.protect, authorize, aiController.getAvailableModels);
+router.get('/providers/:providerId/models', authMiddleware_1.protect, aiController.getAvailableModels);
 /**
  * @route   POST /api/ai/chat
  * @desc    ارسال درخواست چت
