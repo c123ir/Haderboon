@@ -1,13 +1,44 @@
 // مسیر فایل: /Users/imac2019/My-Apps/Haderboon/frontend/src/App.tsx
 import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
-import Home from './pages/Home'; // فرض بر اینکه Home.tsx صفحه اصلی است
+
+// کامپوننت‌های صفحات
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
+import NotFound from './pages/NotFound';
+
+// کامپوننت‌های احراز هویت
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
   return (
-    <div className="App">
-      <Home />
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="App">
+          <Routes>
+            {/* صفحات عمومی */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            
+            {/* صفحات محافظت شده */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+            
+            {/* صفحه ۴۰۴ و مسیرهای ناشناخته */}
+            <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
