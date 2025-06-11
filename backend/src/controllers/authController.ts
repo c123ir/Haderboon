@@ -3,7 +3,7 @@
 
 import { Request, Response } from 'express';
 import { hashPassword, comparePassword, generateToken } from '../utils/authUtils';
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 
 // تعریف تایپ‌های مورد نیاز
 interface RegisterUserInput {
@@ -153,4 +153,4 @@ export const loginUser = async (req: Request, res: Response) => {
       message: 'خطای سرور در ورود کاربر',
     });
   }
-}; 
+};
