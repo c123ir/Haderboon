@@ -50,4 +50,43 @@ export interface AuthContextType extends AuthState {
   register: (userData: RegisterUserInput) => Promise<void>;
   logout: () => void;
   clearError: () => void;
-} 
+}
+
+
+// تایپ‌های مربوط به چت هوشمند
+export interface AIMessage {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date;
+  sessionId: string;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+}
+
+export interface AISession {
+  id: string;
+  title: string;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  messages: AIMessage[];
+}
+
+export interface AIChatRequest {
+  message: string;
+  sessionId?: string;
+}
+
+export interface AIChatResponse {
+  message: AIMessage;
+  session: AISession;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+}
