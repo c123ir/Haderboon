@@ -244,3 +244,43 @@ export const deleteProject = async (req: Request, res: Response) => {
     });
   }
 };
+
+// دریافت همه پروژه‌ها (برای ادمین)
+export const getAllProjects = async (req: AuthRequest, res: Response) => {
+  try {
+    const user = req.user;
+
+    // فقط ادمین‌ها می‌توانند همه پروژه‌ها را ببینند
+    if (user?.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'دسترسی غیرمجاز' });
+    }
+
+    const projects = await prisma.project.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+        _count: {
+          select: {
+            documents: true,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+
+    res.json({
+      success: true,
+      data: projects,
+    });
+  } catch (error) {
+    console.error('خطا در دریافت همه پروژه‌ها:', error);
+    res.status(500).json({ message: 'خطای داخلی سرور' });
+  }
+};
