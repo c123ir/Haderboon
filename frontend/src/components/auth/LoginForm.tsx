@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { LoginUserInput } from '../../types'; // تغییر مسیر
+import { useAuth } from '../../context/AuthContext';
+import { LoginUserInput } from '../../utils/types';
 
 // کامپوننت فرم ورود
 const LoginForm: React.FC = () => {
