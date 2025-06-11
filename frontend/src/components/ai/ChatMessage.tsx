@@ -2,7 +2,7 @@
 // کامپوننت نمایش پیام در چت
 
 import React from 'react';
-import { AIMessage } from '../../utils/types';
+import { AIMessage } from '../../types'; // تغییر مسیر
 
 interface ChatMessageProps {
   message: AIMessage;
