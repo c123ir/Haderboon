@@ -271,28 +271,54 @@ export const deleteProject = async (req: AuthRequest, res: Response) => {
 };
 
 /**
- * دریافت همه پروژه‌ها (فقط برای ادمین)
+ * دریافت همه پروژه‌ها (برای کاربر فعلی)
  * @param req - درخواست HTTP احراز هویت شده
  * @param res - پاسخ HTTP
  */
 export const getAllProjects = async (req: AuthRequest, res: Response) => {
   try {
-    const user = req.user;
+    const userId = req.user?.id;
 
-    // فقط ادمین‌ها می‌توانند همه پروژه‌ها را ببینند
-    if (user?.role !== UserRole.ADMIN) { // استفاده از UserRole.ADMIN
-      return res.status(403).json({ success: false, message: 'دسترسی غیرمجاز' });
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'کاربر احراز هویت نشده است'
+      });
     }
 
-    const projects = await prisma.project.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
+    // اگر کاربر ادمین باشد، همه پروژه‌ها را نمایش می‌دهیم
+    if (req.user?.role === UserRole.ADMIN) {
+      const projects = await prisma.project.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+          _count: {
+            select: {
+              documents: true,
+            },
           },
         },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+      });
+
+      return res.json({
+        success: true,
+        message: 'همه پروژه‌ها با موفقیت دریافت شدند',
+        data: projects,
+      });
+    }
+
+    // برای کاربران عادی، فقط پروژه‌های خودشان را نمایش می‌دهیم
+    const projects = await prisma.project.findMany({
+      where: { userId },
+      include: {
         _count: {
           select: {
             documents: true,
@@ -306,11 +332,15 @@ export const getAllProjects = async (req: AuthRequest, res: Response) => {
 
     res.json({
       success: true,
-      message: 'همه پروژه‌ها با موفقیت دریافت شدند',
+      message: 'پروژه‌های شما با موفقیت دریافت شدند',
       data: projects,
     });
   } catch (error) {
-    console.error('خطا در دریافت همه پروژه‌ها:', error);
-    res.status(500).json({ success: false, message: 'خطای داخلی سرور' });
+    console.error('خطا در دریافت پروژه‌ها:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'خطای داخلی سرور',
+      error: error instanceof Error ? error.message : 'خطای نامشخص'
+    });
   }
 };
