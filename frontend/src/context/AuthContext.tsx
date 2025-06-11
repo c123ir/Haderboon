@@ -1,28 +1,18 @@
 // frontend/src/context/AuthContext.tsx
 // این فایل شامل کانتکست احراز هویت برای مدیریت وضعیت ورود و ثبت‌نام کاربر است
 
-import React, { createContext, useReducer, useEffect } from 'react';
-import { AuthContextType, AuthState, LoginUserInput, RegisterUserInput } from '../types'; // تغییر مسیر
+import React, { createContext, useReducer, useEffect, useContext } from 'react';
+import { AuthContextType, AuthState, LoginUserInput, RegisterUserInput, AuthActionTypes } from '../utils/types'; // تغییر مسیر
 import * as authService from '../services/api';
 
 // وضعیت اولیه احراز هویت
 const initialState: AuthState = {
   isAuthenticated: false,
   user: null,
+  token: null,
   loading: true,
   error: null,
 };
-
-// انواع عملیات‌های احراز هویت
-enum AuthActionTypes {
-  LOGIN_SUCCESS = 'LOGIN_SUCCESS',
-  REGISTER_SUCCESS = 'REGISTER_SUCCESS',
-  AUTH_ERROR = 'AUTH_ERROR',
-  USER_LOADED = 'USER_LOADED',
-  LOGOUT = 'LOGOUT',
-  CLEAR_ERROR = 'CLEAR_ERROR',
-  SET_LOADING = 'SET_LOADING',
-}
 
 // تایپ عملیات‌های احراز هویت
 type AuthAction =
@@ -43,6 +33,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         ...state,
         isAuthenticated: true,
         user: action.payload.user,
+        token: action.payload.token,
         loading: false,
         error: null,
       };
@@ -60,6 +51,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         ...state,
         isAuthenticated: false,
         user: null,
+        token: null,
         loading: false,
         error: action.payload,
       };
@@ -69,6 +61,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         ...state,
         isAuthenticated: false,
         user: null,
+        token: null,
         loading: false,
         error: null,
       };
@@ -95,6 +88,9 @@ export const AuthContext = createContext<AuthContextType>({
   logout: () => {},
   clearError: () => {},
 });
+
+// هوک برای استفاده از کانتکست احراز هویت
+export const useAuth = () => useContext(AuthContext);
 
 // پروایدر کانتکست احراز هویت
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -166,6 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         isAuthenticated: state.isAuthenticated,
         user: state.user,
+        token: state.token,
         loading: state.loading,
         error: state.error,
         login,
