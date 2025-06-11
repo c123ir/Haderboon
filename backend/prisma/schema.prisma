@@ -22,4 +22,19 @@ model User {
   password  String   // پسورد هش شده کاربر
   createdAt DateTime @default(now()) // زمان ایجاد حساب کاربری
   updatedAt DateTime @updatedAt // زمان آخرین به‌روزرسانی
+  
+  // ارتباط با سایر مدل‌ها
+  projects  Project[] // پروژه‌های متعلق به کاربر
+}
+
+// مدل پروژه
+model Project {
+  id          String   @id @default(uuid()) // شناسه منحصر به فرد پروژه
+  name        String   // نام پروژه
+  description String?  // توضیحات پروژه (اختیاری)
+  ownerId     String   // شناسه مالک پروژه
+  owner       User     @relation(fields: [ownerId], references: [id]) // ارتباط با کاربر مالک
+  path        String?  // مسیر پروژه (اختیاری)
+  createdAt   DateTime @default(now()) // زمان ایجاد پروژه
+  updatedAt   DateTime @updatedAt // زمان آخرین به‌روزرسانی
 }
