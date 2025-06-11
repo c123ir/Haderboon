@@ -127,6 +127,15 @@ const Dashboard: React.FC = () => {
                   <span className="px-3 py-1 text-xs text-white bg-purple-600 rounded-full">شروع چت</span>
                 </div>
               </Link>
+              
+              {/* کارت تنظیمات */}
+              <Link to="/settings" className="block p-6 transition-shadow bg-white border rounded-lg shadow-sm hover:shadow-md">
+                <h4 className="mb-2 text-lg font-semibold text-right text-gray-800 font-vazirmatn">تنظیمات</h4>
+                <p className="text-right text-gray-600 font-vazirmatn">تنظیم کلیدهای API مدل‌های هوش مصنوعی و سایر تنظیمات برنامه</p>
+                <div className="flex justify-end mt-4">
+                  <span className="px-3 py-1 text-xs text-white bg-gray-600 rounded-full">تنظیمات</span>
+                </div>
+              </Link>
             </div>
           </div>
         </div>
