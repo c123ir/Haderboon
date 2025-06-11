@@ -92,7 +92,7 @@ model AIProvider {
 model AIApiKey {
   id         String    @id @default(cuid())
   name       String
-  keyValue   String    // این فیلد موجود است
+  keyValue   String // این فیلد موجود است
   isActive   Boolean   @default(true)
   expiresAt  DateTime? // اضافه کردن این فیلد
   createdAt  DateTime  @default(now())
@@ -120,7 +120,7 @@ model AIModel {
   providerId   String
 
   // Relations
-  provider AIProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  provider AIProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
   sessions AISession[]
 
   @@map("ai_models")
