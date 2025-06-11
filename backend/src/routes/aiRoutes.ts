@@ -58,6 +58,13 @@ router.get('/providers/:providerId/models', authenticate, aiController.getAvaila
 router.post('/chat', authenticate, aiController.chat);
 
 /**
+ * @route   POST /api/ai/sessions
+ * @desc    ایجاد جلسه چت جدید
+ * @access  Private
+ */
+router.post('/sessions', authenticate, aiController.createSession);
+
+/**
  * @route   GET /api/ai/sessions
  * @desc    دریافت لیست جلسات چت
  * @access  Private
