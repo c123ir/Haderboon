@@ -151,3 +151,8 @@ model AIMessage {
   usage       Json?       // اضافه کردن فیلد usage به صورت JSON
   createdAt   DateTime    @default(now())
 }
+
+// Seed configuration
+// prisma = {
+//   seed = "npx tsx prisma/seed.ts"
+// }
