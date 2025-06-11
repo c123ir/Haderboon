@@ -16,30 +16,30 @@ datasource db {
 
 // مدل کاربر برای ایجنت هادربون
 model User {
-  id        String   @id @default(uuid()) // شناسه منحصر به فرد کاربر
-  email     String   @unique // ایمیل کاربر (منحصر به فرد)
-  username  String   @unique // نام کاربری (منحصر به فرد)
+  id        String    @id @default(uuid()) // شناسه منحصر به فرد کاربر
+  email     String    @unique // ایمیل کاربر (منحصر به فرد)
+  username  String    @unique // نام کاربری (منحصر به فرد)
   password  String   // پسورد هش شده کاربر
   name      String?
-  createdAt DateTime @default(now()) // زمان ایجاد حساب کاربری
-  updatedAt DateTime @updatedAt // زمان آخرین به‌روزرسانی
+  createdAt DateTime  @default(now()) // زمان ایجاد حساب کاربری
+  updatedAt DateTime  @updatedAt // زمان آخرین به‌روزرسانی
   
   // ارتباط با سایر مدل‌ها
-  projects  Project[] // پروژه‌های متعلق به کاربر
+  projects  Project[] @relation("ProjectOwner")
   documents Document[] @relation("DocumentOwner")
   documentVersions DocumentVersion[] @relation("DocumentVersionAuthor")
 }
 
 // مدل پروژه
 model Project {
-  id          String   @id @default(uuid()) // شناسه منحصر به فرد پروژه
+  id          String    @id @default(uuid()) // شناسه منحصر به فرد پروژه
   name        String   // نام پروژه
   description String?  // توضیحات پروژه (اختیاری)
   path        String?  // مسیر پروژه (اختیاری)
   ownerId     String   // شناسه مالک پروژه
-  owner       User     @relation("ProjectOwner", fields: [ownerId], references: [id]) // ارتباط با کاربر مالک
-  createdAt   DateTime @default(now()) // زمان ایجاد پروژه
-  updatedAt   DateTime @updatedAt // زمان آخرین به‌روزرسانی
+  owner       User      @relation("ProjectOwner", fields: [ownerId], references: [id]) // ارتباط با کاربر مالک
+  createdAt   DateTime  @default(now()) // زمان ایجاد پروژه
+  updatedAt   DateTime  @updatedAt // زمان آخرین به‌روزرسانی
   documents   Document[] @relation("ProjectDocuments")
 }
 
