@@ -2,7 +2,7 @@
 // این فایل شامل میدل‌ور احراز هویت برای محافظت از مسیرهای خاص است
 
 import { Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/prisma';
 import { verifyToken } from '../utils/authUtils';
 
 // تعریف interface برای درخواست احراز هویت شده
