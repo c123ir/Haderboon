@@ -4,7 +4,8 @@
 import express from 'express';
 import AIController from '../controllers/AIController';
 import { protect as authenticate } from '../middleware/authMiddleware';
-import { admin as authorize } from '../middleware/authMiddleware';
+// حذف import admin چون وجود ندارد
+// import { admin as authorize } from '../middleware/authMiddleware';
 
 const router = express.Router();
 const aiController = new AIController();
@@ -79,4 +80,4 @@ router.get('/sessions', authenticate, aiController.getSessions);
  */
 router.get('/sessions/:sessionId/messages', authenticate, aiController.getSessionMessages);
 
-export default router; 
+export default router;
