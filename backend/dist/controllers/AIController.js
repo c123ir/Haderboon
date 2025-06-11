@@ -406,7 +406,7 @@ class AIController {
                 res.json({
                     success: true,
                     data: {
-                        sessions: sessions.map(session => (Object.assign(Object.assign({}, session), { messageCount: session._count.messages }))),
+                        sessions: sessions.map((session) => (Object.assign(Object.assign({}, session), { messageCount: session._count.messages }))),
                         total,
                         limit: Number(limit),
                         offset: Number(offset)

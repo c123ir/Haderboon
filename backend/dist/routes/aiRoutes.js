@@ -8,7 +8,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const AIController_1 = __importDefault(require("../controllers/AIController"));
 const authMiddleware_1 = require("../middleware/authMiddleware");
-const authMiddleware_2 = require("../middleware/authMiddleware");
+// حذف import admin چون وجود ندارد
+// import { admin as authorize } from '../middleware/authMiddleware';
 const router = express_1.default.Router();
 const aiController = new AIController_1.default();
 /**
@@ -22,25 +23,25 @@ router.get('/providers', authMiddleware_1.protect, aiController.getProviders);
  * @desc    دریافت لیست کلیدهای API
  * @access  Private (Admin)
  */
-router.get('/api-keys', authMiddleware_1.protect, authMiddleware_2.admin, aiController.getApiKeys);
+router.get('/api-keys', authMiddleware_1.protect, authorize, aiController.getApiKeys);
 /**
  * @route   POST /api/ai/api-keys
  * @desc    ایجاد کلید API جدید
  * @access  Private (Admin)
  */
-router.post('/api-keys', authMiddleware_1.protect, authMiddleware_2.admin, aiController.createApiKey);
+router.post('/api-keys', authMiddleware_1.protect, authorize, aiController.createApiKey);
 /**
  * @route   PUT /api/ai/api-keys/:id
  * @desc    به‌روزرسانی کلید API
  * @access  Private (Admin)
  */
-router.put('/api-keys/:id', authMiddleware_1.protect, authMiddleware_2.admin, aiController.updateApiKey);
+router.put('/api-keys/:id', authMiddleware_1.protect, authorize, aiController.updateApiKey);
 /**
  * @route   DELETE /api/ai/api-keys/:id
  * @desc    حذف کلید API
  * @access  Private (Admin)
  */
-router.delete('/api-keys/:id', authMiddleware_1.protect, authMiddleware_2.admin, aiController.deleteApiKey);
+router.delete('/api-keys/:id', authMiddleware_1.protect, authorize, aiController.deleteApiKey);
 /**
  * @route   GET /api/ai/models
  * @desc    دریافت لیست مدل‌های هوش مصنوعی
@@ -52,7 +53,7 @@ router.get('/models', authMiddleware_1.protect, aiController.getModels);
  * @desc    دریافت لیست مدل‌های موجود از API سرویس‌دهنده
  * @access  Private (Admin)
  */
-router.get('/providers/:providerId/models', authMiddleware_1.protect, authMiddleware_2.admin, aiController.getAvailableModels);
+router.get('/providers/:providerId/models', authMiddleware_1.protect, authorize, aiController.getAvailableModels);
 /**
  * @route   POST /api/ai/chat
  * @desc    ارسال درخواست چت

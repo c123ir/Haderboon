@@ -104,7 +104,8 @@ class AIService {
             });
             // به‌روزرسانی آمار استفاده
             await this.updateUsageStats(provider.id, request.modelId || 'unknown', response.usage);
-            return Object.assign(Object.assign({}, response), { sessionId });
+            return Object.assign(Object.assign({}, response), { sessionId: sessionId || '' // اطمینان از وجود مقدار
+             });
         }
         catch (error) {
             logger_1.default.error(`خطا در ارسال درخواست چت: ${error}`);
