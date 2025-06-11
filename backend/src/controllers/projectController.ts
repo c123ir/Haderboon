@@ -1,18 +1,22 @@
 // مسیر فایل: src/controllers/projectController.ts
 // کنترلر مدیریت پروژه‌ها
 
-import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { Response } from 'express'; // Request حذف شد
+import { PrismaClient, UserRole } from '@prisma/client'; // UserRole اضافه شد
+import { AuthRequest } from '../types/auth'; // AuthRequest اضافه شد
 
 const prisma = new PrismaClient();
 
 /**
  * ایجاد پروژه جدید
+ * @param req - درخواست HTTP احراز هویت شده
+ * @param res - پاسخ HTTP
  */
-export const createProject = async (req: Request, res: Response) => {
+export const createProject = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, description, repositoryUrl, language, framework } = req.body;
-    const userId = (req as any).user?.id;
+    // فیلدهای language و framework از schema.prisma حذف شده‌اند
+    const { name, description, repositoryUrl } = req.body;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({
@@ -25,9 +29,7 @@ export const createProject = async (req: Request, res: Response) => {
       data: {
         name,
         description,
-        repositoryUrl,
-        language,
-        framework,
+        repositoryUrl, // این فیلد در schema.prisma اضافه شده بود
         userId,
       },
     });
@@ -49,10 +51,12 @@ export const createProject = async (req: Request, res: Response) => {
 
 /**
  * دریافت همه پروژه‌های کاربر
+ * @param req - درخواست HTTP احراز هویت شده
+ * @param res - پاسخ HTTP
  */
-export const getUserProjects = async (req: Request, res: Response) => {
+export const getUserProjects = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({
@@ -63,7 +67,7 @@ export const getUserProjects = async (req: Request, res: Response) => {
 
     const projects = await prisma.project.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { updatedAt: 'desc' }, // استفاده از updatedAt برای مرتب‌سازی جدیدترین‌ها
       include: {
         documents: {
           select: {
@@ -72,7 +76,11 @@ export const getUserProjects = async (req: Request, res: Response) => {
             type: true,
             createdAt: true,
           },
+          orderBy: { createdAt: 'desc' }, // اسناد داخل پروژه هم مرتب شوند
         },
+        _count: { // اضافه کردن تعداد اسناد
+          select: { documents: true }
+        }
       },
     });
 
@@ -82,10 +90,10 @@ export const getUserProjects = async (req: Request, res: Response) => {
       data: projects,
     });
   } catch (error) {
-    console.error('خطا در دریافت پروژه‌ها:', error);
+    console.error('خطا در دریافت پروژه‌های کاربر:', error); // تغییر متن خطا
     res.status(500).json({
       success: false,
-      message: 'خطا در دریافت پروژه‌ها',
+      message: 'خطا در دریافت پروژه‌های کاربر',
       error: error instanceof Error ? error.message : 'خطای نامشخص',
     });
   }
@@ -93,11 +101,13 @@ export const getUserProjects = async (req: Request, res: Response) => {
 
 /**
  * دریافت پروژه با شناسه
+ * @param req - درخواست HTTP احراز هویت شده
+ * @param res - پاسخ HTTP
  */
-export const getProjectById = async (req: Request, res: Response) => {
+export const getProjectById = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({
@@ -109,19 +119,26 @@ export const getProjectById = async (req: Request, res: Response) => {
     const project = await prisma.project.findFirst({
       where: {
         id,
-        userId,
+        userId, // اطمینان از اینکه کاربر فقط به پروژه‌های خودش دسترسی دارد
       },
       include: {
         documents: {
-          orderBy: { createdAt: 'desc' },
+          orderBy: { updatedAt: 'desc' }, // استفاده از updatedAt
         },
+        user: { // اضافه کردن اطلاعات کاربر مالک پروژه
+            select: {
+                id: true,
+                username: true,
+                email: true
+            }
+        }
       },
     });
 
     if (!project) {
       return res.status(404).json({
         success: false,
-        message: 'پروژه یافت نشد',
+        message: 'پروژه یافت نشد یا شما دسترسی ندارید',
       });
     }
 
@@ -131,10 +148,10 @@ export const getProjectById = async (req: Request, res: Response) => {
       data: project,
     });
   } catch (error) {
-    console.error('خطا در دریافت پروژه:', error);
+    console.error('خطا در دریافت پروژه با شناسه:', error); // تغییر متن خطا
     res.status(500).json({
       success: false,
-      message: 'خطا در دریافت پروژه',
+      message: 'خطا در دریافت پروژه با شناسه',
       error: error instanceof Error ? error.message : 'خطای نامشخص',
     });
   }
@@ -142,12 +159,15 @@ export const getProjectById = async (req: Request, res: Response) => {
 
 /**
  * به‌روزرسانی پروژه
+ * @param req - درخواست HTTP احراز هویت شده
+ * @param res - پاسخ HTTP
  */
-export const updateProject = async (req: Request, res: Response) => {
+export const updateProject = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, description, repositoryUrl, language, framework } = req.body;
-    const userId = (req as any).user?.id;
+    // فیلدهای language و framework از schema.prisma حذف شده‌اند
+    const { name, description, repositoryUrl, status } = req.body; // status اضافه شد
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({
@@ -167,18 +187,17 @@ export const updateProject = async (req: Request, res: Response) => {
     if (!existingProject) {
       return res.status(404).json({
         success: false,
-        message: 'پروژه یافت نشد',
+        message: 'پروژه یافت نشد یا شما دسترسی ندارید',
       });
     }
 
     const updatedProject = await prisma.project.update({
-      where: { id },
+      where: { id }, // اطمینان از اینکه فقط پروژه متعلق به کاربر آپدیت می‌شود
       data: {
         name,
         description,
         repositoryUrl,
-        language,
-        framework,
+        status, // فیلد status اضافه شد
       },
     });
 
@@ -199,11 +218,13 @@ export const updateProject = async (req: Request, res: Response) => {
 
 /**
  * حذف پروژه
+ * @param req - درخواست HTTP احراز هویت شده
+ * @param res - پاسخ HTTP
  */
-export const deleteProject = async (req: Request, res: Response) => {
+export const deleteProject = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({
@@ -223,12 +244,16 @@ export const deleteProject = async (req: Request, res: Response) => {
     if (!existingProject) {
       return res.status(404).json({
         success: false,
-        message: 'پروژه یافت نشد',
+        message: 'پروژه یافت نشد یا شما دسترسی ندارید',
       });
     }
 
+    // ابتدا اسناد مرتبط با پروژه حذف شوند (اگر onDelete: Cascade تنظیم نشده باشد)
+    // await prisma.document.deleteMany({ where: { projectId: id } });
+    // با توجه به اینکه onDelete: Cascade در مدل Project برای documents تنظیم شده، نیازی به این خط نیست
+
     await prisma.project.delete({
-      where: { id },
+      where: { id }, // اطمینان از اینکه فقط پروژه متعلق به کاربر حذف می‌شود
     });
 
     res.json({
@@ -245,14 +270,18 @@ export const deleteProject = async (req: Request, res: Response) => {
   }
 };
 
-// دریافت همه پروژه‌ها (برای ادمین)
+/**
+ * دریافت همه پروژه‌ها (فقط برای ادمین)
+ * @param req - درخواست HTTP احراز هویت شده
+ * @param res - پاسخ HTTP
+ */
 export const getAllProjects = async (req: AuthRequest, res: Response) => {
   try {
     const user = req.user;
 
     // فقط ادمین‌ها می‌توانند همه پروژه‌ها را ببینند
-    if (user?.role !== 'ADMIN') {
-      return res.status(403).json({ message: 'دسترسی غیرمجاز' });
+    if (user?.role !== UserRole.ADMIN) { // استفاده از UserRole.ADMIN
+      return res.status(403).json({ success: false, message: 'دسترسی غیرمجاز' });
     }
 
     const projects = await prisma.project.findMany({
@@ -277,10 +306,11 @@ export const getAllProjects = async (req: AuthRequest, res: Response) => {
 
     res.json({
       success: true,
+      message: 'همه پروژه‌ها با موفقیت دریافت شدند',
       data: projects,
     });
   } catch (error) {
     console.error('خطا در دریافت همه پروژه‌ها:', error);
-    res.status(500).json({ message: 'خطای داخلی سرور' });
+    res.status(500).json({ success: false, message: 'خطای داخلی سرور' });
   }
 };
