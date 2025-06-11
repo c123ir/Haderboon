@@ -15,13 +15,9 @@ const router = express_1.default.Router();
  * @desc ثبت‌نام کاربر جدید
  * @access عمومی
  */
-router.post('/register', authController_1.registerUser);
-/**
- * @route POST /api/v1/auth/login
- * @desc ورود کاربر
- * @access عمومی
- */
-router.post('/login', authController_1.loginUser);
+// تغییر نام‌های route handler:
+router.post('/register', authController_1.register);
+router.post('/login', authController_1.login);
 /**
  * @route GET /api/v1/auth/me
  * @desc دریافت اطلاعات کاربر فعلی

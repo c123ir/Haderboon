@@ -146,7 +146,18 @@ const aiApiKeyService = {
         }
         try {
             // رمزگشایی کلید API
-            const decryptedKey = (0, encryption_1.decrypt)(apiKey.key);
+            // تغییر key به keyValue:
+            const decryptedKey = (0, encryption_1.decrypt)(apiKey.keyValue); // به جای apiKey.key
+            // برای ایجاد API key:
+            const apiKey = await prisma.aIApiKey.create({
+                data: {
+                    name: data.name,
+                    keyValue: encryptedKey, // به جای key
+                    providerId: data.providerId,
+                    userId: data.userId,
+                    expiresAt: data.expiresAt || null
+                }
+            });
             return Object.assign(Object.assign({}, apiKey), { key: decryptedKey });
         }
         catch (error) {

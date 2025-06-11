@@ -5,11 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// مسیر فایل: src/factories/AIProviderFactory.ts
 const OpenAIProvider_1 = __importDefault(require("../adapters/OpenAIProvider"));
-const GoogleAIProvider_1 = __importDefault(require("../adapters/GoogleAIProvider"));
-const AnthropicProvider_1 = __importDefault(require("../adapters/AnthropicProvider"));
-const OpenRouterProvider_1 = __importDefault(require("../adapters/OpenRouterProvider"));
 const GrokAIProvider_1 = __importDefault(require("../adapters/GrokAIProvider"));
+const OpenRouterProvider_1 = __importDefault(require("../adapters/OpenRouterProvider"));
+// حذف این خطوط:
+// import GoogleAIProvider from '../adapters/GoogleAIProvider';
+// import AnthropicProvider from '../adapters/AnthropicProvider';
 /**
  * کلاس Factory برای ایجاد نمونه‌های Adapter هوش مصنوعی
  */
@@ -34,10 +36,10 @@ class AIProviderFactory {
                 provider = new OpenAIProvider_1.default(config);
                 break;
             case this.PROVIDERS.GOOGLE:
-                provider = new GoogleAIProvider_1.default(config);
+                provider = new GoogleAIProvider(config);
                 break;
             case this.PROVIDERS.ANTHROPIC:
-                provider = new AnthropicProvider_1.default(config);
+                provider = new AnthropicProvider(config);
                 break;
             case this.PROVIDERS.OPENROUTER:
                 provider = new OpenRouterProvider_1.default(config);
