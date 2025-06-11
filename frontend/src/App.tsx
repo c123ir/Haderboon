@@ -8,6 +8,12 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
+// صفحات مربوط به پروژه
+import ProjectsListPage from './pages/project/ProjectsListPage';
+import NewProjectPage from './pages/project/NewProjectPage';
+import ProjectDetailsPage from './pages/project/ProjectDetailsPage';
+import EditProjectPage from './pages/project/EditProjectPage';
+
 function App() {
   return (
     <AuthProvider>
@@ -21,6 +27,13 @@ function App() {
           {/* مسیرهای محافظت شده (نیاز به احراز هویت) */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            
+            {/* مسیرهای مربوط به پروژه */}
+            <Route path="/projects" element={<ProjectsListPage />} />
+            <Route path="/projects/new" element={<NewProjectPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailsPage />} />
+            <Route path="/projects/:id/edit" element={<EditProjectPage />} />
+            
             {/* مسیرهای محافظت شده دیگر در اینجا اضافه می‌شوند */}
           </Route>
           
