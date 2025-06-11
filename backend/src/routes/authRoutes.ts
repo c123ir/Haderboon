@@ -2,7 +2,7 @@
 // این فایل شامل مسیرهای مربوط به احراز هویت (ثبت‌نام و ورود) است
 
 import express, { Request, Response } from 'express';
-import { registerUser, loginUser } from '../controllers/authController';
+import { register, login } from '../controllers/authController';
 import { protect } from '../middleware/authMiddleware';
 
 // تعریف interface برای درخواست احراز هویت شده
@@ -22,14 +22,9 @@ const router = express.Router();
  * @desc ثبت‌نام کاربر جدید
  * @access عمومی
  */
-router.post('/register', registerUser);
-
-/**
- * @route POST /api/v1/auth/login
- * @desc ورود کاربر
- * @access عمومی
- */
-router.post('/login', loginUser);
+// تغییر نام‌های route handler:
+router.post('/register', register);
+router.post('/login', login);
 
 /**
  * @route GET /api/v1/auth/me
@@ -47,4 +42,4 @@ router.get('/me', protect, (req: AuthenticatedRequest, res: Response) => {
   });
 });
 
-export default router; 
+export default router;
