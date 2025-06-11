@@ -4,12 +4,12 @@
 import { Router } from 'express';
 import { 
   createDocument, 
-  getProjectDocuments, 
+  // getProjectDocuments, // این تابع در کنترلر وجود ندارد
   getDocumentById, 
   updateDocument, 
   deleteDocument,
-  createDocumentVersion,
-  getDocumentVersion
+  // createDocumentVersion, // این تابع در کنترلر وجود ندارد
+  // getDocumentVersion // این تابع در کنترلر وجود ندارد
 } from '../controllers/documentController';
 import { protect } from '../middleware/authMiddleware';
 
@@ -25,10 +25,10 @@ router.put('/:id', updateDocument);
 router.delete('/:id', deleteDocument);
 
 // مسیرهای نسخه‌های مستندات
-router.post('/:id/versions', createDocumentVersion);
-router.get('/:id/versions/:versionNumber', getDocumentVersion);
+// router.post('/:id/versions', createDocumentVersion); // این تابع در کنترلر وجود ندارد
+// router.get('/:id/versions/:versionNumber', getDocumentVersion); // این تابع در کنترلر وجود ندارد
 
 // دریافت مستندات یک پروژه
-router.get('/project/:projectId', getProjectDocuments);
+// router.get('/project/:projectId', getProjectDocuments); // این تابع در کنترلر وجود ندارد
 
-export default router; 
+export default router;
