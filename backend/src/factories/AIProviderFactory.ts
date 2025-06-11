@@ -2,11 +2,13 @@
 // کلاس Factory برای ساخت Adapter‌های هوش مصنوعی
 
 import { IAIProvider } from '../interfaces/IAIProvider';
+// مسیر فایل: src/factories/AIProviderFactory.ts
 import OpenAIProvider from '../adapters/OpenAIProvider';
-import GoogleAIProvider from '../adapters/GoogleAIProvider';
-import AnthropicProvider from '../adapters/AnthropicProvider';
-import OpenRouterProvider from '../adapters/OpenRouterProvider';
 import GrokAIProvider from '../adapters/GrokAIProvider';
+import OpenRouterProvider from '../adapters/OpenRouterProvider';
+// حذف این خطوط:
+// import GoogleAIProvider from '../adapters/GoogleAIProvider';
+// import AnthropicProvider from '../adapters/AnthropicProvider';
 
 /**
  * کلاس Factory برای ایجاد نمونه‌های Adapter هوش مصنوعی
@@ -91,4 +93,4 @@ class AIProviderFactory {
   }
 }
 
-export default AIProviderFactory; 
+export default AIProviderFactory;
