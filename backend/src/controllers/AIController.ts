@@ -520,3 +520,92 @@ class AIController {
 }
 
 export default AIController;
+
+/**
+ * ایجاد جلسه چت جدید
+ * @param req درخواست
+ * @param res پاسخ
+ */
+createSession = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { title } = req.body;
+    const userId = (req as any).user?.id; // از middleware احراز هویت
+    
+    if (!title) {
+      res.status(400).json({
+        success: false,
+        message: 'عنوان جلسه الزامی است'
+      });
+      return;
+    }
+    
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'کاربر احراز هویت نشده است'
+      });
+      return;
+    }
+    
+    // دریافت سرویس‌دهنده و مدل پیش‌فرض
+    const defaultProvider = await this.prisma.aIProvider.findFirst({
+      where: { isActive: true },
+      orderBy: { priority: 'desc' },
+      include: {
+        models: {
+          where: { isActive: true },
+          take: 1
+        }
+      }
+    });
+    
+    if (!defaultProvider || !defaultProvider.models[0]) {
+      res.status(400).json({
+        success: false,
+        message: 'هیچ سرویس‌دهنده یا مدل فعالی یافت نشد'
+      });
+      return;
+    }
+    
+    // ایجاد جلسه جدید
+    const session = await this.prisma.aISession.create({
+      data: {
+        title,
+        userId,
+        providerId: defaultProvider.id,
+        modelId: defaultProvider.models[0].id
+      },
+      include: {
+        provider: {
+          select: {
+            name: true,
+            displayName: true
+          }
+        },
+        model: {
+          select: {
+            name: true,
+            displayName: true
+          }
+        },
+        _count: {
+          select: { messages: true }
+        }
+      }
+    });
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        ...session,
+        messageCount: session._count.messages
+      }
+    });
+  } catch (error) {
+    Logger.error('خطا در ایجاد جلسه چت:', error);
+    res.status(500).json({
+      success: false,
+      message: 'خطا در ایجاد جلسه چت'
+    });
+  }
+};
