@@ -18,7 +18,7 @@ const aiProviderService = {
    * @param data اطلاعات سرویس‌دهنده جدید
    * @returns سرویس‌دهنده ایجاد شده
    */
-  async createProvider(data: AIProviderInput) {
+  export const createProvider = async (data: AIProviderInput) => {
     return prisma.aIProvider.create({
       data: {
         name: data.name,
@@ -90,12 +90,12 @@ const aiProviderService = {
    * @param data اطلاعات جدید
    * @returns سرویس‌دهنده به‌روزرسانی شده
    */
-  async updateProvider(id: string, data: AIProviderUpdateInput) {
+  export const updateProvider = async (id: string, data: AIProviderUpdateInput) => {
     return prisma.aIProvider.update({
       where: { id },
       data: {
         displayName: data.displayName,
-        description: data.description,
+        description: data.description, // اطمینان از وجود فیلد در schema
         // logoUrl: data.logoUrl, // این فیلد در schema.prisma وجود ندارد
         baseUrl: data.baseUrl,
         isActive: data.isActive,
