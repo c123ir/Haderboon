@@ -609,3 +609,121 @@ createSession = async (req: Request, res: Response): Promise<void> => {
     });
   }
 };
+
+/**
+ * حذف جلسه چت
+ * @param req درخواست
+ * @param res پاسخ
+ */
+deleteSession = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user?.id;
+    
+    // بررسی وجود جلسه و مالکیت
+    const session = await this.prisma.aISession.findFirst({
+      where: {
+        id,
+        userId
+      }
+    });
+    
+    if (!session) {
+      res.status(404).json({
+        success: false,
+        message: 'جلسه یافت نشد'
+      });
+      return;
+    }
+    
+    // حذف جلسه (پیام‌ها به دلیل cascade delete خودکار حذف می‌شوند)
+    await this.prisma.aISession.delete({
+      where: { id }
+    });
+    
+    res.json({
+      success: true,
+      message: 'جلسه با موفقیت حذف شد'
+    });
+  } catch (error) {
+    Logger.error('خطا در حذف جلسه چت:', error);
+    res.status(500).json({
+      success: false,
+      message: 'خطا در حذف جلسه چت'
+    });
+  }
+};
+
+/**
+ * به‌روزرسانی جلسه چت
+ * @param req درخواست
+ * @param res پاسخ
+ */
+updateSession = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { title } = req.body;
+    const userId = (req as any).user?.id;
+    
+    if (!title) {
+      res.status(400).json({
+        success: false,
+        message: 'عنوان جلسه الزامی است'
+      });
+      return;
+    }
+    
+    // بررسی وجود جلسه و مالکیت
+    const existingSession = await this.prisma.aISession.findFirst({
+      where: {
+        id,
+        userId
+      }
+    });
+    
+    if (!existingSession) {
+      res.status(404).json({
+        success: false,
+        message: 'جلسه یافت نشد'
+      });
+      return;
+    }
+    
+    // به‌روزرسانی جلسه
+    const session = await this.prisma.aISession.update({
+      where: { id },
+      data: { title },
+      include: {
+        provider: {
+          select: {
+            name: true,
+            displayName: true
+          }
+        },
+        model: {
+          select: {
+            name: true,
+            displayName: true
+          }
+        },
+        _count: {
+          select: { messages: true }
+        }
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        ...session,
+        messageCount: session._count.messages
+      }
+    });
+  } catch (error) {
+    Logger.error('خطا در به‌روزرسانی جلسه چت:', error);
+    res.status(500).json({
+      success: false,
+      message: 'خطا در به‌روزرسانی جلسه چت'
+    });
+  }
+};

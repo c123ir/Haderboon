@@ -78,4 +78,18 @@ router.get('/sessions', authenticate, aiController.getSessions);
  */
 router.get('/sessions/:sessionId/messages', authenticate, aiController.getSessionMessages);
 
+/**
+ * @route   DELETE /api/ai/sessions/:id
+ * @desc    حذف جلسه چت
+ * @access  Private
+ */
+router.delete('/sessions/:id', authenticate, aiController.deleteSession);
+
+/**
+ * @route   PUT /api/ai/sessions/:id
+ * @desc    به‌روزرسانی جلسه چت
+ * @access  Private
+ */
+router.put('/sessions/:id', authenticate, aiController.updateSession);
+
 export default router;
