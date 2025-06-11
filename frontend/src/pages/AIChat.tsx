@@ -53,16 +53,19 @@ const AIChat: React.FC = () => {
     try {
       setIsLoadingSessions(true);
       const sessionsData = await aiService.getSessions();
-      setSessions(sessionsData);
+      // اطمینان از اینکه sessionsData یک آرایه است
+      setSessions(Array.isArray(sessionsData) ? sessionsData : []);
       
       // انتخاب آخرین جلسه به عنوان جلسه فعال
-      if (sessionsData.length > 0) {
+      if (Array.isArray(sessionsData) && sessionsData.length > 0) {
         const latestSession = sessionsData[0];
         setCurrentSession(latestSession);
         setMessages(latestSession.messages || []);
       }
     } catch (error) {
       console.error('خطا در بارگذاری جلسات:', error);
+      // در صورت خطا، sessions را به آرایه خالی تنظیم کن
+      setSessions([]);
     } finally {
       setIsLoadingSessions(false);
     }
