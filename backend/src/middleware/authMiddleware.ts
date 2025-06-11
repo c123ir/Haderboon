@@ -25,29 +25,50 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
-    
-    // استفاده از userId بجای id
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId }
-    });
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
+      console.log('اطلاعات توکن:', decoded);
+      
+      if (!decoded.userId) {
+        console.error('فیلد userId در توکن یافت نشد:', decoded);
+        return res.status(401).json({
+          success: false,
+          message: 'توکن نامعتبر - فیلد userId یافت نشد'
+        });
+      }
+      
+      // جستجوی کاربر با استفاده از userId از توکن
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId }
+      });
 
-    if (!user) {
+      if (!user) {
+        console.error('کاربر با شناسه مشخص شده یافت نشد:', decoded.userId);
+        return res.status(401).json({
+          success: false,
+          message: 'کاربر یافت نشد'
+        });
+      }
+
+      // تنظیم اطلاعات کاربر
+      req.user = user;
+      console.log('کاربر احراز هویت شد:', { id: user.id, email: user.email, role: user.role });
+
+      next();
+    } catch (jwtError) {
+      console.error('خطا در تأیید توکن JWT:', jwtError);
       return res.status(401).json({
         success: false,
-        message: 'کاربر یافت نشد'
+        message: 'توکن نامعتبر یا منقضی شده',
+        error: jwtError instanceof Error ? jwtError.message : 'خطای نامشخص'
       });
     }
-
-    // تنظیم اطلاعات کاربر
-    req.user = user;
-
-    next();
   } catch (error) {
-    console.error('خطا در تأیید توکن:', error);
-    return res.status(401).json({
+    console.error('خطا در میدل‌ویر احراز هویت:', error);
+    return res.status(500).json({
       success: false,
-      message: 'توکن نامعتبر یا منقضی شده'
+      message: 'خطای داخلی سرور در احراز هویت',
+      error: error instanceof Error ? error.message : 'خطای نامشخص'
     });
   }
 };
@@ -65,6 +86,11 @@ export const authorize = (...roles: string[]) => {
     }
 
     if (!roles.includes(req.user.role)) {
+      console.log('کاربر دسترسی کافی ندارد:', { 
+        userRole: req.user.role, 
+        requiredRoles: roles 
+      });
+      
       return res.status(403).json({
         success: false,
         message: 'دسترسی ممنوع - نقش کافی ندارید'
