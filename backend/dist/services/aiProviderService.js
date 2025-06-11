@@ -18,12 +18,12 @@ const aiProviderService = {
             data: {
                 name: data.name,
                 displayName: data.displayName,
-                description: data.description,
-                logoUrl: data.logoUrl,
+                description: data.description, // اطمینان از وجود فیلد در schema
+                // logoUrl: data.logoUrl, // این فیلد در schema.prisma وجود ندارد
                 baseUrl: data.baseUrl,
                 isActive: data.isActive || false,
-                priority: data.priority || 0,
-                settings: data.settings,
+                priority: data.priority || 0, // اطمینان از وجود فیلد در schema
+                // settings: data.settings as any, // این فیلد در schema.prisma وجود ندارد
             },
         });
     },
@@ -87,11 +87,11 @@ const aiProviderService = {
             data: {
                 displayName: data.displayName,
                 description: data.description,
-                logoUrl: data.logoUrl,
+                // logoUrl: data.logoUrl, // این فیلد در schema.prisma وجود ندارد
                 baseUrl: data.baseUrl,
                 isActive: data.isActive,
                 priority: data.priority,
-                settings: data.settings,
+                // settings: data.settings as any, // این فیلد در schema.prisma وجود ندارد
             },
         });
     },

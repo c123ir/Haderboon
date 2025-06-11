@@ -14,8 +14,8 @@ router.get('/:id', documentController_1.getDocumentById);
 router.put('/:id', documentController_1.updateDocument);
 router.delete('/:id', documentController_1.deleteDocument);
 // مسیرهای نسخه‌های مستندات
-router.post('/:id/versions', documentController_1.createDocumentVersion);
-router.get('/:id/versions/:versionNumber', documentController_1.getDocumentVersion);
+// router.post('/:id/versions', createDocumentVersion); // این تابع در کنترلر وجود ندارد
+// router.get('/:id/versions/:versionNumber', getDocumentVersion); // این تابع در کنترلر وجود ندارد
 // دریافت مستندات یک پروژه
-router.get('/project/:projectId', documentController_1.getProjectDocuments);
+// router.get('/project/:projectId', getProjectDocuments); // این تابع در کنترلر وجود ندارد
 exports.default = router;

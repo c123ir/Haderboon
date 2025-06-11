@@ -23,7 +23,8 @@ const aiModelService = {
                 isActive: data.isActive !== undefined ? data.isActive : true,
                 capabilities: data.capabilities || [],
                 contextSize: data.contextSize || 4000,
-                settings: data.settings,
+                settings: data.settings, // اطمینان از وجود فیلد در schema
+                priority: data.priority === undefined ? 0 : data.priority, // اضافه کردن فیلد priority با مقدار پیش فرض
             },
         });
     },
@@ -69,7 +70,8 @@ const aiModelService = {
                 provider: true,
             },
             orderBy: [
-                { provider: { priority: 'desc' } },
+                // { provider: { priority: 'desc' } }, // این نوع مرتب سازی مستقیم پشتیبانی نمی شود، فعلا حذف می شود
+                { priority: 'desc' }, // مرتب سازی بر اساس اولویت خود مدل
                 { name: 'asc' },
             ],
         });
@@ -102,7 +104,8 @@ const aiModelService = {
                 isActive: data.isActive,
                 capabilities: data.capabilities,
                 contextSize: data.contextSize,
-                settings: data.settings,
+                settings: data.settings, // اطمینان از وجود فیلد در schema
+                priority: data.priority,
             },
         });
     },

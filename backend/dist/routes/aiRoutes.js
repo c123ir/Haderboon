@@ -21,7 +21,7 @@ router.use(authMiddleware_1.protect);
 // مسیرهای مدیریت ارائه‌دهندگان AI
 // این مسیرها ممکن است نیاز به دسترسی ادمین داشته باشند (adminProtect)
 router.route('/providers')
-    .get(aiProviderController_1.getProviders) // همه کاربران می‌توانند لیست را ببینند
+    .get(aiProviderController_1.getAllProviders) // تغییر از getProviders به getAllProviders
     .post(aiProviderController_1.createProvider); // TODO: .post(adminProtect, createProvider) - فقط ادمین‌ها می‌توانند ایجاد کنند
 router.route('/providers/:id')
     .get(aiProviderController_1.getProviderById) // همه کاربران می‌توانند مشاهده کنند
