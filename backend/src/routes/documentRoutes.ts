@@ -4,14 +4,17 @@
 import { Router } from 'express';
 import { 
   createDocument, 
-  getUserDocuments, // اضافه شد
+  getUserDocuments,
   getDocumentById, 
   updateDocument, 
   deleteDocument,
-  // getProjectDocuments, // این تابع در کنترلر وجود ندارد
-  // createDocumentVersion, // این تابع در کنترلر وجود ندارد
-  // getDocumentVersion // این تابع در کنترلر وجود ندارد
 } from '../controllers/documentController';
+import {
+  createDocumentVersion,
+  getDocumentVersions,
+  getDocumentVersion,
+  deleteDocumentVersion,
+} from '../controllers/documentVersionController';
 import { protect } from '../middleware/authMiddleware';
 
 const router = Router();
