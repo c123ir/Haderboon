@@ -98,6 +98,19 @@ const Dashboard: React.FC = () => {
           </button>
           
           <button
+            onClick={() => navigate('/documents')}
+            className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white p-4 rounded-lg hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 text-center"
+          >
+            <div className="flex flex-col items-center">
+              <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <span className="font-semibold">مستندات من</span>
+              <span className="text-sm opacity-90">مشاهده مستندات</span>
+            </div>
+          </button>
+          
+          <button
             onClick={() => navigate('/documents/new')}
             className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4 rounded-lg hover:from-orange-600 hover:to-red-700 transition-all duration-200 text-center"
           >
