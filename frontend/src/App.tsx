@@ -67,6 +67,9 @@ function App() {
               
               {/* صفحه چت */}
               <Route path="/chat" element={<ChatPage />} />
+              
+              {/* صفحه مدیریت تگ‌ها */}
+              <Route path="/tags" element={<TagsPage />} />
             </Route>
             
             {/* صفحه ۴۰۴ و مسیرهای ناشناخته */}
