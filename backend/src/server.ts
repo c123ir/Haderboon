@@ -4,6 +4,7 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes';
 import projectRoutes from './routes/projectRoutes';
 import documentRoutes from './routes/documentRoutes';
+import tagRoutes from './routes/tagRoutes';
 import aiRoutes from './routes/aiRoutes';
 import morgan from 'morgan';
 import helmet from 'helmet';
