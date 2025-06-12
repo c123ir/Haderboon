@@ -23,11 +23,13 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  projects   Project[]
-  documents  Document[]
-  aiSessions AISession[]
-  aiMessages AIMessage[]
-  AIApiKey   AIApiKey[]
+  projects         Project[]
+  documents        Document[]
+  documentVersions DocumentVersion[]
+  tags             Tag[]
+  aiSessions       AISession[]
+  aiMessages       AIMessage[]
+  AIApiKey         AIApiKey[]
 
   @@map("users")
 }
