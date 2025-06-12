@@ -29,6 +29,9 @@ import ChatPage from './pages/ChatPage';
 // صفحه لیست مستندات
 import DocumentsPage from './pages/DocumentsPage';
 
+// صفحه مدیریت تگ‌ها
+import TagsPage from './pages/TagsPage';
+
 // کامپوننت‌های احراز هویت
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
