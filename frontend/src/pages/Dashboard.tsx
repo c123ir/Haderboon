@@ -70,7 +70,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {/* دسترسی سریع */}
-        <div className="grid md:grid-cols-4 gap-4 mb-6">
+        <div className="grid md:grid-cols-5 gap-4 mb-6">
           <button
             onClick={() => navigate('/chat')}
             className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 text-center"
