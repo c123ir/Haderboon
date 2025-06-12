@@ -47,6 +47,13 @@ function App() {
               <Route path="/projects/new" element={<NewProjectPage />} />
               <Route path="/projects/:id" element={<ProjectDetailsPage />} />
               <Route path="/projects/:id/edit" element={<EditProjectPage />} />
+              
+              {/* مسیرهای مستندات */}
+              <Route path="/documents/new" element={<NewDocumentPage />} />
+              <Route path="/documents/:id" element={<DocumentDetailsPage />} />
+              <Route path="/documents/:id/edit" element={<EditDocumentPage />} />
+              <Route path="/documents/:id/new-version" element={<NewVersionPage />} />
+              <Route path="/projects/:projectId/documents" element={<ProjectDocumentsPage />} />
             </Route>
             
             {/* صفحه ۴۰۴ و مسیرهای ناشناخته */}
