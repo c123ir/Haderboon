@@ -55,6 +55,7 @@ function App() {
               <Route path="/projects/:id/edit" element={<EditProjectPage />} />
               
               {/* مسیرهای مستندات */}
+              <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/documents/new" element={<NewDocumentPage />} />
               <Route path="/documents/:id" element={<DocumentDetailsPage />} />
               <Route path="/documents/:id/edit" element={<EditDocumentPage />} />
