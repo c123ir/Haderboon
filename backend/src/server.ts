@@ -31,6 +31,8 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/projects', projectRoutes);
 // مسیرهای مدیریت مستندات
 app.use('/api/v1/documents', documentRoutes);
+// مسیرهای مدیریت تگ‌ها
+app.use('/api/v1/tags', tagRoutes);
 // مسیرهای مدیریت هوش مصنوعی
 app.use('/api/v1/ai', aiRoutes);
 
