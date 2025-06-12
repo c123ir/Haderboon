@@ -5,7 +5,7 @@ import axios from 'axios';
 import { LoginUserInput, RegisterUserInput, Project } from '../utils/types'; // تغییر مسیر
 
 // آدرس پایه API بک‌اند
-const API_URL = 'http://localhost:5550/api/v1';
+const API_URL = 'http://localhost:5150/api/v1';
 
 // تنظیم نمونه axios
 const api = axios.create({
