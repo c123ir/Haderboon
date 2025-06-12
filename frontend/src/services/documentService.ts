@@ -27,7 +27,7 @@ const documentService = {
    */
   getProjectDocuments: async (projectId: string) => {
     try {
-      const response = await api.get(`/documents/project/${projectId}`);
+      const response = await api.get(`/documents?projectId=${projectId}`);
       return response.data;
     } catch (error) {
       console.error('خطا در دریافت مستندات پروژه:', error);
