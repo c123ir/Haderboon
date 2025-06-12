@@ -12,8 +12,8 @@ import helmet from 'helmet';
 dotenv.config();
 
 const app = express();
-// پورت بک‌اند را از متغیر محیطی یا به صورت پیش‌فرض 5550 تنظیم می‌کنیم
-const PORT = process.env.BACKEND_PORT || 5550;
+// پورت بک‌اند را از متغیر محیطی یا به صورت پیش‌فرض 5150 تنظیم می‌کنیم
+const PORT = process.env.BACKEND_PORT || 5150;
 
 // Middleware برای فعال کردن CORS (اجازه ارتباط فرانت‌اند با بک‌اند)
 app.use(cors());
