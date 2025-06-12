@@ -16,6 +16,13 @@ import NewProjectPage from './pages/project/NewProjectPage';
 import ProjectDetailsPage from './pages/project/ProjectDetailsPage';
 import EditProjectPage from './pages/project/EditProjectPage';
 
+// کامپوننت‌های مستندات
+import NewDocumentPage from './pages/document/NewDocumentPage';
+import DocumentDetailsPage from './pages/document/DocumentDetailsPage';
+import EditDocumentPage from './pages/document/EditDocumentPage';
+import ProjectDocumentsPage from './pages/document/ProjectDocumentsPage';
+import NewVersionPage from './pages/document/NewVersionPage';
+
 // کامپوننت‌های احراز هویت
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
