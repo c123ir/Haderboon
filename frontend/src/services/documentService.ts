@@ -91,36 +91,64 @@ const documentService = {
     }
   },
 
-  // TODO: پیاده‌سازی مسیرهای نسخه‌سازی مستندات در بک‌اند
-  // /**
-  //  * ایجاد نسخه جدید از مستند
-  //  * @param documentId شناسه مستند
-  //  * @param versionData اطلاعات نسخه جدید
-  //  */
-  // createDocumentVersion: async (documentId: string, versionData: any) => {
-  //   try {
-  //     const response = await api.post(`/documents/${documentId}/versions`, versionData);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('خطا در ایجاد نسخه جدید مستند:', error);
-  //     throw error;
-  //   }
-  // },
+  /**
+   * ایجاد نسخه جدید از مستند
+   * @param documentId شناسه مستند
+   * @param versionData اطلاعات نسخه جدید
+   */
+  createDocumentVersion: async (documentId: string, versionData: any) => {
+    try {
+      const response = await api.post(`/documents/${documentId}/versions`, versionData);
+      return response.data;
+    } catch (error) {
+      console.error('خطا در ایجاد نسخه جدید مستند:', error);
+      throw error;
+    }
+  },
 
-  // /**
-  //  * دریافت یک نسخه مشخص از مستند
-  //  * @param documentId شناسه مستند
-  //  * @param versionNumber شماره نسخه
-  //  */
-  // getDocumentVersion: async (documentId: string, versionNumber: number) => {
-  //   try {
-  //     const response = await api.get(`/documents/${documentId}/versions/${versionNumber}`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('خطا در دریافت نسخه مستند:', error);
-  //     throw error;
-  //   }
-  // }
+  /**
+   * دریافت همه نسخه‌های یک مستند
+   * @param documentId شناسه مستند
+   */
+  getDocumentVersions: async (documentId: string) => {
+    try {
+      const response = await api.get(`/documents/${documentId}/versions`);
+      return response.data;
+    } catch (error) {
+      console.error('خطا در دریافت نسخه‌های مستند:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * دریافت یک نسخه مشخص از مستند
+   * @param documentId شناسه مستند
+   * @param versionNumber شماره نسخه
+   */
+  getDocumentVersion: async (documentId: string, versionNumber: number) => {
+    try {
+      const response = await api.get(`/documents/${documentId}/versions/${versionNumber}`);
+      return response.data;
+    } catch (error) {
+      console.error('خطا در دریافت نسخه مستند:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * حذف یک نسخه از مستند
+   * @param documentId شناسه مستند
+   * @param versionNumber شماره نسخه
+   */
+  deleteDocumentVersion: async (documentId: string, versionNumber: number) => {
+    try {
+      const response = await api.delete(`/documents/${documentId}/versions/${versionNumber}`);
+      return response.data;
+    } catch (error) {
+      console.error('خطا در حذف نسخه مستند:', error);
+      throw error;
+    }
+  }
 };
 
 export default documentService; 
