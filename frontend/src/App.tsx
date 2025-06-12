@@ -57,6 +57,9 @@ function App() {
               <Route path="/documents/:id/edit" element={<EditDocumentPage />} />
               <Route path="/documents/:id/new-version" element={<NewVersionPage />} />
               <Route path="/projects/:projectId/documents" element={<ProjectDocumentsPage />} />
+              
+              {/* صفحه چت */}
+              <Route path="/chat" element={<ChatPage />} />
             </Route>
             
             {/* صفحه ۴۰۴ و مسیرهای ناشناخته */}
