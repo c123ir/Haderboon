@@ -65,20 +65,20 @@ const NewVersionPage: React.FC = () => {
     setError(null);
     
     try {
-      // فعلاً از updateDocument استفاده می‌کنیم تا زمان پیاده‌سازی نسخه‌سازی
-      await documentService.updateDocument(documentId, {
+      // ارسال درخواست ایجاد نسخه جدید
+      await documentService.createDocumentVersion(documentId, {
         content,
-        // changelog: changelog.trim() || undefined, // فعلاً پشتیبانی نمی‌شود
-        // isPublished // فعلاً پشتیبانی نمی‌شود
+        changelog: changelog.trim() || undefined,
+        isPublished
       });
       
-      alert('مستند با موفقیت به‌روزرسانی شد');
+      alert('نسخه جدید مستند با موفقیت ایجاد شد');
       
       // هدایت به صفحه مشاهده مستند
       navigate(`/documents/${documentId}`);
     } catch (err: any) {
-      console.error('خطا در به‌روزرسانی مستند:', err);
-      setError(err.response?.data?.message || 'خطا در به‌روزرسانی مستند');
+      console.error('خطا در ایجاد نسخه جدید مستند:', err);
+      setError(err.response?.data?.message || 'خطا در ایجاد نسخه جدید مستند');
     } finally {
       setIsLoading(false);
     }
