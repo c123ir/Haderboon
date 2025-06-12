@@ -22,6 +22,19 @@ const documentService = {
   },
 
   /**
+   * دریافت همه مستندات کاربر
+   */
+  getAllDocuments: async () => {
+    try {
+      const response = await api.get('/documents');
+      return response.data;
+    } catch (error) {
+      console.error('خطا در دریافت مستندات:', error);
+      throw error;
+    }
+  },
+
+  /**
    * دریافت همه مستندات یک پروژه
    * @param projectId شناسه پروژه
    */
