@@ -26,6 +26,9 @@ import NewVersionPage from './pages/document/NewVersionPage';
 // صفحه چت
 import ChatPage from './pages/ChatPage';
 
+// صفحه لیست مستندات
+import DocumentsPage from './pages/DocumentsPage';
+
 // کامپوننت‌های احراز هویت
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
