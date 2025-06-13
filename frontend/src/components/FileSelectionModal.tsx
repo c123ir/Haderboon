@@ -61,15 +61,15 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
       }, 0);
       setProjectCapacity(Math.round((totalSize / (100 * 1024 * 1024)) * 100)); // Assuming 100MB limit
     }
-  }, [files, directoryName]);
+  }, [files, directoryName, buildFileTree, shouldIgnoreFile]);
 
-  const shouldIgnoreFile = (filePath: string): boolean => {
+  const shouldIgnoreFile = useCallback((filePath: string): boolean => {
     const ignoredPatterns = [
       'node_modules/'
     ];
     
     return ignoredPatterns.some(pattern => filePath.includes(pattern));
-  };
+  }, []);
 
   const buildFileTree = useCallback((files: File[]): FileNode[] => {
     const tree: { [key: string]: FileNode } = {};
