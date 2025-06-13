@@ -1,7 +1,7 @@
 // frontend/src/services/api.ts
 
 import axios from 'axios';
-import { ApiResponse } from '../types';
+import { Project, ChatMessage, Documentation, GeneratedPrompt, ApiResponse } from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5550/api';
 
@@ -28,7 +28,7 @@ api.interceptors.request.use(
 
 // Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response, // Return the full response
+  (response) => response.data, // Return just the data part
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('haderboon_token');
@@ -58,34 +58,34 @@ export const apiService = {
     const response = await api.post('/auth/demo-login');
     
     // Store token and user info
-    if (response.data.success && response.data.token) {
+    if (response.success && response.data.token) {
       localStorage.setItem('haderboon_token', response.data.token);
       localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
     }
     
-    return response.data;
+    return response;
   },
 
   async login(email: string, password?: string): Promise<any> {
     const response = await api.post('/auth/login', { email, password });
     
-    if (response.data.success && response.data.token) {
+    if (response.success && response.data.token) {
       localStorage.setItem('haderboon_token', response.data.token);
       localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
     }
     
-    return response.data;
+    return response;
   },
 
   async register(name: string, email: string, password?: string): Promise<any> {
     const response = await api.post('/auth/register', { name, email, password });
     
-    if (response.data.success && response.data.token) {
+    if (response.success && response.data.token) {
       localStorage.setItem('haderboon_token', response.data.token);
       localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
     }
     
-    return response.data;
+    return response;
   },
 
   async getProfile(): Promise<any> {
@@ -134,15 +134,46 @@ export const apiService = {
     return await api.get('/projects/stats');
   },
 
-  // Files (will be implemented in next phase)
-  async getProjectFiles(projectId: string): Promise<any> {
-    // Placeholder for now
-    return { success: true, data: [] };
+  // Files - حالا real implementation
+  async uploadFiles(projectId: string, files: FileList): Promise<any> {
+    const formData = new FormData();
+    
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+    
+    return await api.post(`/files/projects/${projectId}/upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 
-  async getFileContent(projectId: string, filePath: string): Promise<any> {
-    // Placeholder for now
-    return { success: true, data: '' };
+  async uploadProjectZip(projectId: string, zipFile: File): Promise<any> {
+    const formData = new FormData();
+    formData.append('projectZip', zipFile);
+    
+    return await api.post(`/files/projects/${projectId}/upload-zip`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  async getProjectFiles(projectId: string): Promise<any> {
+    return await api.get(`/files/projects/${projectId}/files`);
+  },
+
+  async getFileContent(projectId: string, fileId: string): Promise<any> {
+    return await api.get(`/files/projects/${projectId}/files/${fileId}`);
+  },
+
+  async deleteFile(projectId: string, fileId: string): Promise<any> {
+    return await api.delete(`/files/projects/${projectId}/files/${fileId}`);
+  },
+
+  async reAnalyzeProject(projectId: string): Promise<any> {
+    return await api.post(`/files/projects/${projectId}/reanalyze`);
   },
 
   // Chat (will be implemented in phase 4)
