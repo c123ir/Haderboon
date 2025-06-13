@@ -14,6 +14,7 @@ import {
   ClockIcon,
   CheckCircleIcon,
   ArrowPathIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline';
 import apiService from '../services/api';
 import WatchingStatus from '../components/WatchingStatus';
@@ -359,6 +360,13 @@ const ProjectDetailPage: React.FC = () => {
                 </p>
               )}
             </div>
+          )}
+
+          {activeTab === 'manage' && (
+            <ProjectFileManager
+              projectId={project.id}
+              onFileUpdate={loadProjectData}
+            />
           )}
         </div>
 
