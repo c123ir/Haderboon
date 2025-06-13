@@ -51,4 +51,7 @@ router.post('/projects/:projectId/stop-watching', stopProjectWatching);
 // Get project watching status
 router.get('/projects/:projectId/watching-status', getWatchingStatus);
 
+// Get all projects watching status
+router.get('/watching-status', getWatchingStatus);
+
 export default router;
