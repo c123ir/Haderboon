@@ -68,8 +68,8 @@ ${mockFileTree.map(node => `${node.name}/`).join('\n')}
 \`\`\`
 
 ### فایل‌های مرتبط:
-${promptRequest.includeFiles.length > 0 
-  ? promptRequest.includeFiles.map(file => `- ${file}`).join('\n')
+${(promptRequest.includeFiles || []).length > 0 
+  ? (promptRequest.includeFiles || []).map(file => `- ${file}`).join('\n')
   : '- تمام فایل‌های پروژه در نظر گرفته شود'
 }
 
