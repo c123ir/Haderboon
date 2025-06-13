@@ -12,3 +12,9 @@ OPENAI_API_KEY="sk-proj-FgwewLbbRQo4dP_bIfQO01wT6wpt5IYyjvugLo_ZXDr_U9PpVpdbTNPx
 
   سیب
   س
+
+asdadas
+
+asda
+
+sd
