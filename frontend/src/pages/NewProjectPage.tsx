@@ -411,7 +411,7 @@ const NewProjectPage: React.FC = () => {
             <input
               ref={directoryInputRef}
               type="file"
-              webkitdirectory=""
+              {...({ webkitdirectory: '' } as any)}
               onChange={handleDirectoryInput}
               className="hidden"
               disabled={isUploading}
