@@ -28,7 +28,7 @@ router.post('/projects/:projectId/upload', uploadMultiple, handleUploadError, up
 router.post('/projects/:projectId/upload-zip', uploadZip, handleUploadError, uploadProjectZip);
 
 // Upload local directory
-router.post('/projects/:projectId/upload-directory', uploadLocalDirectory);
+router.post('/projects/:projectId/upload-directory', uploadMultiple, handleUploadError, uploadLocalDirectory);
 
 // Get project files (tree structure)
 router.get('/projects/:projectId/files', getProjectFiles);
