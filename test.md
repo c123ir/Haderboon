@@ -4,7 +4,6 @@ DATABASE_URL="postgresql://haderboon_user:2123@localhost:5432/haderboon_db?schem
 
 OPENAI_API_KEY="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"
 
-
   ص
   dfsgsfd
   زی
