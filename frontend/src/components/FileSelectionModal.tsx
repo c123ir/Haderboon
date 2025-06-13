@@ -305,7 +305,7 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t bg-gray-50">
+        <div className="flex items-center justify-between p-6 border-t border-gray-200 border-opacity-50 bg-white bg-opacity-50">
           <div className="text-sm text-gray-600">
             {selectedFiles.size} فایل انتخاب شده | {projectCapacity}% از ظرفیت استفاده شده
           </div>
