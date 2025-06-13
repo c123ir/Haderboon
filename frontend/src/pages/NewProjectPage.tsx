@@ -32,7 +32,7 @@ const NewProjectPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const [loginError, setLoginError] = useState<string | null>(null);
 
   // Check authentication on component mount
