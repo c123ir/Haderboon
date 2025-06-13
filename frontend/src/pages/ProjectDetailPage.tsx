@@ -16,6 +16,7 @@ import {
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import apiService from '../services/api';
+import WatchingStatus from '../components/WatchingStatus';
 
 interface FileTreeNode {
   id: string;
