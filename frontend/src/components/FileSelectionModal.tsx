@@ -71,7 +71,7 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
     return ignoredPatterns.some(pattern => filePath.includes(pattern));
   };
 
-  const buildFileTree = (files: File[]): FileNode[] => {
+  const buildFileTree = useCallback((files: File[]): FileNode[] => {
     const tree: { [key: string]: FileNode } = {};
     
     files.forEach(file => {
