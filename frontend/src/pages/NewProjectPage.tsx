@@ -298,9 +298,56 @@ const NewProjectPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Upload Mode Selection */}
+        <div className="glass-card">
+          <h2 className="text-xl font-semibold text-white mb-6">روش آپلود</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <button
+              type="button"
+              onClick={() => {
+                setUploadMode('files');
+                setUploadedFiles([]);
+                setSelectedDirectory('');
+              }}
+              disabled={isUploading}
+              className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                uploadMode === 'files'
+                  ? 'border-blue-500 bg-blue-500/20 text-white'
+                  : 'border-white/30 bg-white/5 text-white/70 hover:border-white/50'
+              } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <DocumentIcon className="w-8 h-8 mx-auto mb-2" />
+              <h3 className="font-medium mb-2">آپلود فایل‌ها</h3>
+              <p className="text-sm opacity-80">انتخاب فایل‌های جداگانه یا ZIP</p>
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => {
+                setUploadMode('directory');
+                setUploadedFiles([]);
+                setSelectedDirectory('');
+              }}
+              disabled={isUploading}
+              className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                uploadMode === 'directory'
+                  ? 'border-blue-500 bg-blue-500/20 text-white'
+                  : 'border-white/30 bg-white/5 text-white/70 hover:border-white/50'
+              } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <FolderIcon className="w-8 h-8 mx-auto mb-2" />
+              <h3 className="font-medium mb-2">انتخاب پوشه</h3>
+              <p className="text-sm opacity-80">انتخاب مستقیم پوشه پروژه</p>
+            </button>
+          </div>
+        </div>
+
         {/* File Upload */}
         <div className="glass-card">
-          <h2 className="text-xl font-semibold text-white mb-6">آپلود فایل‌ها</h2>
+          <h2 className="text-xl font-semibold text-white mb-6">
+            {uploadMode === 'directory' ? 'انتخاب پوشه' : 'آپلود فایل‌ها'}
+          </h2>
           
           {/* Upload Area */}
           <div
