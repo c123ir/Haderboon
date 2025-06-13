@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import { apiRouter } from './api';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -13,10 +14,8 @@ const PORT = process.env.PORT || 5550;
 // Middleware for parsing JSON
 app.use(express.json());
 
-// GET endpoint for root path
-app.get('/', (req, res) => {
-  res.json({ message: "Welcome to Haderboon AI Assistant API" });
-});
+// Use API router for all routes prefixed with /api
+app.use('/api', apiRouter);
 
 // Start the server
 app.listen(PORT, () => {
