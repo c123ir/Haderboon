@@ -15,7 +15,7 @@ const api = axios.create({
 // Request interceptor for auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('haderboon_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -28,114 +28,197 @@ api.interceptors.request.use(
 
 // Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => response.data, // Return just the data part
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem('haderboon_token');
+      localStorage.removeItem('haderboon_user');
+      // Redirect to login if needed
+      console.warn('🔑 احراز هویت منقضی شده - لطفاً مجدداً وارد شوید');
     }
-    return Promise.reject(error);
+    
+    // Return structured error
+    const errorMessage = error.response?.data?.error || 
+                        error.response?.data?.message || 
+                        error.message || 
+                        'خطای نامشخص';
+    
+    return Promise.reject({
+      message: errorMessage,
+      status: error.response?.status,
+      data: error.response?.data
+    });
   }
 );
 
 // API methods
 export const apiService = {
+  // Authentication
+  async demoLogin(): Promise<any> {
+    const response = await api.post('/auth/demo-login');
+    
+    // Store token and user info
+    if (response.success && response.data.token) {
+      localStorage.setItem('haderboon_token', response.data.token);
+      localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
+    }
+    
+    return response;
+  },
+
+  async login(email: string, password?: string): Promise<any> {
+    const response = await api.post('/auth/login', { email, password });
+    
+    if (response.success && response.data.token) {
+      localStorage.setItem('haderboon_token', response.data.token);
+      localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
+    }
+    
+    return response;
+  },
+
+  async register(name: string, email: string, password?: string): Promise<any> {
+    const response = await api.post('/auth/register', { name, email, password });
+    
+    if (response.success && response.data.token) {
+      localStorage.setItem('haderboon_token', response.data.token);
+      localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
+    }
+    
+    return response;
+  },
+
+  async getProfile(): Promise<any> {
+    return await api.get('/auth/profile');
+  },
+
+  async logout(): Promise<void> {
+    localStorage.removeItem('haderboon_token');
+    localStorage.removeItem('haderboon_user');
+  },
+
   // Projects
-  async getProjects(): Promise<ApiResponse<Project[]>> {
-    const response = await api.get('/projects');
-    return response.data;
+  async getProjects(params?: { 
+    page?: number; 
+    limit?: number; 
+    search?: string; 
+    status?: string; 
+  }): Promise<any> {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+    
+    const query = queryParams.toString();
+    return await api.get(`/projects${query ? `?${query}` : ''}`);
   },
 
-  async getProject(id: string): Promise<ApiResponse<Project>> {
-    const response = await api.get(`/projects/${id}`);
-    return response.data;
+  async getProject(id: string): Promise<any> {
+    return await api.get(`/projects/${id}`);
   },
 
-  async createProject(data: FormData): Promise<ApiResponse<Project>> {
-    const response = await api.post('/projects', data, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+  async createProject(data: { name: string; description?: string }): Promise<any> {
+    return await api.post('/projects', data);
   },
 
-  async deleteProject(id: string): Promise<ApiResponse<void>> {
-    const response = await api.delete(`/projects/${id}`);
-    return response.data;
+  async updateProject(id: string, data: { name?: string; description?: string }): Promise<any> {
+    return await api.put(`/projects/${id}`, data);
   },
 
-  // Files
-  async getProjectFiles(projectId: string): Promise<ApiResponse<any[]>> {
-    const response = await api.get(`/projects/${projectId}/files`);
-    return response.data;
+  async deleteProject(id: string): Promise<any> {
+    return await api.delete(`/projects/${id}`);
   },
 
-  async getFileContent(projectId: string, filePath: string): Promise<ApiResponse<string>> {
-    const response = await api.get(`/projects/${projectId}/files/content`, {
-      params: { filePath },
-    });
-    return response.data;
+  async getProjectStats(): Promise<any> {
+    return await api.get('/projects/stats');
   },
 
-  // Chat
-  async getChatSessions(projectId: string): Promise<ApiResponse<any[]>> {
-    const response = await api.get(`/projects/${projectId}/chat/sessions`);
-    return response.data;
+  // Files (will be implemented in next phase)
+  async getProjectFiles(projectId: string): Promise<any> {
+    // Placeholder for now
+    return { success: true, data: [] };
   },
 
-  async createChatSession(projectId: string, title: string): Promise<ApiResponse<any>> {
-    const response = await api.post(`/projects/${projectId}/chat/sessions`, { title });
-    return response.data;
+  async getFileContent(projectId: string, filePath: string): Promise<any> {
+    // Placeholder for now
+    return { success: true, data: '' };
   },
 
-  async getChatMessages(sessionId: string): Promise<ApiResponse<ChatMessage[]>> {
-    const response = await api.get(`/chat/sessions/${sessionId}/messages`);
-    return response.data;
+  // Chat (will be implemented in phase 4)
+  async getChatSessions(projectId: string): Promise<any> {
+    // Placeholder for now
+    return { success: true, data: [] };
   },
 
-  async sendChatMessage(sessionId: string, content: string): Promise<ApiResponse<ChatMessage>> {
-    const response = await api.post(`/chat/sessions/${sessionId}/messages`, { content });
-    return response.data;
+  async createChatSession(projectId: string, title: string): Promise<any> {
+    // Placeholder for now
+    return { success: true, data: { id: 'temp', title } };
   },
 
-  // Documentation
-  async getDocumentation(projectId: string): Promise<ApiResponse<Documentation[]>> {
-    const response = await api.get(`/projects/${projectId}/documentation`);
-    return response.data;
+  async getChatMessages(sessionId: string): Promise<any> {
+    // Placeholder for now
+    return { success: true, data: [] };
   },
 
-  async createDocumentation(projectId: string, data: Partial<Documentation>): Promise<ApiResponse<Documentation>> {
-    const response = await api.post(`/projects/${projectId}/documentation`, data);
-    return response.data;
+  async sendChatMessage(sessionId: string, content: string): Promise<any> {
+    // Placeholder for now
+    return { success: true, data: { id: 'temp', content, role: 'assistant' } };
   },
 
-  async updateDocumentation(id: string, data: Partial<Documentation>): Promise<ApiResponse<Documentation>> {
-    const response = await api.put(`/documentation/${id}`, data);
-    return response.data;
+  // Documentation (will be implemented later)
+  async getDocumentation(projectId: string): Promise<any> {
+    // Placeholder for now
+    return { success: true, data: [] };
   },
 
-  // Prompt Generation
-  async generatePrompt(projectId: string, data: any): Promise<ApiResponse<GeneratedPrompt>> {
-    const response = await api.post(`/projects/${projectId}/prompts/generate`, data);
-    return response.data;
+  async createDocumentation(projectId: string, data: any): Promise<any> {
+    // Placeholder for now
+    return { success: true, data };
   },
 
-  async getGeneratedPrompts(projectId: string): Promise<ApiResponse<GeneratedPrompt[]>> {
-    const response = await api.get(`/projects/${projectId}/prompts`);
-    return response.data;
+  async updateDocumentation(id: string, data: any): Promise<any> {
+    // Placeholder for now
+    return { success: true, data };
   },
 
-  // Analysis
-  async analyzeProject(projectId: string): Promise<ApiResponse<any>> {
-    const response = await api.post(`/projects/${projectId}/analyze`);
-    return response.data;
+  // Prompt Generation (will be implemented in phase 5)
+  async generatePrompt(projectId: string, data: any): Promise<any> {
+    // Placeholder for now
+    return { success: true, data: { prompt: 'تولید شده...' } };
   },
 
-  async getAnalysisStatus(projectId: string): Promise<ApiResponse<any>> {
-    const response = await api.get(`/projects/${projectId}/analysis/status`);
-    return response.data;
+  async getGeneratedPrompts(projectId: string): Promise<any> {
+    // Placeholder for now
+    return { success: true, data: [] };
   },
+
+  // Analysis (will be implemented in phase 3)
+  async analyzeProject(projectId: string): Promise<any> {
+    // Placeholder for now
+    return { success: true, data: { status: 'در حال تحلیل...' } };
+  },
+
+  async getAnalysisStatus(projectId: string): Promise<any> {
+    // Placeholder for now
+    return { success: true, data: { status: 'READY' } };
+  },
+};
+
+// Helper functions
+export const authHelpers = {
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('haderboon_token');
+  },
+
+  getCurrentUser(): any {
+    const userStr = localStorage.getItem('haderboon_user');
+    return userStr ? JSON.parse(userStr) : null;
+  },
+
+  getToken(): string | null {
+    return localStorage.getItem('haderboon_token');
+  }
 };
 
 export default apiService;
