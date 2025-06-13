@@ -310,7 +310,15 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
         {/* Footer */}
         <div className="flex items-center justify-between p-6 border-t border-gray-200 border-opacity-50 bg-white bg-opacity-50">
           <div className="text-sm text-gray-600">
-            {selectedFiles.size} فایل انتخاب شده | {projectCapacity}% از ظرفیت استفاده شده
+            {selectedFiles.size} فایل انتخاب شده | 
+            {(() => {
+              const totalSize = Array.from(selectedFiles).reduce((sum, path) => {
+                const file = files.find(f => f.webkitRelativePath === path);
+                return sum + (file?.size || 0);
+              }, 0);
+              return formatFileSize(totalSize);
+            })()} | 
+            {projectCapacity}% از ظرفیت
           </div>
           <div className="flex space-x-reverse space-x-3">
             <button
