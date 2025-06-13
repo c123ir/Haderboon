@@ -8,6 +8,7 @@ import { AuthRequest, UploadedFileInfo } from '../types';
 import { sendSuccess, sendError, getFileType, formatFileSize, generateUniqueFilename, shouldIgnoreFile } from '../utils';
 import { analyzeFile, analyzeProject } from '../services/fileAnalysisService';
 import { extractZipFile } from '../middleware/upload';
+import { fileWatcherService } from '../services/fileWatcherService';
 
 /**
  * Upload multiple files to a project
@@ -770,4 +771,137 @@ const shouldIgnoreDirectory = (dirName: string): boolean => {
     dirName === ignored || 
     dirName.startsWith('.') && ignoredDirs.includes(dirName.substring(1))
   );
+};
+
+/**
+ * Start watching project directory for changes
+ */
+export const startProjectWatching = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { projectId } = req.params;
+    const userId = req.user!.id;
+
+    // Verify project ownership
+    const project = await prisma.project.findFirst({
+      where: { id: projectId, userId }
+    });
+
+    if (!project) {
+      sendError(res, 'پروژه یافت نشد', 404);
+      return;
+    }
+
+    if (!project.originalPath) {
+      sendError(res, 'مسیر پروژه مشخص نیست', 400);
+      return;
+    }
+
+    // Start watching
+    await fileWatcherService.startWatching(projectId, project.originalPath);
+
+    // Update project status
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { 
+        status: 'WATCHING',
+        updatedAt: new Date()
+      }
+    });
+
+    sendSuccess(res, {
+      projectId,
+      directoryPath: project.originalPath,
+      isWatching: true
+    }, 'نظارت بر پروژه شروع شد');
+
+  } catch (error) {
+    console.error('❌ Start watching error:', error);
+    sendError(res, 'خطا در شروع نظارت');
+  }
+};
+
+/**
+ * Stop watching project directory
+ */
+export const stopProjectWatching = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { projectId } = req.params;
+    const userId = req.user!.id;
+
+    // Verify project ownership
+    const project = await prisma.project.findFirst({
+      where: { id: projectId, userId }
+    });
+
+    if (!project) {
+      sendError(res, 'پروژه یافت نشد', 404);
+      return;
+    }
+
+    // Stop watching
+    await fileWatcherService.stopWatching(projectId);
+
+    // Update project status
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { 
+        status: 'READY',
+        updatedAt: new Date()
+      }
+    });
+
+    sendSuccess(res, {
+      projectId,
+      isWatching: false
+    }, 'نظارت بر پروژه متوقف شد');
+
+  } catch (error) {
+    console.error('❌ Stop watching error:', error);
+    sendError(res, 'خطا در توقف نظارت');
+  }
+};
+
+/**
+ * Get watching status for all projects
+ */
+export const getWatchingStatus = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+
+    // Get user's projects
+    const projects = await prisma.project.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        name: true,
+        originalPath: true,
+        status: true
+      }
+    });
+
+    // Get watching status
+    const watchingStatus = fileWatcherService.getWatchingStatus();
+
+    // Combine data
+    const result = projects.map(project => {
+      const watching = watchingStatus.find(w => w.projectId === project.id);
+      return {
+        projectId: project.id,
+        projectName: project.name,
+        directoryPath: project.originalPath,
+        status: project.status,
+        isWatching: !!watching,
+        canWatch: !!project.originalPath
+      };
+    });
+
+    sendSuccess(res, {
+      projects: result,
+      totalWatching: watchingStatus.length
+    }, 'وضعیت نظارت دریافت شد');
+
+  } catch (error) {
+    console.error('❌ Get watching status error:', error);
+    sendError(res, 'خطا در دریافت وضعیت نظارت');
+  }
 };
