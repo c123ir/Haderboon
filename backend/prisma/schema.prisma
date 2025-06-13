@@ -1,0 +1,89 @@
+// backend/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  projects  Project[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  path        String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  files       ProjectFile[]
+  docs        Documentation[]
+  chats       ChatSession[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProjectFile {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id])
+  path       String
+  name       String
+  type       String
+  size       Int
+  content    String?
+  analysis   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Documentation {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  title     String
+  content   String
+  type      String
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  title     String
+  messages  ChatMessage[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id])
+  role      String
+  content   String
+  metadata  Json?
+  createdAt DateTime    @default(now())
+}
+
+model GeneratedPrompt {
+  id          String   @id @default(cuid())
+  projectId   String
+  title       String
+  description String?
+  prompt      String
+  context     Json?
+  createdAt   DateTime @default(now())
+}
