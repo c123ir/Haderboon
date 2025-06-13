@@ -144,106 +144,101 @@ export const handleUploadError = (error: any, req: Request, res: any, next: any)
   });
 };
 
-// Modern ZIP extraction using yauzl
-import yauzl from 'yauzl';
-import { promisify } from 'util';
+// Enhanced ZIP extraction using adm-zip with better error handling
+import AdmZip from 'adm-zip';
 
 export const extractZipFile = async (zipPath: string, extractPath: string): Promise<string[]> => {
-  return new Promise((resolve, reject) => {
+  try {
     console.log(`🔍 شروع استخراج فایل ZIP: ${zipPath}`);
     console.log(`📁 مسیر استخراج: ${extractPath}`);
+    
+    // Check if ZIP file exists
+    if (!fs.existsSync(zipPath)) {
+      throw new Error(`فایل ZIP یافت نشد: ${zipPath}`);
+    }
     
     // Ensure extract directory exists
     ensureDirectoryExists(extractPath);
     
     const extractedFiles: string[] = [];
     
-    yauzl.open(zipPath, { lazyEntries: true }, (err, zipfile) => {
-      if (err) {
-        console.error('❌ خطا در باز کردن فایل ZIP:', err);
-        reject(new Error(`خطا در باز کردن فایل ZIP: ${err.message}`));
-        return;
-      }
-
-      if (!zipfile) {
-        reject(new Error('فایل ZIP نامعتبر است'));
-        return;
-      }
-
-      console.log(`📊 تعداد کل فایل‌ها در ZIP: ${zipfile.entryCount}`);
-
-      zipfile.readEntry();
-
-      zipfile.on('entry', (entry) => {
-        try {
-          // Skip directories and ignored files
-          if (/\/$/.test(entry.fileName) || shouldIgnoreFile(entry.fileName)) {
-            console.log(`⏭️ رد شدن فایل: ${entry.fileName} (${/\/$/.test(entry.fileName) ? 'دایرکتوری' : 'نادیده گرفته شده'})`);
-            zipfile.readEntry();
-            return;
-          }
-
-          // Sanitize entry name for safe file paths
-          const sanitizedName = entry.fileName.replace(/\.\./g, '').replace(/^\/+/, '');
-          const outputPath = path.join(extractPath, sanitizedName);
-          const outputDir = path.dirname(outputPath);
-
-          console.log(`📤 استخراج فایل: ${entry.fileName} -> ${outputPath}`);
-
-          // Ensure directory exists
-          ensureDirectoryExists(outputDir);
-
-          // Extract file
-          zipfile.openReadStream(entry, (err, readStream) => {
-            if (err) {
-              console.error(`❌ خطا در خواندن فایل ${entry.fileName}:`, err);
-              zipfile.readEntry();
-              return;
-            }
-
-            if (!readStream) {
-              console.error(`❌ نتوانست stream برای فایل ${entry.fileName} ایجاد کند`);
-              zipfile.readEntry();
-              return;
-            }
-
-            const writeStream = fs.createWriteStream(outputPath);
-            
-            readStream.pipe(writeStream);
-            
-            writeStream.on('close', () => {
-              extractedFiles.push(sanitizedName);
-              console.log(`✅ فایل استخراج شد: ${sanitizedName} (${entry.uncompressedSize} bytes)`);
-              zipfile.readEntry();
-            });
-
-            writeStream.on('error', (writeErr) => {
-              console.error(`❌ خطا در نوشتن فایل ${sanitizedName}:`, writeErr);
-              zipfile.readEntry();
-            });
-
-            readStream.on('error', (readErr) => {
-              console.error(`❌ خطا در خواندن stream فایل ${entry.fileName}:`, readErr);
-              writeStream.destroy();
-              zipfile.readEntry();
-            });
-          });
-
-        } catch (entryError) {
-          console.error(`❌ خطا در پردازش فایل ${entry.fileName}:`, entryError);
-          zipfile.readEntry();
+    // Create ZIP object with error handling
+    let zip: AdmZip;
+    try {
+      zip = new AdmZip(zipPath);
+    } catch (zipError) {
+      console.error('❌ خطا در باز کردن فایل ZIP:', zipError);
+      throw new Error(`فایل ZIP نامعتبر است: ${zipError instanceof Error ? zipError.message : 'نامشخص'}`);
+    }
+    
+    const entries = zip.getEntries();
+    console.log(`📊 تعداد کل فایل‌ها در ZIP: ${entries.length}`);
+    
+    if (entries.length === 0) {
+      console.log('⚠️ فایل ZIP خالی است');
+      return extractedFiles;
+    }
+    
+    for (const entry of entries) {
+      try {
+        // Skip directories and ignored files
+        if (entry.isDirectory || shouldIgnoreFile(entry.entryName)) {
+          console.log(`⏭️ رد شدن فایل: ${entry.entryName} (${entry.isDirectory ? 'دایرکتوری' : 'نادیده گرفته شده'})`);
+          continue;
         }
-      });
-
-      zipfile.on('end', () => {
-        console.log(`🎉 استخراج کامل شد. تعداد فایل‌های استخراج شده: ${extractedFiles.length}`);
-        resolve(extractedFiles);
-      });
-
-      zipfile.on('error', (zipErr) => {
-        console.error('❌ خطا در پردازش فایل ZIP:', zipErr);
-        reject(new Error(`خطا در پردازش فایل ZIP: ${zipErr.message}`));
-      });
-    });
-  });
+        
+        // Sanitize entry name for safe file paths
+        const sanitizedName = entry.entryName.replace(/\.\./g, '').replace(/^\/+/, '');
+        if (!sanitizedName) {
+          console.log(`⏭️ رد شدن فایل با نام نامعتبر: ${entry.entryName}`);
+          continue;
+        }
+        
+        const outputPath = path.join(extractPath, sanitizedName);
+        const outputDir = path.dirname(outputPath);
+        
+        console.log(`📤 استخراج فایل: ${entry.entryName} -> ${outputPath}`);
+        
+        // Ensure directory exists
+        ensureDirectoryExists(outputDir);
+        
+        // Extract file with error handling
+        try {
+          const data = entry.getData();
+          if (!data) {
+            console.warn(`⚠️ فایل ${entry.entryName} داده‌ای ندارد`);
+            continue;
+          }
+          
+          fs.writeFileSync(outputPath, data);
+          extractedFiles.push(sanitizedName);
+          console.log(`✅ فایل استخراج شد: ${sanitizedName} (${data.length} bytes)`);
+          
+        } catch (extractError) {
+          console.error(`❌ خطا در استخراج فایل ${entry.entryName}:`, extractError);
+          // Continue with other files
+        }
+        
+      } catch (entryError) {
+        console.error(`❌ خطا در پردازش فایل ${entry.entryName}:`, entryError);
+        // Continue with other files
+      }
+    }
+    
+    console.log(`🎉 استخراج کامل شد. تعداد فایل‌های استخراج شده: ${extractedFiles.length}`);
+    
+    // Clean up ZIP file after successful extraction
+    try {
+      fs.unlinkSync(zipPath);
+      console.log(`🗑️ فایل ZIP حذف شد: ${zipPath}`);
+    } catch (cleanupError) {
+      console.warn(`⚠️ خطا در حذف فایل ZIP:`, cleanupError);
+    }
+    
+    return extractedFiles;
+    
+  } catch (error) {
+    console.error('❌ خطا در استخراج فایل ZIP:', error);
+    throw new Error(`خطا در استخراج فایل ZIP: ${error instanceof Error ? error.message : 'نامشخص'}`);
+  }
 };
