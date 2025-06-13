@@ -312,13 +312,13 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
           <div className="flex space-x-reverse space-x-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-4 py-2 text-gray-600 hover:bg-gray-100 hover:bg-opacity-60 rounded-lg transition-colors"
             >
               انصراف
             </button>
             <button
               onClick={handleConfirm}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-2 bg-blue-600 bg-opacity-90 text-white rounded-lg hover:bg-blue-700 hover:bg-opacity-95 transition-colors backdrop-blur-sm"
             >
               اضافه کردن فایل‌ها
             </button>
