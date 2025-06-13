@@ -92,6 +92,9 @@ const NewProjectPage: React.FC = () => {
       const directoryPath = firstFile.webkitRelativePath.split('/')[0];
       setSelectedDirectory(directoryPath);
       
+      // Store directory info for future use
+      localStorage.setItem('lastSelectedDirectory', directoryPath);
+      
       // Store all files and show modal for selection
       const fileArray = Array.from(files);
       setPendingFiles(fileArray);
