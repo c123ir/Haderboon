@@ -3,10 +3,9 @@
 import { Router } from 'express';
 import { authRouter } from './auth';
 
-// Create main API router instance
 const apiRouter = Router();
 
-// Use auth router for authentication-related routes
+// تمام مسیرهایی که با /auth شروع میشوند به authRouter فرستاده میشوند
 apiRouter.use('/auth', authRouter);
 
-export { apiRouter }; 
+export { apiRouter };
