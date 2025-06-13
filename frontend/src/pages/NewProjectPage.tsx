@@ -236,6 +236,8 @@ const NewProjectPage: React.FC = () => {
         }
         
         console.log('📁 آپلود پوشه:', directoryName, `(${uploadedFiles.length} فایل)`);
+        console.log('🔍 Debug - selectedDirectory:', selectedDirectory);
+        console.log('🔍 Debug - uploadedFiles[0].name:', uploadedFiles[0]?.name);
         setUploadProgress(35);
         
         // For web browsers, we use the files from directory input with preserved paths
