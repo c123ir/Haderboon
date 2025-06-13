@@ -6,6 +6,31 @@ import path from 'path';
 import fs from 'fs';
 
 /**
+ * Convert BigInt values to Numbers in nested objects
+ */
+const convertBigIntToNumber = (obj: any): any => {
+  if (obj === null || obj === undefined) return obj;
+  
+  if (typeof obj === 'bigint') {
+    return Number(obj);
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(convertBigIntToNumber);
+  }
+  
+  if (typeof obj === 'object') {
+    const converted: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      converted[key] = convertBigIntToNumber(value);
+    }
+    return converted;
+  }
+  
+  return obj;
+};
+
+/**
  * Send standardized API response
  */
 export const sendResponse = <T = any>(
@@ -21,7 +46,7 @@ export const sendResponse = <T = any>(
     timestamp: new Date().toISOString(),
   };
 
-  if (data !== undefined) response.data = data;
+  if (data !== undefined) response.data = convertBigIntToNumber(data);
   if (message) response.message = message;
   if (error) response.error = error;
 
