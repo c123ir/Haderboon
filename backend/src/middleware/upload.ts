@@ -166,7 +166,7 @@ export const extractZipFile = async (zipPath: string, extractPath: string): Prom
     // Get all entries
     const entries = await zip.entries();
     
-    for (const entry of Object.values(entries)) {
+    for (const [name, entry] of Object.entries(entries)) {
       try {
         // Skip directories and ignored files
         if (entry.isDirectory || shouldIgnoreFile(entry.name)) {
