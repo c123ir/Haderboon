@@ -92,20 +92,32 @@ const NewProjectPage: React.FC = () => {
       const directoryPath = firstFile.webkitRelativePath.split('/')[0];
       setSelectedDirectory(directoryPath);
       
-      // Filter out system files and directories
-      const fileArray = Array.from(files).filter(file => {
-        const relativePath = file.webkitRelativePath;
-        return !shouldIgnoreFile(relativePath);
-      });
-      
-      const newFiles: UploadedFile[] = fileArray.map(file => ({
-        name: file.webkitRelativePath || file.name,
-        size: file.size,
-        type: file.type || getFileType(file.name),
-        file,
-      }));
-      
-      setUploadedFiles(newFiles);
+      // Store all files and show modal for selection
+      const fileArray = Array.from(files);
+      setPendingFiles(fileArray);
+      setShowFileModal(true);
+    }
+  };
+
+  const handleFileModalConfirm = (selectedFiles: File[]) => {
+    const newFiles: UploadedFile[] = selectedFiles.map(file => ({
+      name: file.webkitRelativePath || file.name,
+      size: file.size,
+      type: file.type || getFileType(file.name),
+      file,
+    }));
+    
+    setUploadedFiles(newFiles);
+    setShowFileModal(false);
+  };
+
+  const handleFileModalClose = () => {
+    setShowFileModal(false);
+    setPendingFiles([]);
+    setSelectedDirectory('');
+    // Reset the file input
+    if (directoryInputRef.current) {
+      directoryInputRef.current.value = '';
     }
   };
 
