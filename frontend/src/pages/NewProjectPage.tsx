@@ -561,6 +561,14 @@ const NewProjectPage: React.FC = () => {
           </li>
           <li className="flex items-start">
             <span className="text-blue-400 ml-2">•</span>
+            پوشه‌های غیرضروری مثل node_modules و .git به صورت خودکار نادیده گرفته می‌شوند
+          </li>
+          <li className="flex items-start">
+            <span className="text-blue-400 ml-2">•</span>
+            در حالت انتخاب پوشه، تمام زیرپوشه‌ها و فایل‌ها اسکن می‌شوند
+          </li>
+          <li className="flex items-start">
+            <span className="text-blue-400 ml-2">•</span>
             پس از ایجاد، می‌توانید با دستیار چت کنید تا مستندات را بهبود دهید
           </li>
           <li className="flex items-start">
