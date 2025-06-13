@@ -1,85 +1,83 @@
-// مسیر فایل: /Users/imac2019/My-Apps/Haderboon/frontend/src/App.tsx
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import './App.css';
+// Frontend: frontend/src/App.tsx
+// کامپوننت اصلی برنامه ایجنت هادربون
 
-// کامپوننت‌های صفحات
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Settings from './pages/Settings';
-import NotFound from './pages/NotFound';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 
-// کامپوننت‌های پروژه
-import NewProjectPage from './pages/project/NewProjectPage';
-import ProjectDetailsPage from './pages/project/ProjectDetailsPage';
-import EditProjectPage from './pages/project/EditProjectPage';
+// Theme Context
+const ThemeContext = createContext({
+  darkMode: true,
+  toggleDarkMode: () => {}
+});
 
-// کامپوننت‌های مستندات
-import NewDocumentPage from './pages/document/NewDocumentPage';
-import DocumentDetailsPage from './pages/document/DocumentDetailsPage';
-import EditDocumentPage from './pages/document/EditDocumentPage';
-import ProjectDocumentsPage from './pages/document/ProjectDocumentsPage';
-import NewVersionPage from './pages/document/NewVersionPage';
+// Auth Context
+const AuthContext = createContext({
+  user: null,
+  login: () => {},
+  logout: () => {},
+  isAuthenticated: false
+});
 
-// صفحه چت
-import ChatPage from './pages/ChatPage';
+// Navigation Context for managing current page
+const NavigationContext = createContext({
+  currentPage: 'dashboard',
+  setCurrentPage: () => {}
+});
 
-// صفحه لیست مستندات
-import DocumentsPage from './pages/DocumentsPage';
+// Main App Component
+const App = () => {
+  const [darkMode, setDarkMode] = useState(true);
+  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [user, setUser] = useState({
+    name: 'کاربر نمونه',
+    email: 'user@example.com',
+    avatar: 'ک'
+  });
 
-// صفحه مدیریت تگ‌ها
-import TagsPage from './pages/TagsPage';
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
-// کامپوننت‌های احراز هویت
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/auth/ProtectedRoute';
+  const login = (userData) => {
+    setUser(userData);
+  };
 
-function App() {
+  const logout = () => {
+    setUser(null);
+  };
+
+  const renderCurrentPage = () => {
+    switch(currentPage) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'projects':
+        return <Projects />;
+      case 'documents':
+        return <Documents />;
+      case 'chat':
+        return <Chat />;
+      case 'settings':
+        return <Settings />;
+      case 'login':
+        return <Login />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div className="App">
-          <Routes>
-            {/* صفحات عمومی */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            
-            {/* صفحات محافظت شده */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/settings" element={<Settings />} />
-              
-              {/* مسیرهای پروژه */}
-              <Route path="/projects/new" element={<NewProjectPage />} />
-              <Route path="/projects/:id" element={<ProjectDetailsPage />} />
-              <Route path="/projects/:id/edit" element={<EditProjectPage />} />
-              
-              {/* مسیرهای مستندات */}
-              <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/documents/new" element={<NewDocumentPage />} />
-              <Route path="/documents/:id" element={<DocumentDetailsPage />} />
-              <Route path="/documents/:id/edit" element={<EditDocumentPage />} />
-              <Route path="/documents/:id/new-version" element={<NewVersionPage />} />
-              <Route path="/projects/:projectId/documents" element={<ProjectDocumentsPage />} />
-              
-              {/* صفحه چت */}
-              <Route path="/chat" element={<ChatPage />} />
-              
-              {/* صفحه مدیریت تگ‌ها */}
-              <Route path="/tags" element={<TagsPage />} />
-            </Route>
-            
-            {/* صفحه ۴۰۴ و مسیرهای ناشناخته */}
-            <Route path="/404" element={<NotFound />} />
-            <Route path="*" element={<Navigate to="/404" replace />} />
-          </Routes>
-        </div>
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeContext.Provider value={{ darkMode, toggleDarkMode }}>
+      <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+        <NavigationContext.Provider value={{ currentPage, setCurrentPage }}>
+          <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900' : 'bg-gradient-to-br from-blue-50 to-purple-100'}`}>
+            <Navbar />
+            <main className="pt-20">
+              {renderCurrentPage()}
+            </main>
+          </div>
+        </NavigationContext.Provider>
+      </AuthContext.Provider>
+    </ThemeContext.Provider>
   );
-}
+};
 
 export default App;
