@@ -80,8 +80,8 @@ ${promptRequest.requirement}
 ${outputTypes.find(type => type.id === promptRequest.outputType)?.label}
 
 ## نکات و محدودیت‌ها
-${promptRequest.focusAreas.length > 0 
-  ? `- تمرکز ویژه روی: ${promptRequest.focusAreas.join(', ')}`
+${(promptRequest.focusAreas || []).length > 0 
+  ? `- تمرکز ویژه روی: ${(promptRequest.focusAreas || []).join(', ')}`
   : ''
 }
 - از TypeScript استفاده کنید
