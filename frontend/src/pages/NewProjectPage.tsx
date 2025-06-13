@@ -220,6 +220,21 @@ const NewProjectPage: React.FC = () => {
 
       setUploadProgress(100);
       
+      // Start watching if directory mode was used
+      if (uploadMode === 'directory' && selectedDirectory) {
+        try {
+          console.log('👁️ شروع نظارت بر پروژه...');
+          await apiService.startProjectWatching(projectId);
+          console.log('✅ نظارت شروع شد');
+          alert('پروژه با موفقیت ایجاد شد و نظارت بر تغییرات فعال شد!');
+        } catch (error) {
+          console.warn('خطا در شروع نظارت:', error);
+          alert('پروژه ایجاد شد اما نظارت شروع نشد. می‌توانید آن را از صفحه پروژه فعال کنید.');
+        }
+      } else {
+        alert('پروژه با موفقیت ایجاد شد!');
+      }
+      
       // Success - navigate to project
       setTimeout(() => {
         navigate(`/projects/${projectId}`);
