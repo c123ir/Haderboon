@@ -39,6 +39,7 @@ app.get('/health', (req, res) => {
 // Import routes
 import authRoutes from './routes/auth';
 import projectsRoutes from './routes/projects';
+import filesRoutes from './routes/files';
 
 // API Routes
 app.use('/api', (req, res, next) => {
@@ -49,6 +50,7 @@ app.use('/api', (req, res, next) => {
 // Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectsRoutes);
+app.use('/api/files', filesRoutes);
 
 // Basic API endpoint for testing
 app.get('/api/test', (req, res) => {
