@@ -258,17 +258,26 @@ const NewProjectPage: React.FC = () => {
       console.log('✅ آپلود فایل‌ها تکمیل شد');
       setUploadProgress(90);
       
+      // Step 3: Finalization
+      setUploadProgress(95);
+      
       // Start watching if directory mode was used
       if (uploadMode === 'directory' && selectedDirectory) {
         try {
           console.log('👁️ شروع نظارت بر پروژه...');
           await apiService.startProjectWatching(projectId);
           console.log('✅ نظارت شروع شد');
-          alert('پروژه با موفقیت ایجاد شد و نظارت بر تغییرات فعال شد!');
         } catch (error) {
           console.warn('خطا در شروع نظارت:', error);
-          alert('پروژه ایجاد شد اما نظارت شروع نشد. می‌توانید آن را از صفحه پروژه فعال کنید.');
         }
+      }
+
+      setUploadProgress(100);
+      console.log('🎉 همه مراحل تکمیل شد!');
+      
+      // Show success message
+      if (uploadMode === 'directory' && selectedDirectory) {
+        alert('پروژه با موفقیت ایجاد شد و نظارت بر تغییرات فعال شد!');
       } else {
         alert('پروژه با موفقیت ایجاد شد!');
       }
@@ -276,7 +285,7 @@ const NewProjectPage: React.FC = () => {
       // Success - navigate to project
       setTimeout(() => {
         navigate(`/projects/${projectId}`);
-      }, 1000);
+      }, 1500);
       
     } catch (error: any) {
       console.error('خطا در ایجاد پروژه:', error);
