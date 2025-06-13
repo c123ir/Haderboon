@@ -38,7 +38,7 @@ const ProjectDetailPage: React.FC = () => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['root']));
   const [selectedFile, setSelectedFile] = useState<FileTreeNode | null>(null);
   const [selectedFileContent, setSelectedFileContent] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'files' | 'docs' | 'analysis'>('files');
+  const [activeTab, setActiveTab] = useState<'files' | 'analysis' | 'manage'>('files');
   const [loading, setLoading] = useState(true);
   const [isReanalyzing, setIsReanalyzing] = useState(false);
 
