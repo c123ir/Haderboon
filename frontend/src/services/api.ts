@@ -1,7 +1,7 @@
 // frontend/src/services/api.ts
 
 import axios from 'axios';
-import { Project, ChatMessage, Documentation, GeneratedPrompt, ApiResponse } from '../types';
+// Import types when needed
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5550/api';
 
