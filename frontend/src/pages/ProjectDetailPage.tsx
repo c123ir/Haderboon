@@ -275,6 +275,7 @@ const ProjectDetailPage: React.FC = () => {
           {[
             { id: 'files', label: 'ساختار فایل‌ها', icon: FolderIcon },
             { id: 'analysis', label: 'تحلیل کد', icon: CodeBracketIcon },
+            { id: 'manage', label: 'مدیریت فایل‌ها', icon: PlusIcon },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
