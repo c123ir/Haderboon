@@ -267,11 +267,11 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white bg-opacity-90 backdrop-blur-md rounded-lg shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col border border-white border-opacity-30">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 border-opacity-50 bg-white bg-opacity-50">
           <h2 className="text-xl font-semibold text-gray-800">انتخاب محتوا از {directoryName}</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg"
+            className="p-2 hover:bg-gray-100 hover:bg-opacity-60 rounded-lg transition-colors"
           >
             <XMarkIcon className="w-5 h-5 text-gray-600" />
           </button>
@@ -279,7 +279,7 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
 
         {/* Content */}
         <div className="flex-1 overflow-hidden flex flex-col">
-          <div className="p-4 border-b bg-gray-50">
+          <div className="p-4 border-b border-gray-200 border-opacity-50 bg-white bg-opacity-30">
             <p className="text-sm text-gray-600 mb-2">
               فایل‌هایی که می‌خواهید به این پروژه اضافه کنید را انتخاب کنید
             </p>
