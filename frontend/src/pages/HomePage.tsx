@@ -1,7 +1,7 @@
 // frontend/src/pages/HomePage.tsx
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FolderIcon,
   ChatBubbleLeftRightIcon,
@@ -14,6 +14,7 @@ import {
 import apiService, { authHelpers } from '../services/api';
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<any>(null);
   const [recentProjects, setRecentProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,12 +30,14 @@ const HomePage: React.FC = () => {
       if (!loggedIn) {
         // Auto login with demo for development
         try {
-          await apiService.demoLogin();
+          console.log('📝 شروع ورود خودکار...');
+          const loginResponse = await apiService.demoLogin();
+          console.log('✅ ورود خودکار موفق:', loginResponse);
           setIsLoggedIn(true);
           await loadData();
         } catch (error) {
-          console.error('خطا در ورود خودکار:', error);
-          setError('خطا در ورود خودکار');
+          console.error('❌ خطا در ورود خودکار:', error);
+          setError('خطا در ورود خودکار - لطفاً صفحه را refresh کنید');
           setLoading(false);
         }
       } else {
