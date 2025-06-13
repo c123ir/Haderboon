@@ -88,7 +88,7 @@ export const optionalAuth = async (
  * Generate JWT token for user
  */
 export const generateToken = (user: { id: string; email: string; name: string }): string => {
-  const payload: TokenPayload = {
+  const payload = {
     userId: user.id,
     email: user.email,
     name: user.name
@@ -101,5 +101,5 @@ export const generateToken = (user: { id: string; email: string; name: string })
 
   return jwt.sign(payload, secret, {
     expiresIn: process.env.JWT_EXPIRES_IN || '24h'
-  });
+  } as jwt.SignOptions);
 };
