@@ -1,0 +1,8 @@
+# Test README File
+
+This is a test file without extension to verify that our upload system now accepts all file types except node_modules.
+
+## Features
+- No file extension
+- Should be accepted by the new filter
+- Tests the improved upload system 

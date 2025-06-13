@@ -112,6 +112,7 @@ const NewProjectPage: React.FC = () => {
     
     setUploadedFiles(newFiles);
     setShowFileModal(false);
+    // selectedDirectory را حفظ می‌کنیم - پاک نمی‌کنیم
   };
 
   const handleFileModalClose = () => {
