@@ -36,11 +36,19 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API Routes will be added here
+// Import routes
+import authRoutes from './routes/auth';
+import projectsRoutes from './routes/projects';
+
+// API Routes
 app.use('/api', (req, res, next) => {
   console.log(`📝 API Request: ${req.method} ${req.path} - ${new Date().toLocaleString('fa-IR')}`);
   next();
 });
+
+// Mount routes
+app.use('/api/auth', authRoutes);
+app.use('/api/projects', projectsRoutes);
 
 // Basic API endpoint for testing
 app.get('/api/test', (req, res) => {
