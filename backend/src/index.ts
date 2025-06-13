@@ -1,7 +1,7 @@
 // backend/src/api/index.ts
 
 import { Router } from 'express';
-import { authRouter } from '.a/auth';
+import { authRouter } from './api/auth';
 
 const apiRouter = Router();
 
