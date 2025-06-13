@@ -13,77 +13,163 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String
+  password  String?  // Optional for now
+  avatar    String?
   projects  Project[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("users")
 }
 
 model Project {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  path        String
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  files       ProjectFile[]
-  docs        Documentation[]
-  chats       ChatSession[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String           @id @default(cuid())
+  name            String
+  description     String?
+  path            String?
+  originalPath    String?          // Path when uploaded
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filesCount      Int              @default(0)
+  totalSize       BigInt           @default(0)  // Total size in bytes
+  status          ProjectStatus    @default(ANALYZING)
+  lastAnalyzed    DateTime?
+  analysisData    Json?            // Store analysis results
+  files           ProjectFile[]
+  docs            Documentation[]
+  chats           ChatSession[]
+  prompts         GeneratedPrompt[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("projects")
 }
 
 model ProjectFile {
-  id         String   @id @default(cuid())
-  projectId  String
-  project    Project  @relation(fields: [projectId], references: [id])
-  path       String
-  name       String
-  type       String
-  size       Int
-  content    String?
-  analysis   Json?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String    @id @default(cuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  path        String    // Relative path within project
+  originalPath String?  // Original full path
+  name        String
+  extension   String?
+  type        FileType  @default(OTHER)
+  size        BigInt
+  content     String?   @db.Text  // File content (for text files)
+  encoding    String?   // File encoding
+  analysis    Json?     // Analysis results for this file
+  isDirectory Boolean   @default(false)
+  parentId    String?   // For hierarchical structure
+  parent      ProjectFile? @relation("FileHierarchy", fields: [parentId], references: [id])
+  children    ProjectFile[] @relation("FileHierarchy")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("project_files")
 }
 
 model Documentation {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id])
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   title     String
-  content   String
-  type      String
-  status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  content   String     @db.Text
+  type      DocType    @default(AUTO)
+  status    DocStatus  @default(DRAFT)
+  order     Int        @default(0)  // For ordering docs
+  metadata  Json?      // Additional metadata
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("documentation")
 }
 
 model ChatSession {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id])
+  project   Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   title     String
+  isActive  Boolean       @default(true)
+  metadata  Json?         // Session metadata
   messages  ChatMessage[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("chat_sessions")
 }
 
 model ChatMessage {
   id        String      @id @default(cuid())
   sessionId String
-  session   ChatSession @relation(fields: [sessionId], references: [id])
-  role      String
-  content   String
-  metadata  Json?
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      MessageRole
+  content   String      @db.Text
+  metadata  Json?       // Additional message data
+  tokens    Int?        // Token count (if available)
   createdAt DateTime    @default(now())
+
+  @@map("chat_messages")
 }
 
 model GeneratedPrompt {
   id          String   @id @default(cuid())
   projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   title       String
   description String?
-  prompt      String
-  context     Json?
+  requirement String   @db.Text  // User's original requirement
+  prompt      String   @db.Text  // Generated prompt
+  context     Json?    // Context used for generation
+  metadata    Json?    // Additional metadata
+  isUsed      Boolean  @default(false)  // Track if prompt was used
   createdAt   DateTime @default(now())
+
+  @@map("generated_prompts")
+}
+
+// Enums
+enum ProjectStatus {
+  UPLOADING
+  ANALYZING
+  READY
+  ERROR
+  ARCHIVED
+}
+
+enum FileType {
+  JAVASCRIPT
+  TYPESCRIPT
+  REACT_JSX
+  REACT_TSX
+  VUE
+  PYTHON
+  JAVA
+  HTML
+  CSS
+  SCSS
+  JSON
+  MARKDOWN
+  TEXT
+  IMAGE
+  OTHER
+}
+
+enum DocType {
+  AUTO      // Generated automatically
+  MANUAL    // Created manually
+  MIXED     // Combination of auto and manual
+  IMPORTED  // Imported from external source
+}
+
+enum DocStatus {
+  DRAFT
+  REVIEW
+  FINAL
+  ARCHIVED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
 }
