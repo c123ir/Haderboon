@@ -7,7 +7,6 @@ import {
   ArrowLeftIcon,
   DocumentDuplicateIcon,
   CheckIcon,
-  EyeIcon,
   CodeBracketIcon,
   DocumentTextIcon,
   ChartBarIcon,
