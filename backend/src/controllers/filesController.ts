@@ -590,28 +590,30 @@ export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Pro
     // Process each uploaded file
     for (const file of files) {
       try {
-        const stats = fs.statSync(fileInfo.fullPath);
-        const fileType = getFileType(fileInfo.relativePath);
-        const extension = path.extname(fileInfo.relativePath);
+        // Get file info
+        const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        const fileSize = file.size;
+        const fileType = getFileType(originalName);
+        const extension = path.extname(originalName);
         
-        totalSize += stats.size;
+        totalSize += fileSize;
 
         // Analyze file if it's a text file
         let analysis = null;
         try {
-          analysis = await analyzeFile(fileInfo.fullPath);
+          analysis = await analyzeFile(file.path);
         } catch (error) {
-          console.warn(`خطا در تحلیل فایل ${fileInfo.relativePath}:`, error);
+          console.warn(`خطا در تحلیل فایل ${originalName}:`, error);
         }
 
         // Read content for small text files
         let content = null;
-        if (stats.size < 500 * 1024 && 
+        if (fileSize < 500 * 1024 && 
             ['.js', '.ts', '.jsx', '.tsx', '.vue', '.py', '.java', '.html', '.css', '.scss', '.json', '.md', '.txt'].includes(extension)) {
           try {
-            content = fs.readFileSync(fileInfo.fullPath, 'utf8');
+            content = fs.readFileSync(file.path, 'utf8');
           } catch (error) {
-            console.warn(`خطا در خواندن محتوای فایل ${fileInfo.relativePath}:`, error);
+            console.warn(`خطا در خواندن محتوای فایل ${originalName}:`, error);
           }
         }
 
@@ -619,12 +621,12 @@ export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Pro
         const projectFile = await prisma.projectFile.create({
           data: {
             projectId,
-            path: fileInfo.relativePath,
-            originalPath: fileInfo.fullPath,
-            name: path.basename(fileInfo.relativePath),
+            path: originalName,
+            originalPath: file.path,
+            name: path.basename(originalName),
             extension,
             type: fileType as any,
-            size: BigInt(stats.size),
+            size: BigInt(fileSize),
             content,
             analysis: analysis ? JSON.parse(JSON.stringify(analysis)) : null,
             isDirectory: false
@@ -632,7 +634,7 @@ export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Pro
         });
 
         // Create directory entries for parent directories if they don't exist
-        const pathParts = fileInfo.relativePath.split('/');
+        const pathParts = originalName.split('/');
         if (pathParts.length > 1) {
           let currentPath = '';
           for (let i = 0; i < pathParts.length - 1; i++) {
@@ -652,7 +654,7 @@ export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Pro
                 data: {
                   projectId,
                   path: currentPath,
-                  originalPath: path.join(directoryPath, currentPath),
+                  originalPath: currentPath,
                   name: pathParts[i],
                   extension: '',
                   type: 'OTHER',
@@ -668,16 +670,16 @@ export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Pro
 
         uploadedFiles.push({
           id: projectFile.id,
-          name: fileInfo.relativePath,
-          size: stats.size,
+          name: originalName,
+          size: fileSize,
           type: fileType,
           analysis: analysis
         });
 
-        console.log(`✅ فایل اضافه شد: ${fileInfo.relativePath} (${stats.size} bytes)`);
+        console.log(`✅ فایل اضافه شد: ${originalName} (${fileSize} bytes)`);
 
       } catch (error) {
-        console.error(`خطا در پردازش فایل ${fileInfo.relativePath}:`, error);
+        console.error(`خطا در پردازش فایل ${file.originalname}:`, error);
       }
     }
 
