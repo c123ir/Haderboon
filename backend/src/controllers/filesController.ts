@@ -573,34 +573,22 @@ export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Pro
       return;
     }
 
-    // Check if directory exists
-    if (!fs.existsSync(directoryPath)) {
-      sendError(res, 'پوشه مورد نظر یافت نشد', 404);
-      return;
-    }
-
     // Update project status
     await prisma.project.update({
       where: { id: projectId },
       data: { 
         status: 'ANALYZING',
-        path: directoryPath,
-        originalPath: directoryPath
+        originalPath: directoryName
       }
     });
 
-    console.log(`🔍 شروع اسکن پوشه: ${directoryPath}`);
+    console.log(`🔍 شروع پردازش ${files.length} فایل از پوشه: ${directoryName}`);
 
     const uploadedFiles: any[] = [];
     let totalSize = 0;
 
-    // Scan directory recursively
-    const scannedFiles = await scanDirectory(directoryPath);
-    
-    console.log(`📊 تعداد فایل‌های یافت شده: ${scannedFiles.length}`);
-
-    // Process each file
-    for (const fileInfo of scannedFiles) {
+    // Process each uploaded file
+    for (const file of files) {
       try {
         const stats = fs.statSync(fileInfo.fullPath);
         const fileType = getFileType(fileInfo.relativePath);
