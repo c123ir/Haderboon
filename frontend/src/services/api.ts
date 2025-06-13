@@ -31,25 +31,11 @@ api.interceptors.response.use(
   (response) => response.data, // Return just the data part
   async (error) => {
     if (error.response?.status === 401) {
-      console.warn('🔑 احراز هویت منقضی شده - تلاش برای ورود مجدد...');
-      
-      // Try to re-login automatically
-      try {
-        const loginResponse = await api.post('/auth/demo-login');
-        if (loginResponse.success && loginResponse.data.token) {
-          localStorage.setItem('haderboon_token', loginResponse.data.token);
-          localStorage.setItem('haderboon_user', JSON.stringify(loginResponse.data.user));
-          
-          // Retry the original request
-          const originalRequest = error.config;
-          originalRequest.headers.Authorization = `Bearer ${loginResponse.data.token}`;
-          return api.request(originalRequest);
-        }
-      } catch (retryError) {
-        console.error('❌ خطا در ورود مجدد:', retryError);
-        localStorage.removeItem('haderboon_token');
-        localStorage.removeItem('haderboon_user');
-      }
+      console.warn('🔑 احراز هویت منقضی شده - لطفاً مجدداً وارد شوید');
+      localStorage.removeItem('haderboon_token');
+      localStorage.removeItem('haderboon_user');
+      // Redirect to login if needed
+      console.warn('🔑 احراز هویت منقضی شده - لطفاً مجدداً وارد شوید');
     }
     
     // Return structured error
