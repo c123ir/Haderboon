@@ -89,8 +89,12 @@ const NewProjectPage: React.FC = () => {
       const directoryPath = firstFile.webkitRelativePath.split('/')[0];
       setSelectedDirectory(directoryPath);
       
-      // Convert FileList to our format
-      const fileArray = Array.from(files);
+      // Filter out system files and directories
+      const fileArray = Array.from(files).filter(file => {
+        const relativePath = file.webkitRelativePath;
+        return !shouldIgnoreFile(relativePath);
+      });
+      
       const newFiles: UploadedFile[] = fileArray.map(file => ({
         name: file.webkitRelativePath || file.name,
         size: file.size,
@@ -100,6 +104,44 @@ const NewProjectPage: React.FC = () => {
       
       setUploadedFiles(newFiles);
     }
+  };
+
+  // Function to check if file should be ignored
+  const shouldIgnoreFile = (filePath: string): boolean => {
+    const ignoredPatterns = [
+      'node_modules/',
+      '.git/',
+      '.svn/',
+      '.hg/',
+      'dist/',
+      'build/',
+      'out/',
+      '.next/',
+      '.nuxt/',
+      'coverage/',
+      '.nyc_output/',
+      '.cache/',
+      '.parcel-cache/',
+      '.vscode/',
+      '.idea/',
+      'logs/',
+      'tmp/',
+      'temp/',
+      '__pycache__/',
+      '.pytest_cache/',
+      'vendor/',
+      '.vendor/',
+      'bower_components/',
+      '.sass-cache/',
+      '.DS_Store',
+      'Thumbs.db',
+      '.env.local',
+      '.env.development.local',
+      '.env.test.local',
+      '.env.production.local'
+    ];
+    
+    return ignoredPatterns.some(pattern => filePath.includes(pattern));
   };
 
   const handleFiles = (files: File[]) => {
