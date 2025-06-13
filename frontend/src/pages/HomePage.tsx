@@ -14,7 +14,6 @@ import {
 import apiService, { authHelpers } from '../services/api';
 
 const HomePage: React.FC = () => {
-  const navigate = useNavigate();
   const [stats, setStats] = useState<any>(null);
   const [recentProjects, setRecentProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
