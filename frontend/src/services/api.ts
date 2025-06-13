@@ -241,6 +241,18 @@ export const apiService = {
     // Placeholder for now
     return { success: true, data: { status: 'READY' } };
   },
+
+  async startProjectWatching(projectId: string): Promise<any> {
+    return await api.post(`/files/projects/${projectId}/start-watching`);
+  },
+
+  async stopProjectWatching(projectId: string): Promise<any> {
+    return await api.post(`/files/projects/${projectId}/stop-watching`);
+  },
+
+  async getWatchingStatus(): Promise<any> {
+    return await api.get('/files/watching-status');
+  },
 };
 
 // Helper functions
