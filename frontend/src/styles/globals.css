@@ -22,3 +22,10 @@ body {
 .glass-card {
   @apply glass-effect rounded-xl p-6 shadow-lg;
 }
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
