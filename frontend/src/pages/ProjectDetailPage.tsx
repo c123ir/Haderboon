@@ -45,7 +45,7 @@ const ProjectDetailPage: React.FC = () => {
     if (id) {
       loadProjectData();
     }
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadProjectData = async () => {
     try {
