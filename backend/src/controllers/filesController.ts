@@ -621,7 +621,7 @@ export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Pro
           }
         }
 
-        // Create file record
+        // Create file record with proper directory structure
         const projectFile = await prisma.projectFile.create({
           data: {
             projectId,
@@ -636,6 +636,41 @@ export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Pro
             isDirectory: false
           }
         });
+
+        // Create directory entries for parent directories if they don't exist
+        const pathParts = fileInfo.relativePath.split('/');
+        if (pathParts.length > 1) {
+          let currentPath = '';
+          for (let i = 0; i < pathParts.length - 1; i++) {
+            currentPath = currentPath ? `${currentPath}/${pathParts[i]}` : pathParts[i];
+            
+            // Check if directory entry exists
+            const existingDir = await prisma.projectFile.findFirst({
+              where: {
+                projectId,
+                path: currentPath,
+                isDirectory: true
+              }
+            });
+
+            if (!existingDir) {
+              await prisma.projectFile.create({
+                data: {
+                  projectId,
+                  path: currentPath,
+                  originalPath: path.join(directoryPath, currentPath),
+                  name: pathParts[i],
+                  extension: '',
+                  type: 'OTHER',
+                  size: BigInt(0),
+                  content: null,
+                  analysis: undefined,
+                  isDirectory: true
+                }
+              });
+            }
+          }
+        }
 
         uploadedFiles.push({
           id: projectFile.id,
