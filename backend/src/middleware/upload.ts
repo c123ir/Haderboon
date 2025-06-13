@@ -144,34 +144,66 @@ export const handleUploadError = (error: any, req: Request, res: any, next: any)
   });
 };
 
-// Utility function to extract files from ZIP
-import AdmZip from 'adm-zip';
+// Modern ZIP extraction using Node.js built-in and stream-zip
+import { createReadStream } from 'fs';
+import StreamZip from 'node-stream-zip';
 
 export const extractZipFile = async (zipPath: string, extractPath: string): Promise<string[]> => {
   try {
-    const zip = new AdmZip(zipPath);
-    const entries = zip.getEntries();
-    const extractedFiles: string[] = [];
+    console.log(`🔍 شروع استخراج فایل ZIP: ${zipPath}`);
+    console.log(`📁 مسیر استخراج: ${extractPath}`);
     
+    // Ensure extract directory exists
     ensureDirectoryExists(extractPath);
     
-    for (const entry of entries) {
-      // Skip directories and ignored files
-      if (entry.isDirectory || shouldIgnoreFile(entry.entryName)) {
-        continue;
+    const extractedFiles: string[] = [];
+    
+    // Use modern stream-zip library for better performance and reliability
+    const zip = new StreamZip.async({ file: zipPath });
+    
+    console.log(`📊 تعداد کل فایل‌ها در ZIP: ${zip.entriesCount}`);
+    
+    // Get all entries
+    const entries = await zip.entries();
+    
+    for (const entry of Object.values(entries)) {
+      try {
+        // Skip directories and ignored files
+        if (entry.isDirectory || shouldIgnoreFile(entry.name)) {
+          console.log(`⏭️ رد شدن فایل: ${entry.name} (${entry.isDirectory ? 'دایرکتوری' : 'نادیده گرفته شده'})`);
+          continue;
+        }
+        
+        // Sanitize entry name for safe file paths
+        const sanitizedName = entry.name.replace(/\.\./g, '').replace(/^\/+/, '');
+        const outputPath = path.join(extractPath, sanitizedName);
+        const outputDir = path.dirname(outputPath);
+        
+        console.log(`📤 استخراج فایل: ${entry.name} -> ${outputPath}`);
+        
+        // Ensure directory exists
+        ensureDirectoryExists(outputDir);
+        
+        // Extract file
+        const data = await zip.entryData(entry.name);
+        fs.writeFileSync(outputPath, data);
+        
+        extractedFiles.push(sanitizedName);
+        console.log(`✅ فایل استخراج شد: ${sanitizedName} (${entry.size} bytes)`);
+        
+      } catch (entryError) {
+        console.error(`❌ خطا در استخراج فایل ${entry.name}:`, entryError);
+        // Continue with other files
       }
-      
-      // Extract file
-      const entryPath = path.join(extractPath, entry.entryName);
-      const entryDir = path.dirname(entryPath);
-      
-      ensureDirectoryExists(entryDir);
-      zip.extractEntryTo(entry, entryDir, false, true);
-      extractedFiles.push(entry.entryName);
     }
     
+    await zip.close();
+    
+    console.log(`🎉 استخراج کامل شد. تعداد فایل‌های استخراج شده: ${extractedFiles.length}`);
     return extractedFiles;
+    
   } catch (error) {
-    throw new Error('خطا در استخراج فایل ZIP');
+    console.error('❌ خطا در استخراج فایل ZIP:', error);
+    throw new Error(`خطا در استخراج فایل ZIP: ${error instanceof Error ? error.message : 'نامشخص'}`);
   }
 };
