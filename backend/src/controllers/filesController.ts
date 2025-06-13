@@ -838,7 +838,7 @@ export const startProjectWatching = async (req: AuthRequest, res: Response): Pro
     await prisma.project.update({
       where: { id: projectId },
       data: { 
-        status: 'WATCHING',
+        status: 'WATCHING' as any,
         updatedAt: new Date()
       }
     });
