@@ -119,9 +119,9 @@ ${promptRequest.focusAreas.length > 0
   const toggleFocusArea = (area: string) => {
     setPromptRequest(prev => ({
       ...prev,
-      focusAreas: prev.focusAreas.includes(area)
-        ? prev.focusAreas.filter(a => a !== area)
-        : [...prev.focusAreas, area]
+      focusAreas: (prev.focusAreas || []).includes(area)
+        ? (prev.focusAreas || []).filter(a => a !== area)
+        : [...(prev.focusAreas || []), area]
     }));
   };
 
