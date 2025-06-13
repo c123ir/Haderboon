@@ -132,6 +132,7 @@ enum ProjectStatus {
   UPLOADING
   ANALYZING
   READY
+  WATCHING
   ERROR
   ARCHIVED
 }
