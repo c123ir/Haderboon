@@ -265,7 +265,7 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white bg-opacity-95 backdrop-blur-lg rounded-lg shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col border border-white border-opacity-20">
+      <div className="bg-white bg-opacity-90 backdrop-blur-md rounded-lg shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col border border-white border-opacity-30">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-800">انتخاب محتوا از {directoryName}</h2>
