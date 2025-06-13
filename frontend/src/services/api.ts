@@ -55,37 +55,37 @@ api.interceptors.response.use(
 export const apiService = {
   // Authentication
   async demoLogin(): Promise<any> {
-    const response = await api.post('/auth/demo-login');
+    const data = await api.post('/auth/demo-login');
     
     // Store token and user info
-    if (response.success && response.token) {
-      localStorage.setItem('haderboon_token', response.token);
-      localStorage.setItem('haderboon_user', JSON.stringify(response.user));
+    if (data.success && data.token) {
+      localStorage.setItem('haderboon_token', data.token);
+      localStorage.setItem('haderboon_user', JSON.stringify(data.user));
     }
     
-    return response;
+    return data;
   },
 
   async login(email: string, password?: string): Promise<any> {
-    const response = await api.post('/auth/login', { email, password });
+    const data = await api.post('/auth/login', { email, password });
     
-    if (response.success && response.token) {
-      localStorage.setItem('haderboon_token', response.token);
-      localStorage.setItem('haderboon_user', JSON.stringify(response.user));
+    if (data.success && data.token) {
+      localStorage.setItem('haderboon_token', data.token);
+      localStorage.setItem('haderboon_user', JSON.stringify(data.user));
     }
     
-    return response;
+    return data;
   },
 
   async register(name: string, email: string, password?: string): Promise<any> {
-    const response = await api.post('/auth/register', { name, email, password });
+    const data = await api.post('/auth/register', { name, email, password });
     
-    if (response.success && response.token) {
-      localStorage.setItem('haderboon_token', response.token);
-      localStorage.setItem('haderboon_user', JSON.stringify(response.user));
+    if (data.success && data.token) {
+      localStorage.setItem('haderboon_token', data.token);
+      localStorage.setItem('haderboon_user', JSON.stringify(data.user));
     }
     
-    return response;
+    return data;
   },
 
   async getProfile(): Promise<any> {
