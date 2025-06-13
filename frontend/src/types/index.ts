@@ -1,5 +1,3 @@
-// frontend/src/types/index.ts
-
 export interface User {
   id: string;
   email: string;
@@ -91,7 +89,6 @@ export interface PromptRequest {
   outputType?: 'code' | 'documentation' | 'analysis' | 'other';
 }
 
-// Navigation and UI Types
 export interface NavigationItem {
   name: string;
   href: string;
@@ -106,7 +103,6 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-// File Tree Types
 export interface FileTreeNode {
   id: string;
   name: string;
@@ -117,7 +113,6 @@ export interface FileTreeNode {
   lastModified?: string;
 }
 
-// Analysis Status
 export type AnalysisStatus = 'pending' | 'analyzing' | 'completed' | 'error';
 
 export interface ProjectAnalysis {
