@@ -549,11 +549,17 @@ const buildFileTree = (files: any[]): any[] => {
 export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { projectId } = req.params;
-    const { directoryPath } = req.body;
+    const { directoryName } = req.body;
     const userId = req.user!.id;
+    const files = req.files as Express.Multer.File[];
 
-    if (!directoryPath) {
-      sendError(res, 'مسیر پوشه الزامی است', 400);
+    if (!files || files.length === 0) {
+      sendError(res, 'هیچ فایلی آپلود نشده است', 400);
+      return;
+    }
+
+    if (!directoryName) {
+      sendError(res, 'نام پوشه الزامی است', 400);
       return;
     }
 
