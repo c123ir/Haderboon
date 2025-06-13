@@ -485,14 +485,24 @@ const NewProjectPage: React.FC = () => {
           {isUploading && (
             <div className="mt-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-white/70">در حال آپلود...</span>
+                <span className="text-white/70">
+                  {uploadProgress < 15 ? 'ایجاد پروژه...' :
+                   uploadProgress < 50 ? 'آماده‌سازی فایل‌ها...' :
+                   uploadProgress < 95 ? `آپلود فایل‌ها... (${uploadedFiles.length} فایل)` :
+                   'تکمیل نهایی...'}
+                </span>
                 <span className="text-white/70">{uploadProgress}%</span>
               </div>
-              <div className="w-full bg-white/10 rounded-full h-2">
+              <div className="w-full bg-white/10 rounded-full h-3">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out relative overflow-hidden"
                   style={{ width: `${uploadProgress}%` }}
-                ></div>
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-pulse"></div>
+                </div>
+              </div>
+              <div className="mt-2 text-xs text-white/50 text-center">
+                {uploadedFiles.length > 0 && `${uploadedFiles.length} فایل انتخاب شده`}
               </div>
             </div>
           )}
