@@ -35,6 +35,8 @@ const NewProjectPage: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [showFileModal, setShowFileModal] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   // Check authentication on component mount
   useEffect(() => {
