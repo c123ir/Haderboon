@@ -1,6 +1,3 @@
-// Backend: backend/prisma/schema.prisma
-// اسکیمای کامل پایگاه داده ایجنت هادربون
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,323 +7,182 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User Model
 model User {
-  id                String    @id @default(cuid())
-  email             String    @unique
-  name              String
+  id                String            @id @default(cuid())
+  email             String            @unique
+  username          String            @unique
   password          String
-  avatar            String?
-  role              UserRole  @default(USER)
-  isActive          Boolean   @default(true)
-  emailVerified     Boolean   @default(false)
-  emailVerifiedAt   DateTime?
-  lastLoginAt       DateTime?
-  passwordResetToken String?
-  passwordResetExpires DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  // Relations
-  projects          Project[]
-  documents         Document[]
-  conversations     Conversation[]
-  messages          Message[]
+  firstName         String?
+  lastName          String?
+  role              UserRole          @default(USER)
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
   aiApiKeys         AIApiKey[]
+  ai_messages       ai_messages[]
+  ai_sessions       ai_sessions[]
+  document_versions DocumentVersion[]
+  documents         Document[]
+  projects          Project[]
   tags              Tag[]
 
   @@map("users")
 }
 
-enum UserRole {
-  USER
-  ADMIN
-  MODERATOR
-
-  @@map("user_roles")
-}
-
-// Project Model
 model Project {
-  id          String        @id @default(cuid())
-  name        String
-  description String?
-  status      ProjectStatus @default(ACTIVE)
-  progress    Int           @default(0)
-  settings    Json          @default("{}")
-  metadata    Json          @default("{}")
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  userId      String
-
-  // Relations
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  documents    Document[]
-  conversations Conversation[]
+  id            String     @id @default(cuid())
+  name          String
+  description   String?
+  status        String     @default("active")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  userId        String
+  repositoryUrl String?
+  documents     Document[]
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("projects")
 }
 
-enum ProjectStatus {
-  ACTIVE
-  DEVELOPMENT
-  PLANNING
-  COMPLETED
-  ARCHIVED
-
-  @@map("project_statuses")
-}
-
-// Document Model
 model Document {
-  id        String         @id @default(cuid())
+  id        String            @id @default(cuid())
   title     String
-  content   String
-  type      DocumentType
-  status    DocumentStatus @default(DRAFT)
-  version   Int            @default(1)
-  metadata  Json           @default("{}")
-  parentId  String?
-  projectId String
+  content   String?
+  type      String?
+  status    String            @default("draft")
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
   userId    String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-
-  // Relations
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String?
+  parentId  String?
+  tags      DocumentTag[]
+  versions  DocumentVersion[]
   parent    Document?         @relation("DocumentHierarchy", fields: [parentId], references: [id])
   children  Document[]        @relation("DocumentHierarchy")
-  versions  DocumentVersion[]
-  tags      DocumentTag[]
+  project   Project?          @relation(fields: [projectId], references: [id])
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, projectId])
-  @@index([status])
-  @@index([type])
   @@map("documents")
 }
 
-enum DocumentType {
-  API_DOCUMENTATION
-  USER_GUIDE
-  TECHNICAL_SPECIFICATION
-  DESIGN_DOCUMENT
-  REQUIREMENTS
-  ARCHITECTURE
-  CHANGELOG
-  README
-
-  @@map("document_types")
-}
-
-enum DocumentStatus {
-  DRAFT
-  REVIEW
-  PUBLISHED
-  ARCHIVED
-
-  @@map("document_statuses")
-}
-
-// Document Version Model
 model DocumentVersion {
   id            String   @id @default(cuid())
-  documentId    String
   versionNumber Int
   title         String
   content       String
   changelog     String?
   isPublished   Boolean  @default(false)
-  createdBy     String
   createdAt     DateTime @default(now())
-
-  // Relations
-  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId    String
+  userId        String
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  users         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([documentId, versionNumber])
   @@map("document_versions")
 }
 
-// Tag Model
 model Tag {
-  id        String   @id @default(cuid())
-  name      String
-  color     String   @default("#3B82F6")
+  id        String        @id @default(cuid())
+  name      String        @unique
+  color     String?       @default("#3B82F6")
+  createdAt DateTime      @default(now())
   userId    String
-  createdAt DateTime @default(now())
-
-  // Relations
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   documents DocumentTag[]
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([name, userId])
   @@map("tags")
 }
 
-// Document Tag Junction Model
 model DocumentTag {
-  id         String @id @default(cuid())
   documentId String
   tagId      String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
-  // Relations
-  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@unique([documentId, tagId])
+  @@id([documentId, tagId])
   @@map("document_tags")
 }
 
-// Conversation Model
-model Conversation {
-  id        String             @id @default(cuid())
-  title     String
-  status    ConversationStatus @default(ACTIVE)
-  metadata  Json               @default("{}")
-  projectId String?
-  userId    String
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-
-  // Relations
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project  Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  messages Message[]
-
-  @@map("conversations")
-}
-
-enum ConversationStatus {
-  ACTIVE
-  COMPLETED
-  ARCHIVED
-
-  @@map("conversation_statuses")
-}
-
-// Message Model
-model Message {
-  id             String              @id @default(cuid())
-  conversationId String
-  content        String
-  role           MessageRole
-  metadata       Json                @default("{}")
-  userId         String?
-  createdAt      DateTime            @default(now())
-
-  // Relations
-  conversation Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user         User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
-  attachments  MessageAttachment[]
-
-  @@map("messages")
-}
-
-enum MessageRole {
-  USER
-  ASSISTANT
-  SYSTEM
-
-  @@map("message_roles")
-}
-
-// Message Attachment Model
-model MessageAttachment {
-  id        String   @id @default(cuid())
-  messageId String
-  filename  String
-  fileType  String
-  fileSize  Int
-  url       String
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-
-  // Relations
-  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-
-  @@map("message_attachments")
-}
-
-// AI Provider Model
 model AIProvider {
-  id           String      @id @default(cuid())
-  name         String      @unique
-  displayName  String
-  baseUrl      String?
-  isActive     Boolean     @default(true)
-  capabilities Json        @default("[]")
-  models       Json        @default("[]")
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-
-  // Relations
-  apiKeys AIApiKey[]
+  id          String        @id @default(cuid())
+  name        String        @unique
+  displayName String
+  baseUrl     String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  description String?
+  priority    Int           @default(0)
+  apiKeys     AIApiKey[]
+  ai_models   ai_models[]
+  ai_sessions ai_sessions[]
 
   @@map("ai_providers")
 }
 
-// AI API Key Model
 model AIApiKey {
-  id         String    @id @default(cuid())
+  id         String     @id @default(cuid())
   name       String
   keyValue   String
-  isActive   Boolean   @default(true)
-  lastUsedAt DateTime?
+  isActive   Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
   providerId String
   userId     String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  expiresAt  DateTime?
+  provider   AIProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Relations
-  provider AIProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([name, userId])
   @@map("ai_api_keys")
 }
 
-// File Upload Model
-model FileUpload {
-  id        String   @id @default(cuid())
-  filename  String
-  originalName String
-  mimeType  String
-  size      Int
-  path      String
-  url       String
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-
-  @@map("file_uploads")
+model ai_messages {
+  id          String      @id
+  content     String
+  role        String
+  createdAt   DateTime    @default(now())
+  sessionId   String
+  userId      String
+  ai_sessions ai_sessions @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  users       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// System Settings Model
-model SystemSetting {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  value     Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("system_settings")
+model ai_models {
+  id           String        @id
+  name         String
+  displayName  String
+  description  String?
+  maxTokens    Int?
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime
+  providerId   String
+  capabilities String[]      @default([])
+  contextSize  Int?          @default(4096)
+  priority     Int           @default(0)
+  settings     Json?
+  ai_providers AIProvider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  ai_sessions  ai_sessions[]
 }
 
-// Audit Log Model
-model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  action    String
-  resource  String
-  resourceId String?
-  oldValues Json?
-  newValues Json?
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
+model ai_sessions {
+  id           String        @id
+  title        String?
+  status       String        @default("active")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime
+  userId       String
+  providerId   String
+  modelId      String
+  ai_messages  ai_messages[]
+  ai_models    ai_models     @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  ai_providers AIProvider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  users        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  @@index([userId])
-  @@index([action])
-  @@index([resource])
-  @@index([createdAt])
-  @@map("audit_logs")
+enum UserRole {
+  ADMIN
+  USER
+  DEVELOPER
 }
