@@ -646,6 +646,15 @@ const NewProjectPage: React.FC = () => {
           </li>
         </ul>
       </div>
+
+      {/* File Selection Modal */}
+      <FileSelectionModal
+        isOpen={showFileModal}
+        onClose={handleFileModalClose}
+        files={pendingFiles}
+        directoryName={selectedDirectory}
+        onConfirm={handleFileModalConfirm}
+      />
     </div>
   );
 };
