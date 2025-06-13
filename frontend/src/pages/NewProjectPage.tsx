@@ -124,14 +124,14 @@ const NewProjectPage: React.FC = () => {
     }
   };
 
-  // Function to check if file should be ignored (only node_modules)
-  const shouldIgnoreFile = (filePath: string): boolean => {
-    const ignoredPatterns = [
-      'node_modules/'
-    ];
-    
-    return ignoredPatterns.some(pattern => filePath.includes(pattern));
-  };
+  // Function to check if file should be ignored (only node_modules) - حذف شد چون در backend انجام می‌شود
+  // const shouldIgnoreFile = (filePath: string): boolean => {
+  //   const ignoredPatterns = [
+  //     'node_modules/'
+  //   ];
+  //   
+  //   return ignoredPatterns.some(pattern => filePath.includes(pattern));
+  // };
 
   const handleFiles = (files: File[]) => {
     const newFiles: UploadedFile[] = files.map(file => ({
