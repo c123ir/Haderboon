@@ -65,32 +65,7 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
 
   const shouldIgnoreFile = (filePath: string): boolean => {
     const ignoredPatterns = [
-      'node_modules/',
-      '.git/',
-      '.svn/',
-      '.hg/',
-      'dist/',
-      'build/',
-      'out/',
-      '.next/',
-      '.nuxt/',
-      'coverage/',
-      '.nyc_output/',
-      '.cache/',
-      '.parcel-cache/',
-      '.vscode/',
-      '.idea/',
-      'logs/',
-      'tmp/',
-      'temp/',
-      '__pycache__/',
-      '.pytest_cache/',
-      'vendor/',
-      '.vendor/',
-      'bower_components/',
-      '.sass-cache/',
-      '.DS_Store',
-      'Thumbs.db'
+      'node_modules/'
     ];
     
     return ignoredPatterns.some(pattern => filePath.includes(pattern));
