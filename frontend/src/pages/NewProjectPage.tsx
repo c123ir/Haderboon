@@ -525,7 +525,7 @@ const NewProjectPage: React.FC = () => {
           
           <button
             type="submit"
-            disabled={isUploading || !projectName.trim() || uploadedFiles.length === 0}
+            disabled={isUploading || !projectName.trim() || (uploadMode === 'files' ? uploadedFiles.length === 0 : uploadedFiles.length === 0)}
             className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
           >
             {isUploading ? (
