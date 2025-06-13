@@ -435,6 +435,26 @@ const NewProjectPage: React.FC = () => {
             </div>
           )}
 
+          {/* Selected Directory Display */}
+          {uploadMode === 'directory' && selectedDirectory && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-white">
+                  پوشه انتخاب شده
+                </h3>
+              </div>
+              <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                <div className="flex items-center">
+                  <FolderIcon className="w-5 h-5 text-blue-400 ml-3" />
+                  <span className="text-white font-medium">{selectedDirectory}</span>
+                  <span className="text-white/60 text-sm mr-auto">
+                    {uploadedFiles.length} فایل
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* File List */}
           {uploadedFiles.length > 0 && (
             <div className="mt-6">
