@@ -181,7 +181,9 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
       const file = files.find(f => f.webkitRelativePath === path);
       return sum + (file?.size || 0);
     }, 0);
-    setProjectCapacity(Math.round((totalSize / (100 * 1024 * 1024)) * 100)); // Assuming 100MB limit
+    // محاسبه درصد بر اساس 1GB حد مجاز (می‌توان تنظیم کرد)
+    const maxCapacity = 1024 * 1024 * 1024; // 1GB
+    setProjectCapacity(Math.round((totalSize / maxCapacity) * 100));
   };
 
   const handleConfirm = () => {
