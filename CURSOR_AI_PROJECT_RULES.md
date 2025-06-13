@@ -5,6 +5,7 @@ This document provides the core rules and architectural guidelines for the "Hade
 ---
 
 ## 1. General Project Principles
+
 - **Project Name:** Haderboon (دستیار برنامه‌نویسی هادربون)
 - **Main Goal:** To develop an intelligent agent that assists developers in automatically and efficiently documenting their software projects and generating high-quality prompts for other AI agents.
 - **Primary Language for Code:** All code (variable names, function names, class names, file names) **must be in English**.
@@ -13,6 +14,7 @@ This document provides the core rules and architectural guidelines for the "Hade
 ---
 
 ## 2. Frontend Technology Stack
+
 - **Framework:** React 18.2
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS. All UI components must be styled using Tailwind's utility-first classes.
@@ -22,6 +24,7 @@ This document provides the core rules and architectural guidelines for the "Hade
 ---
 
 ## 3. Backend Technology Stack
+
 - **Runtime:** Node.js
 - **Framework:** Express.js
 - **Language:** TypeScript
@@ -34,6 +37,7 @@ This document provides the core rules and architectural guidelines for the "Hade
 ---
 
 ## 4. UI/UX Design
+
 - **Design Style:** The UI should have a modern, flat, and "Glassmorphism" (شیشه‌ای) aesthetic.
 - **Font:** The primary font for all text in the UI **must be 'Vazirmatn'** (فونت وزیرمتن).
 - **Calendar:** If any date-related components are needed, they **must support the Persian Solar calendar** (تقویم شمسی).
@@ -41,9 +45,11 @@ This document provides the core rules and architectural guidelines for the "Hade
 ---
 
 ## 5. Coding Style and Documentation
+
 - **Clarity and Readability:** Write clean, readable, and self-documenting code.
 - **Comments:** Add meaningful English comments for complex logic sections.
 - **Modularity:** Create reusable components and functions wherever possible.
+
   
 ## 6. File Header Comment
 - At the very top of every new file you create or modify, add a single-line comment containing the full path of the file from the project root. For example: `// frontend/src/components/Login.tsx`
