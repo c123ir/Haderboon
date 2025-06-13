@@ -230,9 +230,16 @@ const NewProjectPage: React.FC = () => {
           const firstFile = uploadedFiles[0];
           if (firstFile.name.includes('/')) {
             directoryName = firstFile.name.split('/')[0];
+          } else if (firstFile.file.webkitRelativePath) {
+            directoryName = firstFile.file.webkitRelativePath.split('/')[0];
           } else {
             directoryName = 'uploaded-files'; // نام پیش‌فرض
           }
+        }
+        
+        // اگر هنوز هم خالی است، از localStorage بخوان
+        if (!directoryName) {
+          directoryName = localStorage.getItem('lastSelectedDirectory') || 'uploaded-directory';
         }
         
         console.log('📁 آپلود پوشه:', directoryName, `(${uploadedFiles.length} فایل)`);
