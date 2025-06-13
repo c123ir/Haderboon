@@ -1,4 +1,4 @@
-# Haderboon Project - Rules for AI Assistant ( AI)
+# Haderboon Project - Rules for AI Assistant (Programmer AI)
 
 This document provides the core rules and architectural guidelines for the "Haderboon" project. Adhere to these rules strictly to maintain consistency and achieve the project's goals.
 
