@@ -3,3 +3,52 @@ description:
 globs: 
 alwaysApply: true
 ---
+# Haderboon Project - Rules for AI Assistant (Cursor AI)
+
+This document provides the core rules and architectural guidelines for the "Haderboon" project. Adhere to these rules strictly to maintain consistency and achieve the project's goals.
+
+---
+
+## 1. General Project Principles
+- **Project Name:** Haderboon (دستیار برنامه‌نویسی هادربون)
+- **Main Goal:** To develop an intelligent agent that assists developers in automatically and efficiently documenting their software projects and generating high-quality prompts for other AI agents.
+- **Primary Language for Code:** All code (variable names, function names, class names, file names) **must be in English**.
+- **Primary Language for UI:** The user interface (UI), menus, labels, and all user-facing text **must be in Persian**.
+
+---
+
+## 2. Frontend Technology Stack
+- **Framework:** React 18.2
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS. All UI components must be styled using Tailwind's utility-first classes.
+- **API Communication:** Use `axios` for all HTTP requests to the backend.
+- **Port:** The development server for the frontend must run on port `3550`.
+
+---
+
+## 3. Backend Technology Stack
+- **Runtime:** Node.js
+- **Framework:** Express.js
+- **Language:** TypeScript
+- **ORM:** Prisma. Use Prisma for all database interactions. The database is PostgreSQL.
+- **Database URL format:** `DATABASE_URL="postgresql://haderboon_user:2123@localhost:5432/haderboon_db"`
+- **File Uploads:** Use `multer` for handling file uploads.
+- **Authentication:** Use `JSON Web Tokens (JWT)` for user authentication.
+- **Port:** The backend server must run on port `5550`.
+
+---
+
+## 4. UI/UX Design
+- **Design Style:** The UI should have a modern, flat, and "Glassmorphism" (شیشه‌ای) aesthetic.
+- **Font:** The primary font for all text in the UI **must be 'Vazirmatn'** (فونت وزیرمتن).
+- **Calendar:** If any date-related components are needed, they **must support the Persian Solar calendar** (تقویم شمسی).
+
+---
+
+## 5. Coding Style and Documentation
+- **Clarity and Readability:** Write clean, readable, and self-documenting code.
+- **Comments:** Add meaningful English comments for complex logic sections.
+- **Modularity:** Create reusable components and functions wherever possible.
+  
+## 6. File Header Comment
+- At the very top of every new file you create or modify, add a single-line comment containing the full path of the file from the project root. For example: `// frontend/src/components/Login.tsx`
