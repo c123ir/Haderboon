@@ -1,186 +1,84 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Project } from '../utils/types';
-import { fetchProjects } from '../services/api';
+// Frontend: frontend/src/pages/Dashboard.tsx
+// صفحه داشبورد اصلی
 
-/**
- * صفحه داشبورد کاربر
- * این صفحه پس از ورود کاربر نمایش داده می‌شود و شامل پروژه‌های کاربر و اطلاعات کلی است
- */
-const Dashboard: React.FC = () => {
-  const { isAuthenticated, user, loading } = useAuth();
-  const navigate = useNavigate();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+import React, { useState, useContext } from 'react';
+import { ThemeContext, NavigationContext } from '../contexts';
+import { StatsCard } from '../components/dashboard/StatsCard';
+import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
+import { RecentActivityCard } from '../components/dashboard/RecentActivityCard';
+import { ActionButton } from '../components/common/ActionButton';
 
-  useEffect(() => {
-    // بررسی وضعیت احراز هویت
-    if (!loading && !isAuthenticated) {
-      navigate('/login');
-    }
-  }, [isAuthenticated, loading, navigate]);
-
-  useEffect(() => {
-    // دریافت پروژه‌ها از سرور
-    const getProjects = async () => {
-      try {
-        setIsLoading(true);
-        const projectsData = await fetchProjects();
-        setProjects(projectsData);
-        setError(null);
-      } catch (err) {
-        setError('خطا در دریافت پروژه‌ها');
-        console.error('خطا در دریافت پروژه‌ها:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (isAuthenticated) {
-      getProjects();
-    }
-  }, [isAuthenticated]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+const Dashboard = () => {
+  const { darkMode } = useContext(ThemeContext);
+  const [stats, setStats] = useState({
+    projects: 15,
+    documents: 243,
+    chatSessions: 120,
+    savedHours: 48
+  });
 
   return (
-    <div className="container mx-auto px-4 py-8 font-vazirmatn">
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4 text-right">
-          داشبورد هادربون
-        </h1>
-        
-        {user && (
-          <div className="bg-blue-50 p-4 rounded-md mb-6 text-right">
-            <p className="text-lg text-blue-800">
-              خوش آمدید، <span className="font-bold">{user.username}</span>
-            </p>
-            <p className="text-sm text-blue-600 mt-1">
-              {user.email}
-            </p>
+    <div className="px-6 py-12">
+      <div className="max-w-7xl mx-auto">
+        {/* Welcome Section */}
+        <div className="text-center mb-16">
+          <h1 className={`text-5xl md:text-7xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            سلام به 
+            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"> ایجنت هادربون</span>
+          </h1>
+          <p className={`text-xl max-w-3xl mx-auto leading-relaxed ${darkMode ? 'text-purple-200' : 'text-gray-600'}`}>
+            دستیار هوشمند شما برای مستندسازی پروژه‌ها، تحلیل کد و تولید محتوای تخصصی
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 sm:space-x-reverse">
+            <ActionButton primary>
+              🚀 شروع پروژه جدید
+            </ActionButton>
+            <ActionButton>
+              ▶️ مشاهده دمو
+            </ActionButton>
           </div>
-        )}
-
-        {/* دسترسی سریع */}
-        <div className="grid md:grid-cols-5 gap-4 mb-6">
-          <button
-            onClick={() => navigate('/chat')}
-            className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 text-center"
-          >
-            <div className="flex flex-col items-center">
-              <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              <span className="font-semibold">چت با ایجنت</span>
-              <span className="text-sm opacity-90">گفتگو با هوش مصنوعی</span>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => navigate('/projects/new')}
-            className="bg-gradient-to-r from-green-500 to-teal-600 text-white p-4 rounded-lg hover:from-green-600 hover:to-teal-700 transition-all duration-200 text-center"
-          >
-            <div className="flex flex-col items-center">
-              <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <span className="font-semibold">پروژه جدید</span>
-              <span className="text-sm opacity-90">شروع پروژه جدید</span>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => navigate('/documents')}
-            className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white p-4 rounded-lg hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 text-center"
-          >
-            <div className="flex flex-col items-center">
-              <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              <span className="font-semibold">مستندات من</span>
-              <span className="text-sm opacity-90">مشاهده مستندات</span>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => navigate('/documents/new')}
-            className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4 rounded-lg hover:from-orange-600 hover:to-red-700 transition-all duration-200 text-center"
-          >
-            <div className="flex flex-col items-center">
-              <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="font-semibold">مستند جدید</span>
-              <span className="text-sm opacity-90">ایجاد مستندات</span>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => navigate('/tags')}
-            className="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-4 rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-200 text-center"
-          >
-            <div className="flex flex-col items-center">
-              <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-              <span className="font-semibold">مدیریت تگ‌ها</span>
-              <span className="text-sm opacity-90">سازماندهی محتوا</span>
-            </div>
-          </button>
         </div>
-
-        <div className="border-t border-gray-200 pt-4 mt-4">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4 text-right">
-            پروژه‌های شما
-          </h2>
-
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
-          ) : error ? (
-            <div className="bg-red-50 p-4 rounded-md text-red-700 text-right">
-              {error}
-            </div>
-          ) : projects.length === 0 ? (
-            <div className="bg-gray-50 p-6 rounded-md text-center">
-              <p className="text-gray-600">شما هنوز پروژه‌ای ندارید</p>
-              <button 
-                onClick={() => navigate('/projects/new')}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-              >
-                ایجاد پروژه جدید
-              </button>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {projects.map((project) => (
-                <div 
-                  key={project.id} 
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-pointer"
-                  onClick={() => navigate(`/projects/${project.id}`)}
-                >
-                  <h3 className="font-semibold text-lg mb-2 text-right">{project.name}</h3>
-                  <p className="text-gray-600 text-sm mb-3 text-right">{project.description}</p>
-                  <div className="flex justify-between items-center text-xs text-gray-500">
-                    <span>آخرین بروزرسانی: {new Date(project.updatedAt).toLocaleDateString('fa-IR')}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <StatsCard
+            icon="📊"
+            value={stats.projects}
+            label="پروژه فعال"
+            change="+12%"
+            color="from-purple-500 to-indigo-500"
+          />
+          <StatsCard
+            icon="📄"
+            value={stats.documents}
+            label="مستند ایجاد شده"
+            change="+8%"
+            color="from-pink-500 to-rose-500"
+          />
+          <StatsCard
+            icon="💬"
+            value={stats.chatSessions}
+            label="جلسه چت"
+            change="+25%"
+            color="from-blue-500 to-cyan-500"
+          />
+          <StatsCard
+            icon="⏰"
+            value={stats.savedHours}
+            label="ساعت صرفه‌جویی"
+            change="+15%"
+            color="from-orange-500 to-red-500"
+          />
+        </div>
+        
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+          <QuickActionsCard />
+          <RecentActivityCard />
         </div>
       </div>
     </div>
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
