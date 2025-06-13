@@ -28,7 +28,10 @@ api.interceptors.request.use(
 
 // Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response.data, // Return just the data part
+  (response) => {
+    // Return the data directly
+    return response.data as any;
+  },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('haderboon_token');
