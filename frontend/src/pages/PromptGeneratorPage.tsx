@@ -212,7 +212,7 @@ ${(promptRequest.focusAreas || []).length > 0
                   key={area}
                   onClick={() => toggleFocusArea(area)}
                   className={`px-3 py-2 rounded-lg text-sm transition-colors duration-200 ${
-                    promptRequest.focusAreas.includes(area)
+                    (promptRequest.focusAreas || []).includes(area)
                       ? 'bg-blue-600/20 border border-blue-500 text-blue-300'
                       : 'bg-white/10 border border-white/20 text-white/70 hover:bg-white/20'
                   }`}
