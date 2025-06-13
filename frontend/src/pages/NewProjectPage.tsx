@@ -276,7 +276,7 @@ const NewProjectPage: React.FC = () => {
       setUploadProgress(95);
       
       // Start watching if directory mode was used
-      if (uploadMode === 'directory' && selectedDirectory) {
+      if (uploadMode === 'directory') {
         try {
           console.log('👁️ شروع نظارت بر پروژه...');
           await apiService.startProjectWatching(projectId);
@@ -290,7 +290,7 @@ const NewProjectPage: React.FC = () => {
       console.log('🎉 همه مراحل تکمیل شد!');
       
       // Show success message
-      if (uploadMode === 'directory' && selectedDirectory) {
+      if (uploadMode === 'directory') {
         alert('پروژه با موفقیت ایجاد شد و نظارت بر تغییرات فعال شد!');
       } else {
         alert('پروژه با موفقیت ایجاد شد!');
