@@ -541,3 +541,233 @@ const buildFileTree = (files: any[]): any[] => {
 
   return tree;
 };
+
+/**
+ * Upload local directory project
+ */
+export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { projectId } = req.params;
+    const { directoryPath } = req.body;
+    const userId = req.user!.id;
+
+    if (!directoryPath) {
+      sendError(res, 'مسیر پوشه الزامی است', 400);
+      return;
+    }
+
+    // Verify project ownership
+    const project = await prisma.project.findFirst({
+      where: { id: projectId, userId }
+    });
+
+    if (!project) {
+      sendError(res, 'پروژه یافت نشد', 404);
+      return;
+    }
+
+    // Check if directory exists
+    if (!fs.existsSync(directoryPath)) {
+      sendError(res, 'پوشه مورد نظر یافت نشد', 404);
+      return;
+    }
+
+    // Update project status
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { 
+        status: 'ANALYZING',
+        path: directoryPath,
+        originalPath: directoryPath
+      }
+    });
+
+    console.log(`🔍 شروع اسکن پوشه: ${directoryPath}`);
+
+    const uploadedFiles: any[] = [];
+    let totalSize = 0;
+
+    // Scan directory recursively
+    const scannedFiles = await scanDirectory(directoryPath);
+    
+    console.log(`📊 تعداد فایل‌های یافت شده: ${scannedFiles.length}`);
+
+    // Process each file
+    for (const fileInfo of scannedFiles) {
+      try {
+        const stats = fs.statSync(fileInfo.fullPath);
+        const fileType = getFileType(fileInfo.relativePath);
+        const extension = path.extname(fileInfo.relativePath);
+        
+        totalSize += stats.size;
+
+        // Analyze file if it's a text file
+        let analysis = null;
+        try {
+          analysis = await analyzeFile(fileInfo.fullPath);
+        } catch (error) {
+          console.warn(`خطا در تحلیل فایل ${fileInfo.relativePath}:`, error);
+        }
+
+        // Read content for small text files
+        let content = null;
+        if (stats.size < 500 * 1024 && 
+            ['.js', '.ts', '.jsx', '.tsx', '.vue', '.py', '.java', '.html', '.css', '.scss', '.json', '.md', '.txt'].includes(extension)) {
+          try {
+            content = fs.readFileSync(fileInfo.fullPath, 'utf8');
+          } catch (error) {
+            console.warn(`خطا در خواندن محتوای فایل ${fileInfo.relativePath}:`, error);
+          }
+        }
+
+        // Create file record
+        const projectFile = await prisma.projectFile.create({
+          data: {
+            projectId,
+            path: fileInfo.relativePath,
+            originalPath: fileInfo.fullPath,
+            name: path.basename(fileInfo.relativePath),
+            extension,
+            type: fileType as any,
+            size: BigInt(stats.size),
+            content,
+            analysis: analysis ? JSON.parse(JSON.stringify(analysis)) : null,
+            isDirectory: false
+          }
+        });
+
+        uploadedFiles.push({
+          id: projectFile.id,
+          name: fileInfo.relativePath,
+          size: stats.size,
+          type: fileType,
+          analysis: analysis
+        });
+
+        console.log(`✅ فایل اضافه شد: ${fileInfo.relativePath} (${stats.size} bytes)`);
+
+      } catch (error) {
+        console.error(`خطا در پردازش فایل ${fileInfo.relativePath}:`, error);
+      }
+    }
+
+    // Analyze entire project
+    let projectAnalysis = null;
+    try {
+      projectAnalysis = await analyzeProject(directoryPath);
+    } catch (error) {
+      console.warn('خطا در تحلیل کلی پروژه:', error);
+    }
+
+    // Update project with analysis results
+    await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        filesCount: uploadedFiles.length,
+        totalSize: BigInt(totalSize),
+        status: 'READY',
+        lastAnalyzed: new Date(),
+        analysisData: projectAnalysis ? JSON.parse(JSON.stringify(projectAnalysis)) : null,
+        updatedAt: new Date()
+      }
+    });
+
+    sendSuccess(res, {
+      uploadedFiles,
+      totalFiles: uploadedFiles.length,
+      totalSize,
+      projectAnalysis,
+      projectId,
+      directoryPath
+    }, `پروژه با ${uploadedFiles.length} فایل از پوشه محلی بارگذاری شد`);
+
+  } catch (error) {
+    console.error('❌ Upload local directory error:', error);
+    sendError(res, 'خطا در بارگذاری پوشه محلی');
+  }
+};
+
+/**
+ * Scan directory recursively and return file list
+ */
+const scanDirectory = async (dirPath: string): Promise<{ relativePath: string; fullPath: string }[]> => {
+  const files: { relativePath: string; fullPath: string }[] = [];
+  
+  const scanRecursive = (currentPath: string, relativePath: string = '') => {
+    try {
+      const items = fs.readdirSync(currentPath);
+      
+      for (const item of items) {
+        const fullPath = path.join(currentPath, item);
+        const relativeItemPath = path.join(relativePath, item).replace(/\\/g, '/');
+        
+        // Skip ignored files and directories
+        if (shouldIgnoreFile(relativeItemPath) || shouldIgnoreDirectory(item)) {
+          console.log(`⏭️ رد شدن: ${relativeItemPath}`);
+          continue;
+        }
+        
+        const stats = fs.statSync(fullPath);
+        
+        if (stats.isDirectory()) {
+          // Recursively scan subdirectory
+          scanRecursive(fullPath, relativeItemPath);
+        } else if (stats.isFile()) {
+          // Add file to list
+          files.push({
+            relativePath: relativeItemPath,
+            fullPath: fullPath
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`خطا در اسکن پوشه ${currentPath}:`, error);
+    }
+  };
+  
+  scanRecursive(dirPath);
+  return files;
+};
+
+/**
+ * Check if directory should be ignored
+ */
+const shouldIgnoreDirectory = (dirName: string): boolean => {
+  const ignoredDirs = [
+    'node_modules',
+    '.git',
+    '.svn',
+    '.hg',
+    'dist',
+    'build',
+    'out',
+    '.next',
+    '.nuxt',
+    'coverage',
+    '.nyc_output',
+    '.cache',
+    '.parcel-cache',
+    '.vscode',
+    '.idea',
+    'logs',
+    'tmp',
+    'temp',
+    '__pycache__',
+    '.pytest_cache',
+    '.DS_Store',
+    'Thumbs.db',
+    'vendor',
+    '.vendor',
+    'bower_components',
+    '.sass-cache',
+    '.env.local',
+    '.env.development.local',
+    '.env.test.local',
+    '.env.production.local'
+  ];
+  
+  return ignoredDirs.some(ignored => 
+    dirName === ignored || 
+    dirName.startsWith('.') && ignoredDirs.includes(dirName.substring(1))
+  );
+};
