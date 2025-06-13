@@ -156,12 +156,23 @@ const NewProjectPage: React.FC = () => {
       // Step 2: Upload files
       setUploadProgress(40);
       
-      // Convert UploadedFile[] to FileList-like object
-      const fileList = uploadedFiles.map(uf => uf.file);
-      const dt = new DataTransfer();
-      fileList.forEach(file => dt.items.add(file));
+      // Check if we have a single ZIP file
+      const zipFiles = uploadedFiles.filter(f => f.name.toLowerCase().endsWith('.zip'));
       
-      const uploadResponse = await apiService.uploadFiles(projectId, dt.files);
+      let uploadResponse;
+      
+      if (zipFiles.length === 1 && uploadedFiles.length === 1) {
+        // Single ZIP file - use uploadProjectZip
+        console.log('📦 آپلود فایل ZIP:', zipFiles[0].name);
+        uploadResponse = await apiService.uploadProjectZip(projectId, zipFiles[0].file);
+      } else {
+        // Multiple files or non-ZIP files - use regular upload
+        console.log('📁 آپلود فایل‌های متعدد:', uploadedFiles.length);
+        const fileList = uploadedFiles.map(uf => uf.file);
+        const dt = new DataTransfer();
+        fileList.forEach(file => dt.items.add(file));
+        uploadResponse = await apiService.uploadFiles(projectId, dt.files);
+      }
       
       if (!uploadResponse.success) {
         throw new Error(uploadResponse.error || 'خطا در آپلود فایل‌ها');
