@@ -161,6 +161,12 @@ export const apiService = {
     });
   },
 
+  async uploadLocalDirectory(projectId: string, directoryPath: string): Promise<any> {
+    return await api.post(`/files/projects/${projectId}/upload-directory`, {
+      directoryPath
+    });
+  },
+
   async getProjectFiles(projectId: string): Promise<any> {
     return await api.get(`/files/projects/${projectId}/files`);
   },
