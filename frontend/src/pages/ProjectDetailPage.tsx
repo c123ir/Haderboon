@@ -17,6 +17,7 @@ import {
 } from '@heroicons/react/24/outline';
 import apiService from '../services/api';
 import WatchingStatus from '../components/WatchingStatus';
+import ProjectFileManager from '../components/ProjectFileManager';
 
 interface FileTreeNode {
   id: string;
