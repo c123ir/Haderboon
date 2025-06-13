@@ -10,6 +10,7 @@ import {
   CheckCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import apiService from '../services/api';
 
 interface UploadedFile {
   name: string;
@@ -27,6 +28,7 @@ const NewProjectPage: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -111,17 +113,48 @@ const NewProjectPage: React.FC = () => {
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
     
-    // Simulate upload process
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Step 1: Create project
+      setUploadProgress(20);
+      const projectResponse = await apiService.createProject({
+        name: projectName.trim(),
+        description: projectDescription.trim() || undefined
+      });
+
+      if (!projectResponse.success) {
+        throw new Error(projectResponse.error || 'خطا در ایجاد پروژه');
+      }
+
+      const projectId = projectResponse.data.id;
       
-      // Navigate to the new project (in real app, use the returned project ID)
-      navigate('/projects/1');
-    } catch (error) {
-      alert('خطا در ایجاد پروژه');
-    } finally {
+      // Step 2: Upload files
+      setUploadProgress(40);
+      
+      // Convert UploadedFile[] to FileList-like object
+      const fileList = uploadedFiles.map(uf => uf.file);
+      const dt = new DataTransfer();
+      fileList.forEach(file => dt.items.add(file));
+      
+      const uploadResponse = await apiService.uploadFiles(projectId, dt.files);
+      
+      if (!uploadResponse.success) {
+        throw new Error(uploadResponse.error || 'خطا در آپلود فایل‌ها');
+      }
+
+      setUploadProgress(100);
+      
+      // Success - navigate to project
+      setTimeout(() => {
+        navigate(`/projects/${projectId}`);
+      }, 1000);
+      
+    } catch (error: any) {
+      console.error('خطا در ایجاد پروژه:', error);
+      alert(error.message || 'خطا در ایجاد پروژه');
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -154,6 +187,7 @@ const NewProjectPage: React.FC = () => {
                 placeholder="مثال: فروشگاه آنلاین ماهان"
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                 required
+                disabled={isUploading}
               />
             </div>
             
@@ -167,6 +201,7 @@ const NewProjectPage: React.FC = () => {
                 placeholder="توضیح کوتاهی از پروژه و اهداف آن..."
                 rows={3}
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none"
+                disabled={isUploading}
               />
             </div>
           </div>
@@ -182,7 +217,7 @@ const NewProjectPage: React.FC = () => {
               dragActive
                 ? 'border-blue-400 bg-blue-500/10'
                 : 'border-white/30 hover:border-white/50'
-            }`}
+            } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -198,7 +233,8 @@ const NewProjectPage: React.FC = () => {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+              disabled={isUploading}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
             >
               <FolderIcon className="w-4 h-4 ml-2" />
               انتخاب فایل‌ها
@@ -209,9 +245,26 @@ const NewProjectPage: React.FC = () => {
               multiple
               onChange={handleFileInput}
               className="hidden"
-              accept=".js,.ts,.jsx,.tsx,.vue,.py,.java,.html,.css,.scss,.json,.md,.txt"
+              accept=".js,.ts,.jsx,.tsx,.vue,.py,.java,.html,.css,.scss,.json,.md,.txt,.zip"
+              disabled={isUploading}
             />
           </div>
+
+          {/* Upload Progress */}
+          {isUploading && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-white/70">در حال آپلود...</span>
+                <span className="text-white/70">{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-white/10 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
 
           {/* File List */}
           {uploadedFiles.length > 0 && (
@@ -243,13 +296,15 @@ const NewProjectPage: React.FC = () => {
                       </div>
                     </div>
                     
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="p-1 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors duration-200"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
+                    {!isUploading && (
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="p-1 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors duration-200"
+                      >
+                        <XMarkIcon className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -273,7 +328,8 @@ const NewProjectPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/projects')}
-            className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors duration-200"
+            disabled={isUploading}
+            className="px-6 py-3 bg-white/10 hover:bg-white/20 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
           >
             انصراف
           </button>
@@ -308,7 +364,7 @@ const NewProjectPage: React.FC = () => {
           </li>
           <li className="flex items-start">
             <span className="text-blue-400 ml-2">•</span>
-            بهتر است کل پوشه پروژه را به صورت zip آپلود کنید
+            حداکثر حجم هر فایل: 10 مگابایت
           </li>
           <li className="flex items-start">
             <span className="text-blue-400 ml-2">•</span>
@@ -317,6 +373,10 @@ const NewProjectPage: React.FC = () => {
           <li className="flex items-start">
             <span className="text-blue-400 ml-2">•</span>
             پس از ایجاد، می‌توانید با دستیار چت کنید تا مستندات را بهبود دهید
+          </li>
+          <li className="flex items-start">
+            <span className="text-blue-400 ml-2">•</span>
+            فایل‌های ZIP نیز پشتیبانی می‌شوند و به صورت خودکار استخراج می‌شوند
           </li>
         </ul>
       </div>
