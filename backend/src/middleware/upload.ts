@@ -27,18 +27,17 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter function
+// File filter function - اجازه همه فایل‌ها (فقط node_modules محدود می‌شود)
 const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   try {
     // Decode filename properly
     const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
-    const extension = path.extname(originalName).toLowerCase();
     
-    // Check if file type is allowed
-    if (FILE_CONSTRAINTS.ALLOWED_EXTENSIONS.includes(extension)) {
-      cb(null, true);
+    // فقط node_modules را رد کن، بقیه همه مجاز
+    if (originalName.includes('node_modules/')) {
+      cb(new Error(`فایل‌های node_modules مجاز نیستند`));
     } else {
-      cb(new Error(`نوع فایل ${extension} پشتیبانی نمی‌شود`));
+      cb(null, true); // همه فایل‌های دیگر مجاز
     }
   } catch (error) {
     cb(new Error('خطا در پردازش نام فایل'));
