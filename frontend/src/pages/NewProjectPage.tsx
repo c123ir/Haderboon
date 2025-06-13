@@ -29,6 +29,30 @@ const NewProjectPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const loggedIn = authHelpers.isLoggedIn();
+      if (!loggedIn) {
+        try {
+          console.log('📝 ورود خودکار در NewProjectPage...');
+          await apiService.demoLogin();
+          setIsLoggedIn(true);
+          console.log('✅ ورود موفق');
+        } catch (error) {
+          console.error('❌ خطا در ورود خودکار:', error);
+          setLoginError('خطا در ورود - لطفاً صفحه را refresh کنید');
+        }
+      } else {
+        setIsLoggedIn(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -159,6 +183,22 @@ const NewProjectPage: React.FC = () => {
   };
 
   const totalSize = uploadedFiles.reduce((sum, file) => sum + file.size, 0);
+
+  // Show login error if exists
+  if (loginError) {
+    return (
+      <div className="max-w-4xl mx-auto text-center py-16">
+        <h2 className="text-xl font-semibold text-white mb-2">خطا در احراز هویت</h2>
+        <p className="text-white/60 mb-6">{loginError}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+        >
+          تلاش مجدد
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
