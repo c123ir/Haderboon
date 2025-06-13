@@ -110,7 +110,7 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
     
     // Return root level nodes
     return Object.values(tree).filter(node => !node.path.includes('/'));
-  };
+  }, [shouldIgnoreFile]);
 
   const toggleExpand = (nodePath: string) => {
     const newExpanded = new Set(expandedNodes);
