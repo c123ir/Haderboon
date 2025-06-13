@@ -219,11 +219,11 @@ const NewProjectPage: React.FC = () => {
       if (uploadMode === 'directory') {
         // Directory upload mode
         console.log('📁 آپلود پوشه:', selectedDirectory);
-        // For web browsers, we use the files from directory input
+        // For web browsers, we use the files from directory input with preserved paths
         const fileList = uploadedFiles.map(uf => uf.file);
         const dt = new DataTransfer();
         fileList.forEach(file => dt.items.add(file));
-        uploadResponse = await apiService.uploadFiles(projectId, dt.files);
+        uploadResponse = await apiService.uploadLocalDirectory(projectId, dt.files, selectedDirectory);
       } else {
         // File upload mode
         const zipFiles = uploadedFiles.filter(f => f.name.toLowerCase().endsWith('.zip'));
