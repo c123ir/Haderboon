@@ -260,6 +260,14 @@ const ProjectDetailPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Watching Status */}
+      <WatchingStatus 
+        projectId={project.id}
+        projectName={project.name}
+        projectPath={project.originalPath}
+        initialStatus={project.status}
+      />
+
       {/* Tabs */}
       <div className="glass-card">
         <div className="flex space-x-1 space-x-reverse">
