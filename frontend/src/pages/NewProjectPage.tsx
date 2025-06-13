@@ -43,14 +43,11 @@ const NewProjectPage: React.FC = () => {
         try {
           console.log('📝 ورود خودکار در NewProjectPage...');
           await apiService.demoLogin();
-          setIsLoggedIn(true);
           console.log('✅ ورود موفق');
         } catch (error) {
           console.error('❌ خطا در ورود خودکار:', error);
           setLoginError('خطا در ورود - لطفاً صفحه را refresh کنید');
         }
-      } else {
-        setIsLoggedIn(true);
       }
     };
 
