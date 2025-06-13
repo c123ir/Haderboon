@@ -1,164 +1,228 @@
-// Backend: backend/src/server.ts
-// فایل اصلی سرور ایجنت هادربون
+// Backend: backend/src/server.ts (Simple Version)
+// فایل اصلی سرور ساده ایجنت هادربون
 
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
-import compression from 'compression';
-import cookieParser from 'cookie-parser';
-import { config } from './config/app';
-import { logger } from './config/logger';
-import DatabaseService from './config/database';
+import { PrismaClient } from '@prisma/client';
+import dotenv from 'dotenv';
 
-// Import Routes
-import authRoutes from './routes/authRoutes';
-import projectRoutes from './routes/projectRoutes';
-import documentRoutes from './routes/documentRoutes';
-import aiRoutes from './routes/aiRoutes';
-import chatRoutes from './routes/chatRoutes';
+// Load environment variables
+dotenv.config();
 
-// Import Middleware
-import { errorHandler } from './middleware/errorHandler';
-import { notFound } from './middleware/notFound';
-import { apiLimiter } from './middleware/rateLimiter';
+const app = express();
+const PORT = process.env.BACKEND_PORT || 5150;
+const prisma = new PrismaClient();
 
-class Server {
-  private app: express.Application;
-  private port: number;
+// Middleware
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3150',
+  credentials: true
+}));
 
-  constructor() {
-    this.app = express();
-    this.port = config.server.port;
-    this.initializeMiddlewares();
-    this.initializeRoutes();
-    this.initializeErrorHandling();
-  }
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-  private initializeMiddlewares(): void {
-    // Security middleware
-    this.app.use(helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'"],
-          imgSrc: ["'self'", "data:", "https:"],
-        },
-      },
-      crossOriginEmbedderPolicy: false
-    }));
+// Simple logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
-    // CORS configuration
-    this.app.use(cors({
-      origin: config.server.corsOrigin,
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-    }));
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    message: 'ایجنت هادربون در حال اجرا است',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.0'
+  });
+});
 
-    // Body parsing middleware
-    this.app.use(express.json({ limit: '10mb' }));
-    this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-    this.app.use(cookieParser());
-
-    // Compression middleware
-    this.app.use(compression());
-
-    // Rate limiting
-    this.app.use('/api/', apiLimiter);
-
-    // Request logging
-    this.app.use((req, res, next) => {
-      logger.info(`${req.method} ${req.path} - ${req.ip}`);
-      next();
-    });
-  }
-
-  private initializeRoutes(): void {
-    // Health check endpoint
-    this.app.get('/health', (req, res) => {
-      res.status(200).json({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        environment: config.server.environment,
-        version: process.env.npm_package_version || '1.0.0'
-      });
-    });
-
-    // API routes
-    this.app.use('/api/v1/auth', authRoutes);
-    this.app.use('/api/v1/projects', projectRoutes);
-    this.app.use('/api/v1/documents', documentRoutes);
-    this.app.use('/api/v1/ai', aiRoutes);
-    this.app.use('/api/v1/chat', chatRoutes);
-
-    // API documentation
-    this.app.get('/api', (req, res) => {
-      res.json({
-        message: 'ایجنت هادربون API',
-        version: 'v1',
-        endpoints: {
-          auth: '/api/v1/auth',
-          projects: '/api/v1/projects',
-          documents: '/api/v1/documents',
-          ai: '/api/v1/ai',
-          chat: '/api/v1/chat'
-        },
-        documentation: '/api/docs'
-      });
-    });
-  }
-
-  private initializeErrorHandling(): void {
-    // 404 handler
-    this.app.use(notFound);
-    
-    // Global error handler
-    this.app.use(errorHandler);
-  }
-
-  public async start(): Promise<void> {
-    try {
-      // Connect to database
-      await DatabaseService.connect();
-      
-      // Start server
-      this.app.listen(this.port, () => {
-        logger.info(`🚀 ایجنت هادربون در حال اجرا است`);
-        logger.info(`📡 سرور: http://${config.server.host}:${this.port}`);
-        logger.info(`🌍 محیط: ${config.server.environment}`);
-        logger.info(`📊 Health check: http://${config.server.host}:${this.port}/health`);
-      });
-
-      // Graceful shutdown
-      process.on('SIGTERM', this.gracefulShutdown);
-      process.on('SIGINT', this.gracefulShutdown);
-
-    } catch (error) {
-      logger.error('❌ خطا در راه‌اندازی سرور:', error);
-      process.exit(1);
+// API Info endpoint
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'ایجنت هادربون API',
+    version: 'v1',
+    endpoints: {
+      health: '/health',
+      users: '/api/v1/users',
+      projects: '/api/v1/projects',
+      documents: '/api/v1/documents'
     }
-  }
+  });
+});
 
-  private gracefulShutdown = async (signal: string): Promise<void> => {
-    logger.info(`${signal} دریافت شد. شروع خاموش کردن تدریجی...`);
+// Simple users endpoint
+app.get('/api/v1/users', async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        username: true,
+        role: true,
+        isActive: true,
+        createdAt: true
+      }
+    });
     
-    try {
-      // Close database connection
-      await DatabaseService.disconnect();
-      logger.info('✅ اتصال پایگاه داده بسته شد');
-      
-      process.exit(0);
-    } catch (error) {
-      logger.error('❌ خطا در خاموش کردن تدریجی:', error);
-      process.exit(1);
-    }
-  };
-}
+    res.json({
+      success: true,
+      message: 'کاربران با موفقیت دریافت شدند',
+      data: users
+    });
+  } catch (error) {
+    console.error('خطا در دریافت کاربران:', error);
+    res.status(500).json({
+      success: false,
+      message: 'خطا در دریافت کاربران',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Simple projects endpoint
+app.get('/api/v1/projects', async (req, res) => {
+  try {
+    const projects = await prisma.project.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        _count: {
+          select: {
+            documents: true
+          }
+        }
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: 'پروژه‌ها با موفقیت دریافت شدند',
+      data: projects
+    });
+  } catch (error) {
+    console.error('خطا در دریافت پروژه‌ها:', error);
+    res.status(500).json({
+      success: false,
+      message: 'خطا در دریافت پروژه‌ها',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Simple documents endpoint
+app.get('/api/v1/documents', async (req, res) => {
+  try {
+    const documents = await prisma.document.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        project: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: 'مستندات با موفقیت دریافت شدند',
+      data: documents
+    });
+  } catch (error) {
+    console.error('خطا در دریافت مستندات:', error);
+    res.status(500).json({
+      success: false,
+      message: 'خطا در دریافت مستندات',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Database test endpoint
+app.get('/api/v1/test-db', async (req, res) => {
+  try {
+    const userCount = await prisma.user.count();
+    const projectCount = await prisma.project.count();
+    const documentCount = await prisma.document.count();
+    
+    res.json({
+      success: true,
+      message: 'اتصال پایگاه داده موفق',
+      data: {
+        userCount,
+        projectCount,
+        documentCount,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('خطا در اتصال پایگاه داده:', error);
+    res.status(500).json({
+      success: false,
+      message: 'خطا در اتصال پایگاه داده',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'مسیر یافت نشد',
+    path: req.originalUrl
+  });
+});
+
+// Error handler
+app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('خطای سرور:', error);
+  
+  res.status(500).json({
+    success: false,
+    message: 'خطای داخلی سرور',
+    error: process.env.NODE_ENV === 'development' ? error.message : 'Internal Server Error'
+  });
+});
 
 // Start server
-const server = new Server();
-server.start().catch((error) => {
-  logger.error('Failed to start server:', error);
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`🚀 ایجنت هادربون در حال اجرا است`);
+  console.log(`📡 سرور: http://localhost:${PORT}`);
+  console.log(`🌍 محیط: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔍 API Info: http://localhost:${PORT}/api`);
+  console.log(`👥 Users: http://localhost:${PORT}/api/v1/users`);
+  console.log(`📁 Projects: http://localhost:${PORT}/api/v1/projects`);
+  console.log(`📝 Documents: http://localhost:${PORT}/api/v1/documents`);
+  console.log(`🗄️ DB Test: http://localhost:${PORT}/api/v1/test-db`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM دریافت شد. خاموش کردن تدریجی...');
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT دریافت شد. خاموش کردن تدریجی...');
+  await prisma.$disconnect();
+  process.exit(0);
 });
