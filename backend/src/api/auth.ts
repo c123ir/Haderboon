@@ -1,10 +1,12 @@
+// backend/src/api/auth.ts
+
 import { Router } from 'express';
 import { registerUser } from '../controllers/authController';
 
-// Create authentication router instance
 const authRouter = Router();
 
-// POST route for user registration
+// تعریف مسیر برای ثبت نام
+// POST /api/auth/register
 authRouter.post('/register', registerUser);
 
-export { authRouter }; 
+export { authRouter };
