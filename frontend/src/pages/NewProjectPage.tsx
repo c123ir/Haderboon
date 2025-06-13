@@ -363,20 +363,40 @@ const NewProjectPage: React.FC = () => {
           >
             <CloudArrowUpIcon className="w-12 h-12 text-white/40 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">
-              فایل‌های پروژه را اینجا بکشید
+              {uploadMode === 'directory' 
+                ? 'پوشه پروژه خود را انتخاب کنید' 
+                : 'فایل‌های پروژه را اینجا بکشید'
+              }
             </h3>
             <p className="text-white/60 mb-4">
-              یا روی دکمه زیر کلیک کنید تا فایل‌ها را انتخاب کنید
+              {uploadMode === 'directory'
+                ? 'پوشه کامل پروژه با تمام زیرپوشه‌ها آپلود می‌شود'
+                : 'یا روی دکمه زیر کلیک کنید تا فایل‌ها را انتخاب کنید'
+              }
             </p>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
-            >
-              <FolderIcon className="w-4 h-4 ml-2" />
-              انتخاب فایل‌ها
-            </button>
+            
+            {uploadMode === 'directory' ? (
+              <button
+                type="button"
+                onClick={() => directoryInputRef.current?.click()}
+                disabled={isUploading}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+              >
+                <FolderIcon className="w-4 h-4 ml-2" />
+                انتخاب پوشه
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+              >
+                <FolderIcon className="w-4 h-4 ml-2" />
+                انتخاب فایل‌ها
+              </button>
+            )}
+            
             <input
               ref={fileInputRef}
               type="file"
@@ -385,6 +405,17 @@ const NewProjectPage: React.FC = () => {
               className="hidden"
               accept=".js,.ts,.jsx,.tsx,.vue,.py,.java,.html,.css,.scss,.json,.md,.txt,.zip"
               disabled={isUploading}
+              style={{ display: uploadMode === 'files' ? 'none' : 'none' }}
+            />
+            
+            <input
+              ref={directoryInputRef}
+              type="file"
+              webkitdirectory=""
+              onChange={handleDirectoryInput}
+              className="hidden"
+              disabled={isUploading}
+              style={{ display: uploadMode === 'directory' ? 'none' : 'none' }}
             />
           </div>
 
