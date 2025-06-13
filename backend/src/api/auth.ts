@@ -1,11 +1,12 @@
-// backend/src/api/index.ts
+// backend/src/api/auth.ts
 
 import { Router } from 'express';
-import { authRouter } from './auth';
+import { registerUser } from '../controllers/authController';
 
-const apiRouter = Router();
+const authRouter = Router();
 
-// تمام مسیرهایی که با /auth شروع میشوند به authRouter فرستاده میشوند
-apiRouter.use('/auth', authRouter);
+// تعریف مسیر برای ثبت نام
+// POST /api/auth/register
+authRouter.post('/register', registerUser);
 
-export { apiRouter };
+export { authRouter };
