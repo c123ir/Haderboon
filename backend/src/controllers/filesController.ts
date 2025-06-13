@@ -683,14 +683,6 @@ export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Pro
       }
     }
 
-    // Analyze entire project
-    let projectAnalysis = null;
-    try {
-      projectAnalysis = await analyzeProject(directoryPath);
-    } catch (error) {
-      console.warn('خطا در تحلیل کلی پروژه:', error);
-    }
-
     // Update project with analysis results
     await prisma.project.update({
       where: { id: projectId },
@@ -699,7 +691,6 @@ export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Pro
         totalSize: BigInt(totalSize),
         status: 'READY',
         lastAnalyzed: new Date(),
-        analysisData: projectAnalysis ? JSON.parse(JSON.stringify(projectAnalysis)) : null,
         updatedAt: new Date()
       }
     });
@@ -708,10 +699,9 @@ export const uploadLocalDirectory = async (req: AuthRequest, res: Response): Pro
       uploadedFiles,
       totalFiles: uploadedFiles.length,
       totalSize,
-      projectAnalysis,
       projectId,
-      directoryPath
-    }, `پروژه با ${uploadedFiles.length} فایل از پوشه محلی بارگذاری شد`);
+      directoryName
+    }, `پروژه با ${uploadedFiles.length} فایل از پوشه ${directoryName} بارگذاری شد`);
 
   } catch (error) {
     console.error('❌ Upload local directory error:', error);
