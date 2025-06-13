@@ -99,9 +99,13 @@ export const uploadProjectZip = multer({
 export const handleUploadError = (error: any, req: Request, res: any, next: any) => {
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
+      // Check if this is a ZIP upload endpoint
+      const isZipUpload = req.path.includes('upload-zip');
+      const maxSize = isZipUpload ? '200MB' : '10MB';
+      
       return res.status(400).json({
         success: false,
-        error: 'حجم فایل بیش از حد مجاز است (حداکثر 10MB)',
+        error: `حجم فایل بیش از حد مجاز است (حداکثر ${maxSize})`,
         code: 'FILE_TOO_LARGE'
       });
     }
