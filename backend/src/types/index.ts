@@ -139,13 +139,71 @@ export const FILE_CONSTRAINTS = {
   MAX_ZIP_SIZE: 200 * 1024 * 1024, // 200MB for ZIP files
   MAX_FILES: 1000,
   ALLOWED_EXTENSIONS: [
-    '.js', '.ts', '.jsx', '.tsx', '.vue',
-    '.py', '.java', '.php', '.rb', '.go',
-    '.html', '.css', '.scss', '.sass', '.less',
-    '.json', '.xml', '.yaml', '.yml',
-    '.md', '.txt', '.doc', '.docx',
-    '.png', '.jpg', '.jpeg', '.gif', '.svg',
-    '.pdf', '.zip', '.rar', '.tar', '.gz'
+    // Programming languages
+    '.js', '.ts', '.jsx', '.tsx', '.vue', '.mjs', '.cjs',
+    '.py', '.pyw', '.java', '.class', '.jar',
+    '.php', '.php3', '.php4', '.php5', '.phtml',
+    '.rb', '.rbw', '.gem', '.rake',
+    '.go', '.mod', '.sum',
+    '.c', '.h', '.cpp', '.cc', '.cxx', '.hpp',
+    '.cs', '.vb', '.fs', '.fsx',
+    '.swift', '.kt', '.kts',
+    '.rs', '.toml',
+    '.scala', '.sc',
+    '.clj', '.cljs', '.cljc',
+    '.dart',
+    '.r', '.R', '.rmd',
+    '.sql', '.sqlite', '.db',
+    '.sh', '.bash', '.zsh', '.fish', '.ps1', '.bat', '.cmd',
+    
+    // Web and markup
+    '.html', '.htm', '.xhtml',
+    '.css', '.scss', '.sass', '.less', '.styl',
+    '.js', '.ts', '.jsx', '.tsx',
+    '.xml', '.xsl', '.xslt',
+    '.json', '.jsonc', '.json5',
+    '.yaml', '.yml',
+    '.toml', '.ini', '.cfg', '.conf',
+    '.env', '.env.local', '.env.development', '.env.production',
+    
+    // Documentation and text
+    '.md', '.markdown', '.mdown', '.mkd',
+    '.txt', '.text', '.rtf',
+    '.doc', '.docx', '.odt',
+    '.pdf',
+    '.tex', '.latex',
+    '.rst', '.asciidoc', '.org',
+    
+    // Images and media
+    '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp',
+    '.ico', '.icns', '.bmp', '.tiff', '.tif',
+    '.mp4', '.avi', '.mov', '.wmv', '.flv',
+    '.mp3', '.wav', '.flac', '.aac', '.ogg',
+    
+    // Archives and packages
+    '.zip', '.rar', '.tar', '.gz', '.bz2', '.xz',
+    '.7z', '.dmg', '.iso',
+    
+    // Configuration and data
+    '.properties', '.plist', '.xcconfig',
+    '.gradle', '.maven', '.sbt',
+    '.cmake', '.make', '.makefile',
+    '.dockerfile', '.docker-compose.yml',
+    '.gitignore', '.gitattributes', '.gitmodules',
+    '.editorconfig', '.prettierrc', '.eslintrc',
+    '.babelrc', '.tslint.json', '.tsconfig.json',
+    '.package.json', '.package-lock.json', '.yarn.lock',
+    '.composer.json', '.requirements.txt', '.pipfile',
+    '.gemfile', '.podfile', '.cartfile',
+    
+    // Others
+    '.log', '.out', '.err',
+    '.lock', '.pid', '.tmp', '.temp',
+    '.backup', '.bak', '.old',
+    '.sample', '.example', '.template',
+    
+    // Allow files without extension
+    ''
   ],
   IGNORED_PATTERNS: [
     'node_modules',
