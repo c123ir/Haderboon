@@ -4,6 +4,7 @@ import { Router } from 'express';
 import {
   uploadFiles,
   uploadProjectZip,
+  uploadLocalDirectory,
   getProjectFiles,
   getFileContent,
   deleteFile,
@@ -22,6 +23,9 @@ router.post('/projects/:projectId/upload', uploadMultiple, handleUploadError, up
 
 // Upload project as ZIP
 router.post('/projects/:projectId/upload-zip', uploadZip, handleUploadError, uploadProjectZip);
+
+// Upload local directory
+router.post('/projects/:projectId/upload-directory', uploadLocalDirectory);
 
 // Get project files (tree structure)
 router.get('/projects/:projectId/files', getProjectFiles);
