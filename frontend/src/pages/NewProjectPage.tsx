@@ -199,7 +199,8 @@ const NewProjectPage: React.FC = () => {
     
     try {
       // Step 1: Create project
-      setUploadProgress(20);
+      setUploadProgress(10);
+      console.log('🚀 شروع ایجاد پروژه...');
       const projectResponse = await apiService.createProject({
         name: projectName.trim(),
         description: projectDescription.trim() || undefined
@@ -210,19 +211,25 @@ const NewProjectPage: React.FC = () => {
       }
 
       const projectId = projectResponse.data.id;
+      console.log('✅ پروژه ایجاد شد:', projectId);
       
       // Step 2: Upload files
-      setUploadProgress(40);
+      setUploadProgress(25);
+      console.log('📤 شروع آپلود فایل‌ها...');
       
       let uploadResponse;
       
       if (uploadMode === 'directory') {
         // Directory upload mode
-        console.log('📁 آپلود پوشه:', selectedDirectory);
+        console.log('📁 آپلود پوشه:', selectedDirectory, `(${uploadedFiles.length} فایل)`);
+        setUploadProgress(35);
+        
         // For web browsers, we use the files from directory input with preserved paths
         const fileList = uploadedFiles.map(uf => uf.file);
         const dt = new DataTransfer();
         fileList.forEach(file => dt.items.add(file));
+        
+        setUploadProgress(50);
         uploadResponse = await apiService.uploadLocalDirectory(projectId, dt.files, selectedDirectory);
       } else {
         // File upload mode
@@ -231,10 +238,12 @@ const NewProjectPage: React.FC = () => {
         if (zipFiles.length === 1 && uploadedFiles.length === 1) {
           // Single ZIP file - use uploadProjectZip
           console.log('📦 آپلود فایل ZIP:', zipFiles[0].name);
+          setUploadProgress(50);
           uploadResponse = await apiService.uploadProjectZip(projectId, zipFiles[0].file);
         } else {
           // Multiple files or non-ZIP files - use regular upload
           console.log('📁 آپلود فایل‌های متعدد:', uploadedFiles.length);
+          setUploadProgress(50);
           const fileList = uploadedFiles.map(uf => uf.file);
           const dt = new DataTransfer();
           fileList.forEach(file => dt.items.add(file));
@@ -246,7 +255,8 @@ const NewProjectPage: React.FC = () => {
         throw new Error(uploadResponse.error || 'خطا در آپلود فایل‌ها');
       }
 
-      setUploadProgress(100);
+      console.log('✅ آپلود فایل‌ها تکمیل شد');
+      setUploadProgress(90);
       
       // Start watching if directory mode was used
       if (uploadMode === 'directory' && selectedDirectory) {
