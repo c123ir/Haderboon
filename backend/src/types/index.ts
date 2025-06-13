@@ -135,7 +135,8 @@ export class AppError extends Error {
 
 // File upload constraints
 export const FILE_CONSTRAINTS = {
-  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB for regular files
+  MAX_ZIP_SIZE: 200 * 1024 * 1024, // 200MB for ZIP files
   MAX_FILES: 1000,
   ALLOWED_EXTENSIONS: [
     '.js', '.ts', '.jsx', '.tsx', '.vue',
@@ -144,7 +145,7 @@ export const FILE_CONSTRAINTS = {
     '.json', '.xml', '.yaml', '.yml',
     '.md', '.txt', '.doc', '.docx',
     '.png', '.jpg', '.jpeg', '.gif', '.svg',
-    '.pdf'
+    '.pdf', '.zip', '.rar', '.tar', '.gz'
   ],
   IGNORED_PATTERNS: [
     'node_modules',
