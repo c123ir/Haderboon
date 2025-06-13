@@ -1,4 +1,4 @@
-import chokidar from 'chokidar';
+import * as chokidar from 'chokidar';
 import path from 'path';
 import fs from 'fs';
 import { prisma } from '../server';
