@@ -11,6 +11,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import apiService, { authHelpers } from '../services/api';
+import FileSelectionModal from '../components/FileSelectionModal';
 
 interface UploadedFile {
   name: string;
