@@ -239,7 +239,7 @@ ${(promptRequest.focusAreas || []).length > 0
                     >
                       <input
                         type="checkbox"
-                        checked={promptRequest.includeFiles.includes(file.path)}
+                        checked={(promptRequest.includeFiles || []).includes(file.path)}
                         onChange={() => toggleFileInclusion(file.path)}
                         className="mr-3 text-purple-600 focus:ring-purple-500"
                       />
