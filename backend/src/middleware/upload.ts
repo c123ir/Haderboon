@@ -78,11 +78,11 @@ export const uploadProjectZip = multer({
       const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
       const extension = path.extname(originalName).toLowerCase();
       
-      // Allow ZIP files specifically
-      if (['.zip', '.rar', '.tar', '.gz'].includes(extension)) {
+      // Allow ZIP files and common archive formats
+      if (['.zip', '.rar', '.tar', '.gz', '.7z', '.bz2', '.xz'].includes(extension)) {
         cb(null, true);
       } else {
-        cb(new Error(`نوع فایل ${extension} برای آپلود پروژه پشتیبانی نمی‌شود. فقط فایل‌های ZIP مجاز هستند.`));
+        cb(new Error(`نوع فایل ${extension} برای آپلود پروژه پشتیبانی نمی‌شود. فقط فایل‌های آرشیو مجاز هستند.`));
       }
     } catch (error) {
       cb(new Error('خطا در پردازش نام فایل'));
