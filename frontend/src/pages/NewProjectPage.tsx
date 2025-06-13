@@ -83,6 +83,28 @@ const NewProjectPage: React.FC = () => {
     }
   };
 
+  const handleDirectoryInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      // Get directory path from first file
+      const firstFile = files[0];
+      // Extract directory path (remove file name)
+      const directoryPath = firstFile.webkitRelativePath.split('/')[0];
+      setSelectedDirectory(directoryPath);
+      
+      // Convert FileList to our format
+      const fileArray = Array.from(files);
+      const newFiles: UploadedFile[] = fileArray.map(file => ({
+        name: file.webkitRelativePath || file.name,
+        size: file.size,
+        type: file.type || getFileType(file.name),
+        file,
+      }));
+      
+      setUploadedFiles(newFiles);
+    }
+  };
+
   const handleFiles = (files: File[]) => {
     const newFiles: UploadedFile[] = files.map(file => ({
       name: file.name,
