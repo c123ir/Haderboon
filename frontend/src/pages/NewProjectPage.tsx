@@ -1,6 +1,6 @@
 // frontend/src/pages/NewProjectPage.tsx
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CloudArrowUpIcon,
@@ -10,7 +10,7 @@ import {
   CheckCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import apiService from '../services/api';
+import apiService, { authHelpers } from '../services/api';
 
 interface UploadedFile {
   name: string;
