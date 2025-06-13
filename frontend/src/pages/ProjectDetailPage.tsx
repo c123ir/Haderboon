@@ -10,7 +10,7 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   CodeBracketIcon,
-  EyeIcon,
+
   ClockIcon,
   CheckCircleIcon,
   ArrowPathIcon,
