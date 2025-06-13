@@ -1,11 +1,23 @@
-// backend/src/api/index.ts
+import express from 'express';
+import dotenv from 'dotenv';
+import { apiRouter } from './api';
 
-import { Router } from 'express';
-import { authRouter } from './api/auth';
+// Load environment variables from .env file
+dotenv.config();
 
-const apiRouter = Router();
+// Create Express application instance
+const app = express();
 
-// تمام مسیرهایی که با /auth شروع میشوند به authRouter فرستاده میشوند
-apiRouter.use('/auth', authRouter);
+// Define PORT constant with fallback to 5550
+const PORT = process.env.PORT || 5550;
 
-export { apiRouter };
+// Middleware for parsing JSON
+app.use(express.json());
+
+// Use API router for all routes prefixed with /api
+app.use('/api', apiRouter);
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
