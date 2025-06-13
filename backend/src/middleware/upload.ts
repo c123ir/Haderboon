@@ -144,12 +144,12 @@ export const handleUploadError = (error: any, req: Request, res: any, next: any)
   });
 };
 
-// Modern ZIP extraction using Node.js built-in and stream-zip
-import { createReadStream } from 'fs';
-import StreamZip from 'node-stream-zip';
+// Modern ZIP extraction using yauzl
+import yauzl from 'yauzl';
+import { promisify } from 'util';
 
 export const extractZipFile = async (zipPath: string, extractPath: string): Promise<string[]> => {
-  try {
+  return new Promise((resolve, reject) => {
     console.log(`🔍 شروع استخراج فایل ZIP: ${zipPath}`);
     console.log(`📁 مسیر استخراج: ${extractPath}`);
     
@@ -158,52 +158,92 @@ export const extractZipFile = async (zipPath: string, extractPath: string): Prom
     
     const extractedFiles: string[] = [];
     
-    // Use modern stream-zip library for better performance and reliability
-    const zip = new StreamZip.async({ file: zipPath });
-    
-    console.log(`📊 تعداد کل فایل‌ها در ZIP: ${zip.entriesCount}`);
-    
-    // Get all entries
-    const entries = await zip.entries();
-    
-    for (const [name, entry] of Object.entries(entries)) {
-      try {
-        // Skip directories and ignored files
-        if (entry.isDirectory || shouldIgnoreFile(entry.name)) {
-          console.log(`⏭️ رد شدن فایل: ${entry.name} (${entry.isDirectory ? 'دایرکتوری' : 'نادیده گرفته شده'})`);
-          continue;
-        }
-        
-        // Sanitize entry name for safe file paths
-        const sanitizedName = entry.name.replace(/\.\./g, '').replace(/^\/+/, '');
-        const outputPath = path.join(extractPath, sanitizedName);
-        const outputDir = path.dirname(outputPath);
-        
-        console.log(`📤 استخراج فایل: ${entry.name} -> ${outputPath}`);
-        
-        // Ensure directory exists
-        ensureDirectoryExists(outputDir);
-        
-        // Extract file
-        const data = await zip.entryData(entry.name);
-        fs.writeFileSync(outputPath, data);
-        
-        extractedFiles.push(sanitizedName);
-        console.log(`✅ فایل استخراج شد: ${sanitizedName} (${entry.size} bytes)`);
-        
-      } catch (entryError) {
-        console.error(`❌ خطا در استخراج فایل ${entry.name}:`, entryError);
-        // Continue with other files
+    yauzl.open(zipPath, { lazyEntries: true }, (err, zipfile) => {
+      if (err) {
+        console.error('❌ خطا در باز کردن فایل ZIP:', err);
+        reject(new Error(`خطا در باز کردن فایل ZIP: ${err.message}`));
+        return;
       }
-    }
-    
-    await zip.close();
-    
-    console.log(`🎉 استخراج کامل شد. تعداد فایل‌های استخراج شده: ${extractedFiles.length}`);
-    return extractedFiles;
-    
-  } catch (error) {
-    console.error('❌ خطا در استخراج فایل ZIP:', error);
-    throw new Error(`خطا در استخراج فایل ZIP: ${error instanceof Error ? error.message : 'نامشخص'}`);
-  }
+
+      if (!zipfile) {
+        reject(new Error('فایل ZIP نامعتبر است'));
+        return;
+      }
+
+      console.log(`📊 تعداد کل فایل‌ها در ZIP: ${zipfile.entryCount}`);
+
+      zipfile.readEntry();
+
+      zipfile.on('entry', (entry) => {
+        try {
+          // Skip directories and ignored files
+          if (/\/$/.test(entry.fileName) || shouldIgnoreFile(entry.fileName)) {
+            console.log(`⏭️ رد شدن فایل: ${entry.fileName} (${/\/$/.test(entry.fileName) ? 'دایرکتوری' : 'نادیده گرفته شده'})`);
+            zipfile.readEntry();
+            return;
+          }
+
+          // Sanitize entry name for safe file paths
+          const sanitizedName = entry.fileName.replace(/\.\./g, '').replace(/^\/+/, '');
+          const outputPath = path.join(extractPath, sanitizedName);
+          const outputDir = path.dirname(outputPath);
+
+          console.log(`📤 استخراج فایل: ${entry.fileName} -> ${outputPath}`);
+
+          // Ensure directory exists
+          ensureDirectoryExists(outputDir);
+
+          // Extract file
+          zipfile.openReadStream(entry, (err, readStream) => {
+            if (err) {
+              console.error(`❌ خطا در خواندن فایل ${entry.fileName}:`, err);
+              zipfile.readEntry();
+              return;
+            }
+
+            if (!readStream) {
+              console.error(`❌ نتوانست stream برای فایل ${entry.fileName} ایجاد کند`);
+              zipfile.readEntry();
+              return;
+            }
+
+            const writeStream = fs.createWriteStream(outputPath);
+            
+            readStream.pipe(writeStream);
+            
+            writeStream.on('close', () => {
+              extractedFiles.push(sanitizedName);
+              console.log(`✅ فایل استخراج شد: ${sanitizedName} (${entry.uncompressedSize} bytes)`);
+              zipfile.readEntry();
+            });
+
+            writeStream.on('error', (writeErr) => {
+              console.error(`❌ خطا در نوشتن فایل ${sanitizedName}:`, writeErr);
+              zipfile.readEntry();
+            });
+
+            readStream.on('error', (readErr) => {
+              console.error(`❌ خطا در خواندن stream فایل ${entry.fileName}:`, readErr);
+              writeStream.destroy();
+              zipfile.readEntry();
+            });
+          });
+
+        } catch (entryError) {
+          console.error(`❌ خطا در پردازش فایل ${entry.fileName}:`, entryError);
+          zipfile.readEntry();
+        }
+      });
+
+      zipfile.on('end', () => {
+        console.log(`🎉 استخراج کامل شد. تعداد فایل‌های استخراج شده: ${extractedFiles.length}`);
+        resolve(extractedFiles);
+      });
+
+      zipfile.on('error', (zipErr) => {
+        console.error('❌ خطا در پردازش فایل ZIP:', zipErr);
+        reject(new Error(`خطا در پردازش فایل ZIP: ${zipErr.message}`));
+      });
+    });
+  });
 };
