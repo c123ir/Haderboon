@@ -61,7 +61,8 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
       }, 0);
       setProjectCapacity(Math.round((totalSize / (100 * 1024 * 1024)) * 100)); // Assuming 100MB limit
     }
-  }, [files, directoryName, buildFileTree, shouldIgnoreFile]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [files, directoryName]);
 
   const shouldIgnoreFile = useCallback((filePath: string): boolean => {
     const ignoredPatterns = [
