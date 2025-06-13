@@ -166,4 +166,44 @@ export class AuthController {
   }
 
   // Forgot password
-  static async forgotPassword(req: Request, res: Response, next: NextFunction
+  static async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email } = req.body;
+      
+      await AuthService.forgotPassword(email);
+
+      res.json(
+        ApiResponse.success('در صورت وجود حساب کاربری، ایمیل بازیابی ارسال شد')
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Reset password
+  static async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { token, newPassword } = req.body;
+      
+      await AuthService.resetPassword(token, newPassword);
+
+      res.json(
+        ApiResponse.success('رمز عبور با موفقیت بازیابی شد')
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export const {
+  register,
+  login,
+  getProfile,
+  updateProfile,
+  changePassword,
+  refreshToken,
+  logout,
+  forgotPassword,
+  resetPassword
+} = AuthController;
