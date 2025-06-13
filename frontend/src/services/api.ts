@@ -58,9 +58,9 @@ export const apiService = {
     const response = await api.post('/auth/demo-login');
     
     // Store token and user info
-    if (response.success && response.data.token) {
-      localStorage.setItem('haderboon_token', response.data.token);
-      localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
+    if (response.success && response.token) {
+      localStorage.setItem('haderboon_token', response.token);
+      localStorage.setItem('haderboon_user', JSON.stringify(response.user));
     }
     
     return response;
