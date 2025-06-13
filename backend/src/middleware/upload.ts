@@ -71,8 +71,29 @@ export const uploadMultiple = upload.array('files', FILE_CONSTRAINTS.MAX_FILES);
 // Single file upload middleware
 export const uploadSingle = upload.single('file');
 
-// ZIP file upload middleware for project upload
-export const uploadProjectZip = upload.single('projectZip');
+// ZIP file upload middleware for project upload with larger size limit
+export const uploadProjectZip = multer({
+  storage,
+  fileFilter: (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    try {
+      const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+      const extension = path.extname(originalName).toLowerCase();
+      
+      // Allow ZIP files specifically
+      if (['.zip', '.rar', '.tar', '.gz'].includes(extension)) {
+        cb(null, true);
+      } else {
+        cb(new Error(`نوع فایل ${extension} برای آپلود پروژه پشتیبانی نمی‌شود. فقط فایل‌های ZIP مجاز هستند.`));
+      }
+    } catch (error) {
+      cb(new Error('خطا در پردازش نام فایل'));
+    }
+  },
+  limits: {
+    fileSize: FILE_CONSTRAINTS.MAX_ZIP_SIZE, // 200MB for ZIP files
+    files: 1
+  }
+}).single('projectZip');
 
 // Error handling middleware for multer
 export const handleUploadError = (error: any, req: Request, res: any, next: any) => {
