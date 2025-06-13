@@ -1,19 +1,32 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// این بخش کلاینت پریزما را برای ما میسازد
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
 
-// این بخش اطلاعات اتصال به دیتابیس را مشخص میکند (فقط یک بار باید باشد)
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 // ===============================================
-// مدل‌های داده پروژه هادربون
+// DATA MODELS
 // ===============================================
 
 model User {
@@ -24,7 +37,7 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  projects  Project[]
+  projects  Project[] // A user can have many projects
 }
 
 model Project {
@@ -37,4 +50,7 @@ model Project {
 
   userId        String
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Future models can be linked here
+  // codeFiles   CodeFile[]
 }
