@@ -110,9 +110,9 @@ ${promptRequest.focusAreas.length > 0
   const toggleFileInclusion = (filePath: string) => {
     setPromptRequest(prev => ({
       ...prev,
-      includeFiles: prev.includeFiles.includes(filePath)
-        ? prev.includeFiles.filter(f => f !== filePath)
-        : [...prev.includeFiles, filePath]
+      includeFiles: (prev.includeFiles || []).includes(filePath)
+        ? (prev.includeFiles || []).filter(f => f !== filePath)
+        : [...(prev.includeFiles || []), filePath]
     }));
   };
 
