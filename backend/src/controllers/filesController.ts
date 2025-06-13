@@ -766,46 +766,14 @@ const scanDirectory = async (dirPath: string): Promise<{ relativePath: string; f
 };
 
 /**
- * Check if directory should be ignored
+ * Check if directory should be ignored (only node_modules)
  */
 const shouldIgnoreDirectory = (dirName: string): boolean => {
   const ignoredDirs = [
-    'node_modules',
-    '.git',
-    '.svn',
-    '.hg',
-    'dist',
-    'build',
-    'out',
-    '.next',
-    '.nuxt',
-    'coverage',
-    '.nyc_output',
-    '.cache',
-    '.parcel-cache',
-    '.vscode',
-    '.idea',
-    'logs',
-    'tmp',
-    'temp',
-    '__pycache__',
-    '.pytest_cache',
-    '.DS_Store',
-    'Thumbs.db',
-    'vendor',
-    '.vendor',
-    'bower_components',
-    '.sass-cache',
-    '.env.local',
-    '.env.development.local',
-    '.env.test.local',
-    '.env.production.local'
+    'node_modules'
   ];
   
-  return ignoredDirs.some(ignored => 
-    dirName === ignored || 
-    dirName.startsWith('.') && ignoredDirs.includes(dirName.substring(1))
-  );
+  return ignoredDirs.includes(dirName);
 };
 
 /**
