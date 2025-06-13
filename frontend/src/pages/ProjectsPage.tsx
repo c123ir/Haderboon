@@ -1,6 +1,6 @@
 // frontend/src/pages/ProjectsPage.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FolderIcon,
@@ -13,14 +13,37 @@ import {
   TrashIcon,
   PencilIcon,
 } from '@heroicons/react/24/outline';
-import { mockProjects } from '../utils/mockData';
+import apiService from '../services/api';
 import { Project } from '../types';
 
 const ProjectsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  const filteredProjects = mockProjects.filter(project =>
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const response = await apiService.getProjects();
+        if (response.success) {
+          setProjects(response.data.projects || []);
+        } else {
+          setError('خطا در دریافت پروژه‌ها');
+        }
+      } catch (error) {
+        setError('خطا در دریافت پروژه‌ها');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  const filteredProjects = projects.filter(project =>
     project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
@@ -88,7 +111,15 @@ const ProjectsPage: React.FC = () => {
       </div>
 
       {/* Projects Grid */}
-      {filteredProjects.length > 0 ? (
+      {loading ? (
+        <div className="text-center py-16">
+          <p className="text-white/70">در حال بارگذاری...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-16">
+          <p className="text-red-400">{error}</p>
+        </div>
+      ) : filteredProjects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
             <div key={project.id} className="glass-card group relative">
