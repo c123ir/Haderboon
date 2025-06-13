@@ -28,16 +28,28 @@ api.interceptors.request.use(
 
 // Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => {
-    // Return the data directly
-    return response.data as any;
-  },
-  (error) => {
+  (response) => response.data, // Return just the data part
+  async (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('haderboon_token');
-      localStorage.removeItem('haderboon_user');
-      // Redirect to login if needed
-      console.warn('🔑 احراز هویت منقضی شده - لطفاً مجدداً وارد شوید');
+      console.warn('🔑 احراز هویت منقضی شده - تلاش برای ورود مجدد...');
+      
+      // Try to re-login automatically
+      try {
+        const loginResponse = await api.post('/auth/demo-login');
+        if (loginResponse.success && loginResponse.data.token) {
+          localStorage.setItem('haderboon_token', loginResponse.data.token);
+          localStorage.setItem('haderboon_user', JSON.stringify(loginResponse.data.user));
+          
+          // Retry the original request
+          const originalRequest = error.config;
+          originalRequest.headers.Authorization = `Bearer ${loginResponse.data.token}`;
+          return api.request(originalRequest);
+        }
+      } catch (retryError) {
+        console.error('❌ خطا در ورود مجدد:', retryError);
+        localStorage.removeItem('haderboon_token');
+        localStorage.removeItem('haderboon_user');
+      }
     }
     
     // Return structured error
@@ -58,37 +70,37 @@ api.interceptors.response.use(
 export const apiService = {
   // Authentication
   async demoLogin(): Promise<any> {
-    const data = await api.post('/auth/demo-login') as any;
+    const response = await api.post('/auth/demo-login');
     
     // Store token and user info
-    if (data.success && data.token) {
-      localStorage.setItem('haderboon_token', data.token);
-      localStorage.setItem('haderboon_user', JSON.stringify(data.user));
+    if (response.success && response.data.token) {
+      localStorage.setItem('haderboon_token', response.data.token);
+      localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
     }
     
-    return data;
+    return response;
   },
 
   async login(email: string, password?: string): Promise<any> {
-    const data = await api.post('/auth/login', { email, password }) as any;
+    const response = await api.post('/auth/login', { email, password });
     
-    if (data.success && data.token) {
-      localStorage.setItem('haderboon_token', data.token);
-      localStorage.setItem('haderboon_user', JSON.stringify(data.user));
+    if (response.success && response.data.token) {
+      localStorage.setItem('haderboon_token', response.data.token);
+      localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
     }
     
-    return data;
+    return response;
   },
 
   async register(name: string, email: string, password?: string): Promise<any> {
-    const data = await api.post('/auth/register', { name, email, password }) as any;
+    const response = await api.post('/auth/register', { name, email, password });
     
-    if (data.success && data.token) {
-      localStorage.setItem('haderboon_token', data.token);
-      localStorage.setItem('haderboon_user', JSON.stringify(data.user));
+    if (response.success && response.data.token) {
+      localStorage.setItem('haderboon_token', response.data.token);
+      localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
     }
     
-    return data;
+    return response;
   },
 
   async getProfile(): Promise<any> {
