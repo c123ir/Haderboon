@@ -161,9 +161,23 @@ export const apiService = {
     });
   },
 
-  async uploadLocalDirectory(projectId: string, directoryPath: string): Promise<any> {
-    return await api.post(`/files/projects/${projectId}/upload-directory`, {
-      directoryPath
+  async uploadLocalDirectory(projectId: string, files: FileList, directoryName: string): Promise<any> {
+    const formData = new FormData();
+    
+    // Add directory name for reference
+    formData.append('directoryName', directoryName);
+    
+    // Add all files with their webkitRelativePath
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      // Preserve the relative path for directory structure
+      formData.append('files', file);
+    }
+    
+    return await api.post(`/files/projects/${projectId}/upload-directory`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
   },
 
