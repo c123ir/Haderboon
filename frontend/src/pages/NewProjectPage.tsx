@@ -156,8 +156,13 @@ const NewProjectPage: React.FC = () => {
       return;
     }
     
-    if (uploadedFiles.length === 0) {
+    if (uploadMode === 'files' && uploadedFiles.length === 0) {
       alert('لطفاً حداقل یک فایل آپلود کنید');
+      return;
+    }
+    
+    if (uploadMode === 'directory' && !selectedDirectory && uploadedFiles.length === 0) {
+      alert('لطفاً یک پوشه انتخاب کنید');
       return;
     }
 
