@@ -56,7 +56,7 @@ api.interceptors.response.use(
 export const apiService = {
   // Authentication
   async demoLogin(): Promise<any> {
-    const data = await api.post('/auth/demo-login');
+    const data = await api.post('/auth/demo-login') as any;
     
     // Store token and user info (data is already response.data due to interceptor)
     if (data.success && data.token) {
@@ -68,7 +68,7 @@ export const apiService = {
   },
 
   async login(email: string, password?: string): Promise<any> {
-    const data = await api.post('/auth/login', { email, password });
+    const data = await api.post('/auth/login', { email, password }) as any;
     
     if (data.success && data.token) {
       localStorage.setItem('haderboon_token', data.token);
@@ -79,7 +79,7 @@ export const apiService = {
   },
 
   async register(name: string, email: string, password?: string): Promise<any> {
-    const data = await api.post('/auth/register', { name, email, password });
+    const data = await api.post('/auth/register', { name, email, password }) as any;
     
     if (data.success && data.token) {
       localStorage.setItem('haderboon_token', data.token);
