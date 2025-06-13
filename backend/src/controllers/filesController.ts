@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { prisma } from '../server';
 import { AuthRequest, UploadedFileInfo } from '../types';
-import { sendSuccess, sendError, getFileType, formatFileSize, generateUniqueFilename } from '../utils';
+import { sendSuccess, sendError, getFileType, formatFileSize, generateUniqueFilename, shouldIgnoreFile } from '../utils';
 import { analyzeFile, analyzeProject } from '../services/fileAnalysisService';
 import { extractZipFile } from '../middleware/upload';
 
