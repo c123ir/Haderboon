@@ -224,7 +224,18 @@ const NewProjectPage: React.FC = () => {
       
       if (uploadMode === 'directory') {
         // Directory upload mode
-        console.log('📁 آپلود پوشه:', selectedDirectory, `(${uploadedFiles.length} فایل)`);
+        // اگر selectedDirectory خالی است، از اولین فایل استخراج کن
+        let directoryName = selectedDirectory;
+        if (!directoryName && uploadedFiles.length > 0) {
+          const firstFile = uploadedFiles[0];
+          if (firstFile.name.includes('/')) {
+            directoryName = firstFile.name.split('/')[0];
+          } else {
+            directoryName = 'uploaded-files'; // نام پیش‌فرض
+          }
+        }
+        
+        console.log('📁 آپلود پوشه:', directoryName, `(${uploadedFiles.length} فایل)`);
         setUploadProgress(35);
         
         // For web browsers, we use the files from directory input with preserved paths
@@ -233,7 +244,7 @@ const NewProjectPage: React.FC = () => {
         fileList.forEach(file => dt.items.add(file));
         
         setUploadProgress(50);
-        uploadResponse = await apiService.uploadLocalDirectory(projectId, dt.files, selectedDirectory);
+        uploadResponse = await apiService.uploadLocalDirectory(projectId, dt.files, directoryName);
       } else {
         // File upload mode
         const zipFiles = uploadedFiles.filter(f => f.name.toLowerCase().endsWith('.zip'));
