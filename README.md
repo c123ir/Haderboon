@@ -21,12 +21,14 @@
 ## 🛠️ پشته فناوری (Technology Stack)
 
 ### **Frontend**
+
 - **Framework:** React 18.2 with Vite
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **API Communication:** Axios
 
 ### **Backend**
+
 - **Runtime:** Node.js
 - **Framework:** Express.js
 - **Language:** TypeScript
@@ -49,9 +51,11 @@
 (این بخش در آینده تکمیل خواهد شد)
 
 ### **پیش‌نیازها (Prerequisites)**
+
 - Node.js
 - PostgreSQL
 
 ### **نصب و راه‌اندازی (Installation)**
+
 ```bash
 # (دستورات نصب در آینده اضافه خواهد شد)
