@@ -118,7 +118,9 @@ const NewProjectPage: React.FC = () => {
   const handleFileModalClose = () => {
     setShowFileModal(false);
     setPendingFiles([]);
+    // selectedDirectory را فقط در صورت انصراف پاک می‌کنیم
     setSelectedDirectory('');
+    setUploadedFiles([]);
     // Reset the file input
     if (directoryInputRef.current) {
       directoryInputRef.current.value = '';
