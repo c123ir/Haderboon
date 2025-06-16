@@ -63,6 +63,24 @@ This document provides the core rules and architectural guidelines for the "Hade
 —-
 
 ## 8. Run backend & frontend
-- Please, whenever you want to run the project, such as npm run dev or npm start, ask me in Persian to exit the project if the project is already running. 
-- always be careful to type **CD backend** in the root of the project to run the backend, then **npm run dev** , and to run the frontend, type **CD frontend** in the root of the project, then enter **npm start** to run.
-n
+- **CRITICAL**: Before running any project commands, you MUST navigate to the correct directory first.
+- **For Backend**: 
+  1. Always run `cd backend` from the project root first
+  2. Then run `npm run dev`
+  3. Backend runs on port `5550`
+- **For Frontend**: 
+  1. Always run `cd frontend` from the project root first  
+  2. Then run `npm start`
+  3. Frontend runs on port `3550`
+- **Before starting**: Always ask the user in Persian to exit/stop the project if it's already running
+- **Never run commands from wrong directories**: This is a common mistake that causes errors
+- **Command sequence example**:
+  ```bash
+  # For backend:
+  cd backend
+  npm run dev
+  
+  # For frontend (in a separate terminal):
+  cd frontend  
+  npm start
+  ```
