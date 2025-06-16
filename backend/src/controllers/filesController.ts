@@ -284,7 +284,7 @@ export const getProjectFiles = async (req: AuthRequest, res: Response): Promise<
     }
 
     // Get all files
-    const files = await prisma.projectFile.findMany({
+    const rawFiles = await prisma.projectFile.findMany({
       where: { projectId },
       orderBy: [
         { isDirectory: 'desc' },
@@ -302,6 +302,12 @@ export const getProjectFiles = async (req: AuthRequest, res: Response): Promise<
         updatedAt: true
       }
     });
+
+    // Convert BigInt size to number for JSON serialization
+    const files = rawFiles.map(file => ({
+      ...file,
+      size: Number(file.size)
+    }));
 
     // Build tree structure
     const fileTree = buildFileTree(files);
