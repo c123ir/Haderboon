@@ -52,8 +52,17 @@ export const useProjectFiles = (projectId: string) => {
         console.log('📄 Final files data type:', typeof filesData, 'is array:', Array.isArray(filesData));
         
         if (Array.isArray(filesData)) {
-          setFiles(filesData);
-          console.log('✅ Successfully set files:', filesData.length, 'files');
+          // حذف فایل‌های تکراری و فیلتر کردن فایل‌های مخفی
+          const uniqueFiles = filesData.filter((file, index, array) => {
+            // حذف فایل‌های تکراری بر اساس path
+            const isFirstOccurrence = array.findIndex(f => f.path === file.path) === index;
+            // فیلتر کردن فایل‌های مخفی مانند .DS_Store
+            const isNotHidden = !file.name.startsWith('.') || file.name === '.env' || file.name === '.gitignore';
+            return isFirstOccurrence && isNotHidden;
+          });
+          
+          setFiles(uniqueFiles);
+          console.log('✅ Successfully set files:', uniqueFiles.length, 'files (filtered from', filesData.length, ')');
         } else {
           console.error('❌ Files data is not an array:', typeof filesData, filesData);
           setFiles([]);
