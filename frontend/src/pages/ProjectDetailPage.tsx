@@ -243,7 +243,7 @@ const ProjectDetailPage: React.FC = () => {
           <WatchingStatus
             projectId={project.id}
             projectName={project.name}
-            projectPath={project.originalPath || project.path}
+            projectPath={project.originalPath || ''}
             initialStatus={project.status as "WATCHING" | "READY" | "ANALYZING" | "UPLOADING" | "ERROR" | "ARCHIVED"}
           />
         </div>
