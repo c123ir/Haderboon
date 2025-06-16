@@ -557,7 +557,6 @@ const buildFileTree = (files: any[]): any[] => {
           };
           currentLevel.push(dirNode);
           pathMap.set(currentPath, dirNode);
-          console.log(`📁 Created intermediate directory: ${currentPath}`);
         }
         
         currentLevel = dirNode.children;
