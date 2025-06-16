@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import {
-  PlusIcon,
-  PencilIcon,
-  TrashIcon,
   CloudArrowUpIcon,
-  FolderIcon,
-  DocumentIcon
+  FolderIcon
 } from '@heroicons/react/24/outline';
 import { apiService } from '../services/api';
 import FileSelectionModal from './FileSelectionModal';
