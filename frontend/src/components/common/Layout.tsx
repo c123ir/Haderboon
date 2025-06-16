@@ -103,7 +103,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col lg:mr-64">
+      <div className="flex-1 flex flex-col">
         {/* Top bar */}
         <header className="h-16 glass-effect backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-6">
           <button
