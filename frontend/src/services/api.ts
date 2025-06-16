@@ -12,13 +12,7 @@ const api = axios.create({
 });
 
 // Interface برای پاسخ‌های API
-interface ApiResponse {
-  success: boolean;
-  message?: string;
-  token?: string;
-  user?: any;
-  data?: any;
-}
+
 
 // Request interceptor برای اضافه کردن token
 api.interceptors.request.use(
