@@ -131,7 +131,7 @@ const NewProjectPage: React.FC = () => {
     }
 
     return errors;
-  }, []);
+  }, [MAX_TOTAL_SIZE]);
 
   const updateUploadProgress = (step: number, message: string) => {
     const percentage = Math.round((step / 5) * 100);
