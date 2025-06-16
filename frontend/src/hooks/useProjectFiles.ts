@@ -27,9 +27,24 @@ export const useProjectFiles = (projectId: string) => {
       console.log('📁 API Response for files:', response);
       
       if (response.success) {
-        // Handle the API response structure correctly
-        const filesData = response.data?.files || response.data || [];
-        console.log('📄 Files data:', filesData);
+        // Handle the API response structure correctly - try multiple possible locations
+        let filesData;
+        
+        if (response.data?.data?.files) {
+          filesData = response.data.data.files;
+          console.log('📄 Files data found at response.data.data.files:', filesData);
+        } else if (response.data?.files) {
+          filesData = response.data.files;
+          console.log('📄 Files data found at response.data.files:', filesData);
+        } else if (Array.isArray(response.data)) {
+          filesData = response.data;
+          console.log('📄 Files data found at response.data (direct array):', filesData);
+        } else {
+          console.error('❌ Files data structure:', response.data);
+          filesData = [];
+        }
+        
+        console.log('📄 Final files data:', filesData);
         
         if (Array.isArray(filesData)) {
           setFiles(filesData);
