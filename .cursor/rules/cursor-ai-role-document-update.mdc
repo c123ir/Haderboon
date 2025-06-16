@@ -17,6 +17,8 @@ This document provides the core rules and architectural guidelines for the "Hade
 
 ---
 
+
+
 ## 2. Frontend Technology Stack
 - **Framework:** React 18.2
 - **Language:** TypeScript
