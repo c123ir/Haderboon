@@ -17,23 +17,12 @@ import {
 import { apiService } from '../services/api';
 import { useProject } from '../hooks/useProject';
 import { useProjectFiles } from '../hooks';
-import FileTreeViewer from '../components/FileTreeViewer';
+import FileTreeViewer, { FileTreeNode } from '../components/FileTreeViewer';
 import FileContentViewer from '../components/FileContentViewer';
 import WatchingStatus from '../components/WatchingStatus';
 import ProjectFileManager from '../components/ProjectFileManager';
 
 // Type definitions
-interface FileNode {
-  id: string;
-  name: string;
-  path: string;
-  type: 'file' | 'directory';
-  size?: number;
-  fileType?: string;
-  lastModified?: string;
-  children?: FileNode[];
-}
-
 interface FileContent {
   name: string;
   content: string;
