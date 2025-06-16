@@ -5,8 +5,6 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   HomeIcon,
   FolderIcon,
-  ChatBubbleLeftRightIcon,
-  DocumentTextIcon,
   PlusIcon,
   Bars3Icon,
   XMarkIcon,
