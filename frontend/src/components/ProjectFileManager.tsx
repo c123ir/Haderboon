@@ -69,8 +69,8 @@ const ProjectFileManager: React.FC<ProjectFileManagerProps> = ({
           <input
             type="file"
             multiple
-            webkitdirectory="true"
-            directory="true"  
+            webkitdirectory=""
+            directory=""
             onChange={handleFolderSelect}
             className="hidden"
           />
