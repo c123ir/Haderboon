@@ -11,6 +11,7 @@ import {
   XMarkIcon,
   InformationCircleIcon,
   ArrowPathIcon,
+  EyeIcon,
 } from '@heroicons/react/24/outline';
 import apiService, { authHelpers } from '../services/api';
 import FileSelectionModal from '../components/FileSelectionModal';
@@ -40,7 +41,7 @@ const NewProjectPage: React.FC = () => {
   const [projectDescription, setProjectDescription] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [selectedDirectory, setSelectedDirectory] = useState<string>('');
-  const [uploadMode, setUploadMode] = useState<'files' | 'directory'>('files');
+  const [uploadMode, setUploadMode] = useState<'files' | 'directory' | 'monitor'>('files');
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
@@ -510,47 +511,52 @@ const NewProjectPage: React.FC = () => {
 
         {/* Upload Mode Selection */}
         <div className="glass-card">
-          <h2 className="text-xl font-semibold text-white mb-6">روش آپلود</h2>
+          <h2 className="text-xl font-semibold text-white mb-6">روش اضافه کردن فایل‌ها</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               type="button"
-              onClick={() => {
-                setUploadMode('files');
-                setUploadedFiles([]);
-                setSelectedDirectory('');
-                setValidationErrors([]);
-              }}
-              disabled={isUploading}
+              onClick={() => setUploadMode('files')}
               className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                 uploadMode === 'files'
-                  ? 'border-blue-500 bg-blue-500/20 text-white'
-                  : 'border-white/30 bg-white/5 text-white/70 hover:border-white/50'
-              } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                  : 'border-white/20 bg-white/5 text-white/70 hover:border-white/40'
+              }`}
+              disabled={isUploading}
             >
               <DocumentIcon className="w-8 h-8 mx-auto mb-2" />
-              <h3 className="font-medium mb-2">آپلود فایل‌ها</h3>
-              <p className="text-sm opacity-80">انتخاب فایل‌های جداگانه یا ZIP</p>
+              <p className="font-medium">فایل‌های جداگانه</p>
+              <p className="text-xs mt-1 opacity-70">آپلود فایل‌های انتخابی</p>
             </button>
             
             <button
               type="button"
-              onClick={() => {
-                setUploadMode('directory');
-                setUploadedFiles([]);
-                setSelectedDirectory('');
-                setValidationErrors([]);
-              }}
-              disabled={isUploading}
+              onClick={() => setUploadMode('directory')}
               className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                 uploadMode === 'directory'
-                  ? 'border-blue-500 bg-blue-500/20 text-white'
-                  : 'border-white/30 bg-white/5 text-white/70 hover:border-white/50'
-              } ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                  : 'border-white/20 bg-white/5 text-white/70 hover:border-white/40'
+              }`}
+              disabled={isUploading}
             >
               <FolderIcon className="w-8 h-8 mx-auto mb-2" />
-              <h3 className="font-medium mb-2">انتخاب پوشه</h3>
-              <p className="text-sm opacity-80">انتخاب مستقیم پوشه پروژه</p>
+              <p className="font-medium">پوشه کامل</p>
+              <p className="text-xs mt-1 opacity-70">آپلود تمام فایل‌های پوشه</p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setUploadMode('monitor')}
+              className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                uploadMode === 'monitor'
+                  ? 'border-green-500 bg-green-500/10 text-green-400'
+                  : 'border-white/20 bg-white/5 text-white/70 hover:border-white/40'
+              }`}
+              disabled={isUploading}
+            >
+              <EyeIcon className="w-8 h-8 mx-auto mb-2" />
+              <p className="font-medium">نظارت مستقیم</p>
+              <p className="text-xs mt-1 opacity-70">نظارت روی مسیر اصلی</p>
             </button>
           </div>
         </div>
@@ -558,7 +564,7 @@ const NewProjectPage: React.FC = () => {
         {/* File Upload */}
         <div className="glass-card">
           <h2 className="text-xl font-semibold text-white mb-6">
-            {uploadMode === 'directory' ? 'انتخاب پوشه' : 'آپلود فایل‌ها'}
+            {uploadMode === 'directory' ? 'انتخاب پوشه' : uploadMode === 'monitor' ? 'انتخاب مسیر' : 'آپلود فایل‌ها'}
           </h2>
           
           {/* Upload Area */}
@@ -577,16 +583,10 @@ const NewProjectPage: React.FC = () => {
           >
             <CloudArrowUpIcon className="w-12 h-12 text-white/40 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">
-              {uploadMode === 'directory' 
-                ? 'پوشه پروژه خود را انتخاب کنید' 
-                : 'فایل‌های پروژه را اینجا بکشید'
-              }
+              {uploadMode === 'directory' ? 'پوشه پروژه خود را انتخاب کنید' : uploadMode === 'monitor' ? 'مسیر پروژه خود را انتخاب کنید' : 'فایل‌های پروژه را اینجا بکشید'}
             </h3>
             <p className="text-white/60 mb-4">
-              {uploadMode === 'directory'
-                ? 'پوشه کامل پروژه با تمام زیرپوشه‌ها آپلود می‌شود'
-                : 'یا روی دکمه زیر کلیک کنید تا فایل‌ها را انتخاب کنید'
-              }
+              {uploadMode === 'directory' ? 'پوشه کامل پروژه با تمام زیرپوشه‌ها آپلود می‌شود' : uploadMode === 'monitor' ? 'مسیر پروژه خود را انتخاب کنید' : 'یا روی دکمه زیر کلیک کنید تا فایل‌ها را انتخاب کنید'}
             </p>
             
             {uploadMode === 'directory' ? (
@@ -598,6 +598,16 @@ const NewProjectPage: React.FC = () => {
               >
                 <FolderIcon className="w-4 h-4 ml-2" />
                 انتخاب پوشه
+              </button>
+            ) : uploadMode === 'monitor' ? (
+              <button
+                type="button"
+                onClick={() => directoryInputRef.current?.click()}
+                disabled={isUploading}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+              >
+                <FolderIcon className="w-4 h-4 ml-2" />
+                انتخاب مسیر
               </button>
             ) : (
               <button
