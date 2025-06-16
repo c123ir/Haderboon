@@ -251,7 +251,8 @@ export const apiService = {
   },
 
   async getProfile(): Promise<any> {
-    return await api.get('/auth/profile');
+    const response = await api.get('/auth/profile');
+    return response.data;
   },
 
   async logout(): Promise<void> {
