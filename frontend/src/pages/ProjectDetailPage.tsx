@@ -22,18 +22,7 @@ import {
 import apiService from '../services/api';
 import WatchingStatus from '../components/WatchingStatus';
 import ProjectFileManager from '../components/ProjectFileManager';
-
-interface FileTreeNode {
-  id: string;
-  name: string;
-  type: 'file' | 'directory';
-  path: string;
-  children?: FileTreeNode[];
-  size?: number;
-  fileType?: string;
-  analysis?: any;
-  lastModified?: string;
-}
+import FileTreeViewer, { FileTreeNode } from '../components/FileTreeViewer';
 
 interface FileContent {
   id: string;
