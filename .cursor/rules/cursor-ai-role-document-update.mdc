@@ -3,6 +3,9 @@ description:
 globs: 
 alwaysApply: true
 ---
+پرامپت برای کرسر ای آی برای هادربون
+
+
 # Haderboon Project - Rules for AI Assistant (Cursor AI)
 
 This document provides the core rules and architectural guidelines for the "Haderboon" project. Adhere to these rules strictly to maintain consistency and achieve the project's goals.
@@ -52,3 +55,8 @@ This document provides the core rules and architectural guidelines for the "Hade
   
 ## 6. File Header Comment
 - At the very top of every new file you create or modify, add a single-line comment containing the full path of the file from the project root. For example: `// frontend/src/components/Login.tsx`
+Please always write the final answer, explanations, and conclusions in the chat in Persian.
+
+
+
+Please, whenever you want to run the project, such as npm run dev or npm start, ask me in Persian to exit the project if the project is already running. And always be careful to type CD backend in the root of the project to run the backend, then npm run dev, and to run the frontend, type CD frontend in the root of the project, then enter npm start to run.
