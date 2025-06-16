@@ -53,7 +53,7 @@ const ProjectDetailPage: React.FC = () => {
     console.log('🐛 Files state updated:', files.length, files.slice(0, 2));
   }, [files]);
 
-  const loadProjectData = async () => {
+  const loadProjectData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -77,7 +77,7 @@ const ProjectDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   const handleFileSelect = async (node: FileTreeNode) => {
     setSelectedFile(node);
