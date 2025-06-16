@@ -67,14 +67,8 @@ const ProjectDetailPage: React.FC = () => {
       }
 
       if (filesResponse.success) {
-        console.log('📁 File tree received:', filesResponse.data.fileTree?.length || 0, 'nodes');
-        setFileTree(filesResponse.data.fileTree || []);
-        
-        // Auto-expand first level directories
-        const firstLevelDirs = (filesResponse.data.fileTree || [])
-          .filter((node: FileTreeNode) => node.type === 'directory')
-          .map((node: FileTreeNode) => node.id);
-        setExpandedNodes(new Set(['root', ...firstLevelDirs]));
+        console.log('📁 Files received:', filesResponse.data.files?.length || 0, 'files');
+        setFiles(filesResponse.data.files || []);
       }
 
     } catch (error) {
