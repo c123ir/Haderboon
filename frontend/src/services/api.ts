@@ -225,15 +225,15 @@ export const apiService = {
 
   async login(email: string, password?: string): Promise<any> {
     try {
-      const data = await api.post('/auth/login', { email, password }) as ApiResponse;
+      const response = await api.post('/auth/login', { email, password }) as any;
       
-      if (data.success && data.token) {
-        localStorage.setItem('haderboon_token', data.token);
-        localStorage.setItem('haderboon_user', JSON.stringify(data.user));
+      if (response.success && response.data?.token) {
+        localStorage.setItem('haderboon_token', response.data.token);
+        localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
         console.log('✅ Login successful');
       }
       
-      return data;
+      return response;
     } catch (error) {
       console.error('❌ Login failed:', error);
       throw error;
