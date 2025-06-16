@@ -60,13 +60,34 @@ const ProjectDetailPage: React.FC = () => {
 
   // Event handlers
   const handleFileSelect = useCallback(async (file: FileNode) => {
-    if (file.type === 'directory' || !project) return;
+    console.log('🔍 File select called with:', file);
+    console.log('📦 Current project:', project);
+    console.log('🆔 Project ID:', project?.id);
+    
+    if (file.type === 'directory') {
+      console.log('📁 Directory clicked, ignoring');
+      return;
+    }
+    
+    if (!project) {
+      console.error('❌ No project available!');
+      return;
+    }
+    
+    if (!project.id) {
+      console.error('❌ Project ID is missing!', project);
+      return;
+    }
     
     setSelectedFile(file.path);
     setLoadingContent(true);
     
     try {
+      console.log('🌐 Calling API with projectId:', project.id, 'fileId:', file.id);
       const response = await apiService.getFileContent(project.id, file.id);
+      
+      console.log('📡 API Response:', response);
+      
       if (response.success && response.data) {
         setFileContent({
           name: file.name,
