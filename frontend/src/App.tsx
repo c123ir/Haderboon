@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/common/Layout';
 import HomePage from './pages/HomePage';
@@ -7,9 +7,31 @@ import ProjectDetailPage from './pages/ProjectDetailPage';
 import NewProjectPage from './pages/NewProjectPage';
 import ChatPage from './pages/ChatPage';
 import PromptGeneratorPage from './pages/PromptGeneratorPage';
+import { apiService } from './services/api';
 import './styles/globals.css';
 
 function App() {
+  useEffect(() => {
+    // انجام demo login در صورت عدم وجود authentication
+    const initializeAuth = async () => {
+      if (!apiService.auth.isAuthenticated()) {
+        console.log('🔑 شروع demo login...');
+        try {
+          const result = await apiService.demoLogin();
+          if (result.success) {
+            console.log('✅ Demo login موفق');
+          } else {
+            console.error('❌ خطا در demo login:', result.message);
+          }
+        } catch (error) {
+          console.error('❌ خطا در demo login:', error);
+        }
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
   return (
     <Router
       future={{
