@@ -75,8 +75,7 @@ api.interceptors.response.use(
       
       // Try to re-authenticate with demo login
       try {
-        const response = await api.post('/auth/demo-login');
-        const responseData = response.data;
+        const responseData = await api.post('/auth/demo-login');
         if (responseData.success && responseData.token) {
           localStorage.setItem('haderboon_token', responseData.token);
           localStorage.setItem('haderboon_user', JSON.stringify(responseData.user));
