@@ -350,7 +350,7 @@ const NewProjectPage: React.FC = () => {
       });
 
       if (!projectResponse.success) {
-        throw new Error(projectResponse.error || 'خطا در ایجاد پروژه');
+        throw new Error(projectResponse.message || 'خطا در ایجاد پروژه');
       }
 
       const projectId = projectResponse.data.id;
