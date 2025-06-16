@@ -115,10 +115,8 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
   }, []);
 
   useEffect(() => {
-    console.log('🔍 FileTreeViewer received files:', files.length, files);
     if (files.length > 0) {
       const tree = buildFileTree(files);
-      console.log('🌳 Built tree:', tree);
       setFileTree(tree);
       
       // Auto-expand first level directories
@@ -126,7 +124,6 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
         .filter(node => node.type === 'directory')
         .map(node => node.path);
       setExpandedNodes(new Set(firstLevelDirs));
-      console.log('📁 Expanded dirs:', firstLevelDirs);
     }
   }, [files, buildFileTree]);
 
