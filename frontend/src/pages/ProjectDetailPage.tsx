@@ -16,7 +16,7 @@ import {
 // Import های اصلاح شده
 import { apiService } from '../services/api';
 import { useProject } from '../hooks/useProject';
-import { useProjectFiles } from '../hooks/useProjectFiles';
+import { useProjectFiles } from '../hooks';
 import FileTree from '../components/FileTree';
 import FileContentViewer from '../components/FileContentViewer';
 import WatchingStatus from '../components/WatchingStatus';
@@ -113,7 +113,7 @@ const ProjectDetailPage: React.FC = () => {
 
   // Data processing
   const fileTree: FileNode[] = React.useMemo(() => {
-    if (!files || !Array.isArray(files) || files.length === 0) return [];
+    if (!files || files.length === 0) return [];
     
     return files.map((file: any) => ({
       id: file.id,
@@ -128,7 +128,7 @@ const ProjectDetailPage: React.FC = () => {
   }, [files]);
 
   const getProjectStats = useCallback(() => {
-    if (!files) return { totalFiles: 0, totalSize: 0, fileTypes: {} };
+    if (!files || !Array.isArray(files)) return { totalFiles: 0, totalSize: 0, fileTypes: {} };
     
     const stats = files.reduce((acc: any, file: any) => {
       if (!file.isDirectory) {
