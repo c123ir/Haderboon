@@ -46,9 +46,15 @@ interface FileContent {
 const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   
+  console.log('🔍 ProjectDetailPage - URL param id:', id);
+  console.log('🔍 ProjectDetailPage - typeof id:', typeof id);
+  
   // استفاده از hook های محلی
   const { project, loading: projectLoading, error: projectError, refetch: refetchProject } = useProject(id!);
   const { files, error: filesError, refetch: refetchFiles } = useProjectFiles(id!);
+  
+  console.log('🔍 ProjectDetailPage - project object:', project);
+  console.log('🔍 ProjectDetailPage - project?.id:', project?.id);
   
   // State management
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
