@@ -3,12 +3,6 @@ description:
 globs: 
 alwaysApply: true
 ---
-پرامپت برای کرسر ای آی برای هادربون
-
-
-پرامپت برای کرسر ای آی برای هادربون
-
-
 # Haderboon Project - Rules for AI Assistant (Cursor AI)
 
 This document provides the core rules and architectural guidelines for the "Haderboon" project. Adhere to these rules strictly to maintain consistency and achieve the project's goals.
