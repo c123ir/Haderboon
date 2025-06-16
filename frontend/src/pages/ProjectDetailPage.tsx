@@ -48,7 +48,7 @@ const ProjectDetailPage: React.FC = () => {
   
   // استفاده از hook های محلی
   const { project, loading: projectLoading, error: projectError, refetch: refetchProject } = useProject(id!);
-  const { files, loading: _filesLoading, error: filesError, refetch: refetchFiles } = useProjectFiles(id!);
+  const { files, error: filesError, refetch: refetchFiles } = useProjectFiles(id!);
   
   // State management
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
