@@ -24,13 +24,28 @@ export const useProjectFiles = (projectId: string) => {
       setLoading(true);
       setError(null);
       const response = await apiService.getProjectFiles(projectId);
+      console.log('📁 API Response for files:', response);
+      
       if (response.success) {
-        setFiles(response.data || []);
+        // Handle the API response structure correctly
+        const filesData = response.data?.files || response.data || [];
+        console.log('📄 Files data:', filesData);
+        
+        if (Array.isArray(filesData)) {
+          setFiles(filesData);
+        } else {
+          console.error('❌ Files data is not an array:', typeof filesData, filesData);
+          setFiles([]);
+          setError('ساختار داده فایل‌ها نامعتبر است');
+        }
       } else {
         setError(response.message || 'خطا در دریافت فایل‌ها');
+        setFiles([]);
       }
     } catch (err: any) {
+      console.error('❌ Files fetch error:', err);
       setError(err.message || 'خطا در اتصال به سرور');
+      setFiles([]);
     } finally {
       setLoading(false);
     }
