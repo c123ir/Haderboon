@@ -17,7 +17,7 @@ import {
 import { apiService } from '../services/api';
 import { useProject } from '../hooks/useProject';
 import { useProjectFiles } from '../hooks';
-import FileTree from '../components/FileTree';
+import FileTreeViewer from '../components/FileTreeViewer';
 import FileContentViewer from '../components/FileContentViewer';
 import WatchingStatus from '../components/WatchingStatus';
 import ProjectFileManager from '../components/ProjectFileManager';
