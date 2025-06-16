@@ -78,12 +78,12 @@ api.interceptors.response.use(
         const response = await axios.post(`${API_BASE_URL}/auth/demo-login`);
         const responseData = response.data;
         
-        if (responseData.success && responseData.token) {
-          localStorage.setItem('haderboon_token', responseData.token);
-          localStorage.setItem('haderboon_user', JSON.stringify(responseData.user));
+        if (responseData.success && responseData.data?.token) {
+          localStorage.setItem('haderboon_token', responseData.data.token);
+          localStorage.setItem('haderboon_user', JSON.stringify(responseData.data.user));
           
           // Retry original request
-          originalRequest.headers.Authorization = `Bearer ${responseData.token}`;
+          originalRequest.headers.Authorization = `Bearer ${responseData.data.token}`;
           return api(originalRequest);
         }
       } catch (authError) {
