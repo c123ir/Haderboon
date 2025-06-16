@@ -1,11 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+// frontend/src/components/FileSelectionModal.tsx - بهبود یافته
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   XMarkIcon, 
   FolderIcon, 
   DocumentIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-  CheckIcon
+  CheckIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 
 interface FileNode {
@@ -15,6 +20,8 @@ interface FileNode {
   size?: number;
   children?: FileNode[];
   file?: File;
+  isValid?: boolean;
+  error?: string;
 }
 
 interface FileSelectionModalProps {
@@ -35,50 +42,67 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
   const [fileTree, setFileTree] = useState<FileNode[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [projectCapacity, setProjectCapacity] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showOnlyValid, setShowOnlyValid] = useState(false);
+  const [showOnlySelected, setShowOnlySelected] = useState(false);
 
-  useEffect(() => {
-    if (files.length > 0) {
-      const tree = buildFileTree(files);
-      setFileTree(tree);
-      
-      // Auto-expand root directory
-      setExpandedNodes(new Set([directoryName]));
-      
-      // Select all files by default (except ignored ones)
-      const defaultSelected = new Set<string>();
-      files.forEach(file => {
-        if (file.webkitRelativePath && !shouldIgnoreFile(file.webkitRelativePath)) {
-          defaultSelected.add(file.webkitRelativePath);
-        }
-      });
-      setSelectedFiles(defaultSelected);
-      
-      // Calculate project capacity
-      const totalSize = Array.from(defaultSelected).reduce((sum, path) => {
-        const file = files.find(f => f.webkitRelativePath === path);
-        return sum + (file?.size || 0);
-      }, 0);
-      setProjectCapacity(Math.round((totalSize / (100 * 1024 * 1024)) * 100)); // Assuming 100MB limit
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [files, directoryName]);
+  // Constants
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_TOTAL_SIZE = 500 * 1024 * 1024; // 500MB
 
   const shouldIgnoreFile = useCallback((filePath: string): boolean => {
     const ignoredPatterns = [
-      'node_modules/'
+      'node_modules/',
+      '.git/',
+      'dist/',
+      'build/',
+      '.cache/',
+      'coverage/',
+      '.nyc_output/',
+      'logs/',
+      'tmp/',
+      'temp/',
+      '__pycache__/',
+      '.pytest_cache/',
+      'vendor/',
+      '.vendor/',
+      'bower_components/',
+      '.sass-cache/'
     ];
     
     return ignoredPatterns.some(pattern => filePath.includes(pattern));
   }, []);
+
+  const validateFile = useCallback((file: File): { valid: boolean; error?: string } => {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      return { valid: false, error: `بیش از حد مجاز بزرگ است (${formatFileSize(MAX_FILE_SIZE)})` };
+    }
+
+    // Check if it's ignored
+    const path = file.webkitRelativePath || file.name;
+    if (shouldIgnoreFile(path)) {
+      return { valid: false, error: 'فایل نادیده گرفته شده' };
+    }
+
+    // Check for dangerous files
+    const dangerousExtensions = ['.exe', '.bat', '.cmd', '.scr', '.vbs', '.com'];
+    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (dangerousExtensions.includes(extension)) {
+      return { valid: false, error: 'نوع فایل امن نیست' };
+    }
+
+    return { valid: true };
+  }, [shouldIgnoreFile]);
 
   const buildFileTree = useCallback((files: File[]): FileNode[] => {
     const tree: { [key: string]: FileNode } = {};
     
     files.forEach(file => {
       const relativePath = file.webkitRelativePath;
-      if (!relativePath || shouldIgnoreFile(relativePath)) return;
+      if (!relativePath) return;
       
+      const validation = validateFile(file);
       const pathParts = relativePath.split('/');
       let currentPath = '';
       
@@ -93,7 +117,9 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
             type: isFile ? 'file' : 'directory',
             size: isFile ? file.size : undefined,
             children: isFile ? undefined : [],
-            file: isFile ? file : undefined
+            file: isFile ? file : undefined,
+            isValid: isFile ? validation.valid : undefined,
+            error: isFile ? validation.error : undefined
           };
         }
         
@@ -109,9 +135,43 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
       });
     });
     
+    // Sort children: directories first, then files
+    Object.values(tree).forEach(node => {
+      if (node.children) {
+        node.children.sort((a, b) => {
+          if (a.type !== b.type) {
+            return a.type === 'directory' ? -1 : 1;
+          }
+          return a.name.localeCompare(b.name);
+        });
+      }
+    });
+    
     // Return root level nodes
     return Object.values(tree).filter(node => !node.path.includes('/'));
-  }, [shouldIgnoreFile]);
+  }, [validateFile]);
+
+  useEffect(() => {
+    if (files.length > 0) {
+      const tree = buildFileTree(files);
+      setFileTree(tree);
+      
+      // Auto-expand root directory
+      setExpandedNodes(new Set([directoryName]));
+      
+      // Select all valid files by default
+      const defaultSelected = new Set<string>();
+      files.forEach(file => {
+        if (file.webkitRelativePath) {
+          const validation = validateFile(file);
+          if (validation.valid) {
+            defaultSelected.add(file.webkitRelativePath);
+          }
+        }
+      });
+      setSelectedFiles(defaultSelected);
+    }
+  }, [files, directoryName, buildFileTree, validateFile]);
 
   const toggleExpand = (nodePath: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -139,12 +199,11 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
     }
     
     setSelectedFiles(newSelected);
-    updateProjectCapacity(newSelected);
   };
 
   const toggleDirectorySelection = (node: FileNode, selection: Set<string>, shouldSelect: boolean) => {
     if (node.type === 'file') {
-      if (shouldSelect) {
+      if (shouldSelect && node.isValid) {
         selection.add(node.path);
       } else {
         selection.delete(node.path);
@@ -160,7 +219,10 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
     if (node.type === 'file') {
       return selectedFiles.has(node.path);
     } else if (node.children) {
-      return node.children.every(child => isNodeSelected(child));
+      const validChildren = node.children.filter(child => 
+        child.type === 'directory' || child.isValid
+      );
+      return validChildren.length > 0 && validChildren.every(child => isNodeSelected(child));
     }
     return false;
   };
@@ -169,29 +231,14 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
     if (node.type === 'file') {
       return false;
     } else if (node.children) {
-      const selectedChildren = node.children.filter(child => isNodeSelected(child));
-      const partialChildren = node.children.filter(child => isNodePartiallySelected(child));
-      return (selectedChildren.length > 0 || partialChildren.length > 0) && selectedChildren.length < node.children.length;
+      const validChildren = node.children.filter(child => 
+        child.type === 'directory' || child.isValid
+      );
+      const selectedChildren = validChildren.filter(child => isNodeSelected(child));
+      const partialChildren = validChildren.filter(child => isNodePartiallySelected(child));
+      return (selectedChildren.length > 0 || partialChildren.length > 0) && selectedChildren.length < validChildren.length;
     }
     return false;
-  };
-
-  const updateProjectCapacity = (selection: Set<string>) => {
-    const totalSize = Array.from(selection).reduce((sum, path) => {
-      const file = files.find(f => f.webkitRelativePath === path);
-      return sum + (file?.size || 0);
-    }, 0);
-    // محاسبه درصد بر اساس 1GB حد مجاز (می‌توان تنظیم کرد)
-    const maxCapacity = 1024 * 1024 * 1024; // 1GB
-    setProjectCapacity(Math.round((totalSize / maxCapacity) * 100));
-  };
-
-  const handleConfirm = () => {
-    const confirmedFiles = files.filter(file => 
-      file.webkitRelativePath && selectedFiles.has(file.webkitRelativePath)
-    );
-    onConfirm(confirmedFiles);
-    onClose();
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -202,6 +249,88 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
+  const filteredTree = useMemo(() => {
+    if (!searchTerm && !showOnlyValid && !showOnlySelected) {
+      return fileTree;
+    }
+
+    const filterNode = (node: FileNode): FileNode | null => {
+      const matchesSearch = !searchTerm || 
+        node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        node.path.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesValidFilter = !showOnlyValid || 
+        node.type === 'directory' || 
+        node.isValid;
+      
+      const matchesSelectedFilter = !showOnlySelected || 
+        node.type === 'directory' || 
+        selectedFiles.has(node.path);
+
+      if (node.type === 'file') {
+        return matchesSearch && matchesValidFilter && matchesSelectedFilter ? node : null;
+      }
+
+      // For directories, filter children
+      const filteredChildren = node.children
+        ?.map(child => filterNode(child))
+        .filter((child): child is FileNode => child !== null) || [];
+
+      if (filteredChildren.length > 0 || matchesSearch) {
+        return {
+          ...node,
+          children: filteredChildren
+        };
+      }
+
+      return null;
+    };
+
+    return fileTree
+      .map(node => filterNode(node))
+      .filter((node): node is FileNode => node !== null);
+  }, [fileTree, searchTerm, showOnlyValid, showOnlySelected, selectedFiles]);
+
+  const statistics = useMemo(() => {
+    const selectedPaths = Array.from(selectedFiles);
+    const selectedFilesData = files.filter(file => 
+      file.webkitRelativePath && selectedPaths.includes(file.webkitRelativePath)
+    );
+    
+    const totalSize = selectedFilesData.reduce((sum, file) => sum + file.size, 0);
+    const validFiles = selectedFilesData.filter(file => validateFile(file).valid);
+    
+    return {
+      totalFiles: files.length,
+      selectedCount: selectedFilesData.length,
+      validSelectedCount: validFiles.length,
+      totalSize,
+      overSizeLimit: totalSize > MAX_TOTAL_SIZE,
+      sizePercentage: Math.round((totalSize / MAX_TOTAL_SIZE) * 100)
+    };
+  }, [files, selectedFiles, validateFile]);
+
+  const handleConfirm = () => {
+    const confirmedFiles = files.filter(file => 
+      file.webkitRelativePath && selectedFiles.has(file.webkitRelativePath)
+    );
+    onConfirm(confirmedFiles);
+  };
+
+  const handleSelectAll = () => {
+    const allValidFiles = new Set<string>();
+    files.forEach(file => {
+      if (file.webkitRelativePath && validateFile(file).valid) {
+        allValidFiles.add(file.webkitRelativePath);
+      }
+    });
+    setSelectedFiles(allValidFiles);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedFiles(new Set());
+  };
+
   const renderNode = (node: FileNode, level: number = 0): React.ReactNode => {
     const isSelected = isNodeSelected(node);
     const isPartial = isNodePartiallySelected(node);
@@ -210,48 +339,66 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
     return (
       <div key={node.path}>
         <div 
-          className="flex items-center py-1 px-2 hover:bg-gray-100 rounded cursor-pointer"
+          className="flex items-center py-1 px-2 hover:bg-white/5 rounded cursor-pointer transition-colors duration-150"
           style={{ paddingRight: `${level * 20 + 8}px` }}
         >
           {node.type === 'directory' && (
             <button 
               onClick={() => toggleExpand(node.path)}
-              className="p-1 hover:bg-gray-200 rounded mr-1"
+              className="p-1 hover:bg-white/10 rounded mr-1 transition-colors duration-150"
             >
               {isExpanded ? (
-                <ChevronDownIcon className="w-3 h-3 text-gray-600" />
+                <ChevronDownIcon className="w-3 h-3 text-white/60" />
               ) : (
-                <ChevronRightIcon className="w-3 h-3 text-gray-600" />
+                <ChevronRightIcon className="w-3 h-3 text-white/60" />
               )}
             </button>
           )}
           
           <button
             onClick={() => toggleSelection(node)}
-            className={`w-4 h-4 border-2 rounded mr-2 flex items-center justify-center ${
+            disabled={node.type === 'file' && !node.isValid}
+            className={`w-4 h-4 border-2 rounded mr-2 flex items-center justify-center transition-colors duration-150 ${
               isSelected 
                 ? 'bg-blue-500 border-blue-500' 
                 : isPartial 
-                ? 'bg-gray-300 border-gray-400'
-                : 'border-gray-300'
+                ? 'bg-blue-300 border-blue-400'
+                : node.type === 'file' && !node.isValid
+                ? 'border-red-400 bg-red-100 cursor-not-allowed opacity-50'
+                : 'border-white/40 hover:border-white/60'
             }`}
           >
             {isSelected && <CheckIcon className="w-3 h-3 text-white" />}
-            {isPartial && <div className="w-2 h-2 bg-gray-600 rounded-sm" />}
+            {isPartial && <div className="w-2 h-2 bg-blue-700 rounded-sm" />}
           </button>
 
           {node.type === 'directory' ? (
-            <FolderIcon className="w-4 h-4 text-blue-500 mr-2" />
+            <FolderIcon className="w-4 h-4 text-blue-400 mr-2" />
           ) : (
-            <DocumentIcon className="w-4 h-4 text-gray-500 mr-2" />
+            <DocumentIcon className={`w-4 h-4 mr-2 ${
+              node.isValid ? 'text-green-400' : 'text-red-400'
+            }`} />
           )}
 
-          <span className="text-sm text-gray-800 flex-1">{node.name}</span>
+          <span className={`text-sm flex-1 ${
+            node.type === 'file' && !node.isValid ? 'text-red-300' : 'text-white'
+          }`}>
+            {node.name}
+          </span>
           
-          {node.type === 'file' && node.size && (
-            <span className="text-xs text-gray-500 mr-2">
-              {formatFileSize(node.size)}
-            </span>
+          {node.type === 'file' && (
+            <div className="flex items-center space-x-2 space-x-reverse">
+              {node.size && (
+                <span className="text-xs text-white/50">
+                  {formatFileSize(node.size)}
+                </span>
+              )}
+              {!node.isValid && node.error && (
+                <span className="text-xs text-red-400" title={node.error}>
+                  ✗
+                </span>
+              )}
+            </div>
           )}
         </div>
 
@@ -267,77 +414,22 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white bg-opacity-90 backdrop-blur-md rounded-lg shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col border border-white border-opacity-30">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="glass-effect rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col border border-white/20">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 border-opacity-50 bg-white bg-opacity-50">
-          <h2 className="text-xl font-semibold text-gray-800">انتخاب محتوا از {directoryName}</h2>
+        <div className="flex items-center justify-between p-6 border-b border-white/20">
+          <div>
+            <h2 className="text-xl font-semibold text-white">انتخاب فایل‌ها از {directoryName}</h2>
+            <p className="text-white/60 text-sm mt-1">
+              فایل‌هایی که می‌خواهید به پروژه اضافه کنید را انتخاب کنید
+            </p>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 hover:bg-opacity-60 rounded-lg transition-colors"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200"
           >
-            <XMarkIcon className="w-5 h-5 text-gray-600" />
+            <XMarkIcon className="w-5 h-5 text-white/60" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-gray-200 border-opacity-50 bg-white bg-opacity-30">
-            <p className="text-sm text-gray-600 mb-2">
-              فایل‌هایی که می‌خواهید به این پروژه اضافه کنید را انتخاب کنید
-            </p>
-            
-            {/* Progress bar */}
-            <div className="flex items-center space-x-reverse space-x-2">
-              <div className="flex-1 bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-500 h-2 rounded-full" 
-                  style={{ width: `${Math.min(projectCapacity, 100)}%` }}
-                ></div>
-              </div>
-              <span className="text-sm text-gray-600 min-w-fit">
-                {projectCapacity}% از ظرفیت پروژه استفاده شده
-              </span>
-            </div>
-          </div>
-
-          {/* File tree */}
-          <div className="flex-1 overflow-y-auto p-4">
-            {fileTree.map(node => renderNode(node))}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 border-opacity-50 bg-white bg-opacity-50">
-          <div className="text-sm text-gray-600">
-            {selectedFiles.size} فایل انتخاب شده | 
-            {(() => {
-              const totalSize = Array.from(selectedFiles).reduce((sum, path) => {
-                const file = files.find(f => f.webkitRelativePath === path);
-                return sum + (file?.size || 0);
-              }, 0);
-              return formatFileSize(totalSize);
-            })()} | 
-            {projectCapacity}% از ظرفیت
-          </div>
-          <div className="flex space-x-reverse space-x-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 hover:bg-opacity-60 rounded-lg transition-colors"
-            >
-              انصراف
-            </button>
-            <button
-              onClick={handleConfirm}
-              className="px-6 py-2 bg-blue-600 bg-opacity-90 text-white rounded-lg hover:bg-blue-700 hover:bg-opacity-95 transition-colors backdrop-blur-sm"
-            >
-              اضافه کردن فایل‌ها
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default FileSelectionModal; 
+        {/* Controls */
