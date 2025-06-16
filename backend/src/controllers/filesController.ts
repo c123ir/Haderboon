@@ -564,7 +564,6 @@ const buildFileTree = (files: any[]): any[] => {
     }
   }
 
-  console.log(`✅ File tree built successfully with ${tree.length} top-level nodes`);
   return tree;
 };
 
