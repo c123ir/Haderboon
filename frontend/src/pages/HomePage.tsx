@@ -11,7 +11,7 @@ import {
   ClockIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
-import apiService, { authHelpers } from '../services/api';
+import { apiService, authHelpers } from '../services/api';
 import FileTreeTest from '../components/FileTreeTest';
 
 const HomePage: React.FC = () => {
