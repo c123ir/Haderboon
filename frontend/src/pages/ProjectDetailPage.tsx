@@ -415,7 +415,7 @@ const ProjectDetailPage: React.FC = () => {
                           .map(([type, count]) => (
                             <div key={type} className="bg-white/5 rounded-lg p-3">
                               <div className="text-blue-400 font-medium">.{type}</div>
-                              <div className="text-white/80 text-sm">{count} فایل</div>
+                              <div className="text-white/80 text-sm">{count.toString()} فایل</div>
                             </div>
                           ))}
                       </div>
