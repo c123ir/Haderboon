@@ -107,7 +107,7 @@ const NewProjectPage: React.FC = () => {
     }
 
     return { valid: true };
-  }, []);
+  }, [MAX_FILE_SIZE]);
 
   const validateAllFiles = useCallback((files: UploadedFile[]): string[] => {
     const errors: string[] = [];
