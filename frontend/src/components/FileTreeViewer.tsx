@@ -33,6 +33,7 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
   selectedFileId,
   className = ""
 }) => {
+  console.log('🎯 FileTreeViewer component loaded with', files.length, 'files');
   const [fileTree, setFileTree] = useState<FileTreeNode[]>([]);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
