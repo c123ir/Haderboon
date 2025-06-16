@@ -43,16 +43,6 @@ const ProjectDetailPage: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [loadingFileContent, setLoadingFileContent] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      loadProjectData();
-    }
-  }, [id, loadProjectData]);
-
-  useEffect(() => {
-    console.log('🐛 Files state updated:', files.length, files.slice(0, 2));
-  }, [files]);
-
   const loadProjectData = useCallback(async () => {
     try {
       setLoading(true);
@@ -78,6 +68,16 @@ const ProjectDetailPage: React.FC = () => {
       setLoading(false);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      loadProjectData();
+    }
+  }, [id, loadProjectData]);
+
+  useEffect(() => {
+    console.log('🐛 Files state updated:', files.length, files.slice(0, 2));
+  }, [files]);
 
   const handleFileSelect = async (node: FileTreeNode) => {
     setSelectedFile(node);
