@@ -37,8 +37,7 @@ interface FileContent {
 const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<any>(null);
-  const [fileTree, setFileTree] = useState<FileTreeNode[]>([]);
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['root']));
+  const [files, setFiles] = useState<any[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileTreeNode | null>(null);
   const [selectedFileContent, setSelectedFileContent] = useState<FileContent | null>(null);
   const [activeTab, setActiveTab] = useState<'files' | 'analysis' | 'manage'>('files');
