@@ -269,7 +269,7 @@ const ProjectDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden p-6">
       {/* Header */}
       <div className="glass-card mb-4">
         <div className="flex items-center justify-between">
