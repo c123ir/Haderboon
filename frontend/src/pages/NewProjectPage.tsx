@@ -351,11 +351,20 @@ const NewProjectPage: React.FC = () => {
       }
 
       console.log('📦 Project Data:', projectResponse.data);
-      const projectId = projectResponse.data?.id;
+      
+      // Extract project ID from nested response structure
+      let projectId;
+      if (projectResponse.data?.data?.id) {
+        projectId = projectResponse.data.data.id;
+      } else if (projectResponse.data?.id) {
+        projectId = projectResponse.data.id;
+      }
+      
       console.log('🆔 Project ID:', projectId);
       
       if (!projectId) {
         console.error('❌ Project ID is missing from response!');
+        console.error('Full response structure:', JSON.stringify(projectResponse, null, 2));
         throw new Error('شناسه پروژه در پاسخ سرور یافت نشد');
       }
 
