@@ -113,7 +113,7 @@ const ProjectDetailPage: React.FC = () => {
 
   // Data processing
   const fileTree: FileNode[] = React.useMemo(() => {
-    if (!files || files.length === 0) return [];
+    if (!files || !Array.isArray(files) || files.length === 0) return [];
     
     return files.map((file: any) => ({
       id: file.id,
