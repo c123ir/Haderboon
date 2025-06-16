@@ -93,7 +93,7 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
     }
 
     return { valid: true };
-  }, [shouldIgnoreFile]);
+  }, [shouldIgnoreFile, MAX_FILE_SIZE]);
 
   const buildFileTree = useCallback((files: File[]): FileNode[] => {
     const tree: { [key: string]: FileNode } = {};
