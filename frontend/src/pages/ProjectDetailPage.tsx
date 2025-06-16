@@ -111,71 +111,7 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
-  const getFileIcon = (fileName: string, isDirectory: boolean) => {
-    if (isDirectory) {
-      return expandedNodes.has(fileName) ? FolderOpenIcon : FolderIcon;
-    }
-    
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    switch (extension) {
-      case 'js':
-      case 'jsx':
-      case 'ts':
-      case 'tsx':
-        return CodeBracketIcon;
-      default:
-        return DocumentIcon;
-    }
-  };
 
-  const renderFileTree = (nodes: FileTreeNode[], level: number = 0) => {
-    return nodes.map((node) => {
-      const Icon = getFileIcon(node.name, node.type === 'directory');
-      const isExpanded = expandedNodes.has(node.id);
-      const isSelected = selectedFile?.id === node.id;
-      
-      return (
-        <div key={node.id}>
-          <div
-            className={`flex items-center py-1 px-2 hover:bg-white/10 rounded cursor-pointer transition-colors duration-150 ${
-              isSelected ? 'bg-blue-500/30' : ''
-            }`}
-            style={{ paddingRight: `${level * 16 + 8}px` }}
-            onClick={() => handleFileSelect(node)}
-          >
-            {node.type === 'directory' && (
-              <span className="w-4 h-4 flex items-center justify-center ml-1">
-                {isExpanded ? (
-                  <ChevronDownIcon className="w-3 h-3 text-white/60" />
-                ) : (
-                  <ChevronRightIcon className="w-3 h-3 text-white/60" />
-                )}
-              </span>
-            )}
-            {node.type === 'file' && <div className="w-5 h-4" />}
-            
-            <Icon className={`w-4 h-4 ml-2 ${
-              node.type === 'directory' 
-                ? isExpanded ? 'text-blue-400' : 'text-blue-300'
-                : 'text-gray-400'
-            }`} />
-            
-            <span className="text-white text-sm flex-1 truncate">{node.name}</span>
-            
-            {node.type === 'file' && node.size && (
-              <span className="text-white/40 text-xs ml-2">
-                {formatFileSize(node.size)}
-              </span>
-            )}
-          </div>
-          
-          {node.type === 'directory' && node.children && isExpanded && (
-            <div>{renderFileTree(node.children, level + 1)}</div>
-          )}
-        </div>
-      );
-    });
-  };
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B';
@@ -305,13 +241,11 @@ const ProjectDetailPage: React.FC = () => {
             
             {/* File Tree */}
             <div className="flex-1 overflow-auto p-2">
-              {fileTree.length > 0 ? (
-                renderFileTree(fileTree)
-              ) : (
-                <p className="text-white/60 text-center py-8 text-sm">
-                  هیچ فایلی در این پروژه موجود نیست
-                </p>
-              )}
+              <FileTreeViewer
+                files={files}
+                onFileSelect={handleFileSelect}
+                selectedFileId={selectedFile?.id}
+              />
             </div>
             
             {/* Sidebar Footer */}
