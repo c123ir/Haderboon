@@ -524,7 +524,6 @@ const buildFileTree = (files: any[]): any[] => {
             };
             currentLevel.push(dirNode);
             pathMap.set(currentPath, dirNode);
-            console.log(`📂 Created directory node: ${currentPath}`);
           }
         } else {
           // This is a file
@@ -540,7 +539,6 @@ const buildFileTree = (files: any[]): any[] => {
           };
           currentLevel.push(fileNode);
           pathMap.set(currentPath, fileNode);
-          console.log(`📄 Created file node: ${currentPath}`);
         }
       } else {
         // This is an intermediate directory
