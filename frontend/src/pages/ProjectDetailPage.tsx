@@ -198,108 +198,100 @@ const ProjectDetailPage: React.FC = () => {
           <div className="flex items-center">
             <Link
               to="/projects"
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200 ml-3"
+              className="ml-4 p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors duration-200"
             >
-              <ArrowLeftIcon className="w-5 h-5 text-white/60" />
+              <ArrowLeftIcon className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="text-xl font-bold text-white">{project.name}</h1>
-              <p className="text-white/60 text-sm">
-                {project.description || 'بدون توضیحات'}
-              </p>
+              <h1 className="text-2xl font-bold text-white">{project.name}</h1>
+              {project.description && (
+                <p className="text-white/60 mt-1">{project.description}</p>
+              )}
             </div>
           </div>
           
-          <div className="flex items-center space-x-2 space-x-reverse">
+          <div className="flex items-center space-x-3 space-x-reverse">
             <button
               onClick={handleReanalyze}
               disabled={isReanalyzing}
-              className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
+              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white rounded-lg transition-colors duration-200"
             >
               <ArrowPathIcon className={`w-4 h-4 ml-2 ${isReanalyzing ? 'animate-spin' : ''}`} />
-              {isReanalyzing ? 'تحلیل...' : 'تحلیل مجدد'}
+              {isReanalyzing ? 'در حال تحلیل...' : 'تحلیل مجدد'}
             </button>
+            
             <Link
               to={`/projects/${project.id}/chat`}
-              className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm"
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-colors duration-200"
             >
               <ChatBubbleLeftRightIcon className="w-4 h-4 ml-2" />
-              چت
+              چت هوشمند
             </Link>
+            
             <Link
               to={`/projects/${project.id}/prompt`}
-              className="inline-flex items-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 text-sm"
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg transition-colors duration-200"
             >
               <SparklesIcon className="w-4 h-4 ml-2" />
-              پرامپت
+              تولید پرامپت
             </Link>
           </div>
         </div>
+        
+        {/* Project Status */}
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <WatchingStatus
+            projectId={project.id}
+            projectName={project.name}
+            projectPath={project.originalPath || project.path}
+            initialStatus={project.status as "WATCHING" | "READY" | "ANALYZING" | "UPLOADING" | "ERROR" | "ARCHIVED"}
+          />
+        </div>
       </div>
 
-      {/* Watching Status */}
-      <div className="flex-shrink-0 mb-4">
-        <WatchingStatus 
-          projectId={project.id}
-          projectName={project.name}
-          projectPath={project.originalPath}
-          initialStatus={project.status}
-        />
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden glass-card">
-        {/* Sidebar - File Tree */}
-        <div className={`${sidebarCollapsed ? 'w-0' : 'w-80'} transition-all duration-300 border-l border-white/10 bg-gray-900/30 flex flex-col overflow-hidden`} dir="ltr">
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-4 border-b border-white/10">
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <FolderIcon className="w-5 h-5 text-blue-400" />
-              <span className="text-white font-medium text-sm">ساختار پروژه</span>
-            </div>
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-1 hover:bg-white/10 rounded transition-colors duration-200"
-            >
-              {sidebarCollapsed ? (
-                <Bars3Icon className="w-4 h-4 text-white/60" />
-              ) : (
-                <XMarkIcon className="w-4 h-4 text-white/60" />
-              )}
-            </button>
-          </div>
-
-          {/* File Tree Content */}
+      {/* Main Layout */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar */}
+        <div className={`${sidebarCollapsed ? 'w-0' : 'w-80'} transition-all duration-300 flex-shrink-0 overflow-hidden`}>
           {!sidebarCollapsed && (
-            <div className="flex-1 overflow-hidden">
-              {filesLoading ? (
-                <div className="flex items-center justify-center h-32">
-                  <ArrowPathIcon className="w-5 h-5 text-blue-400 animate-spin" />
-                  <span className="text-white/60 text-sm mr-2">بارگذاری فایل‌ها...</span>
-                </div>
-              ) : filesError ? (
-                <div className="p-4 text-center">
-                  <p className="text-red-400 text-sm mb-2">خطا در بارگذاری فایل‌ها</p>
-                  <button
-                    onClick={refetchFiles}
-                    className="text-blue-400 hover:text-blue-300 text-sm underline"
-                  >
-                    تلاش مجدد
-                  </button>
-                </div>
-              ) : fileTree.length === 0 ? (
-                <div className="p-4 text-center">
-                  <FolderIcon className="w-12 h-12 text-white/30 mx-auto mb-2" />
-                  <p className="text-white/60 text-sm">فایلی یافت نشد</p>
-                </div>
-              ) : (
-                <FileTree
-                  files={fileTree}
-                  selectedFile={selectedFile}
-                  onFileSelect={handleFileSelect}
-                  className="h-full"
-                />
-              )}
+            <div className="h-full glass-card flex flex-col">
+              {/* Sidebar Header */}
+              <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <h2 className="text-lg font-semibold text-white">ساختار پروژه</h2>
+                <button
+                  onClick={() => setSidebarCollapsed(true)}
+                  className="p-1 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors duration-200"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
+              
+              {/* File Tree */}
+              <div className="flex-1 overflow-auto">
+                {filesError ? (
+                  <div className="p-4 text-center">
+                    <p className="text-red-400 text-sm mb-2">خطا در بارگذاری فایل‌ها</p>
+                    <button
+                      onClick={refetchFiles}
+                      className="text-blue-400 hover:text-blue-300 text-sm underline"
+                    >
+                      تلاش مجدد
+                    </button>
+                  </div>
+                ) : fileTree.length === 0 ? (
+                  <div className="p-4 text-center">
+                    <FolderIcon className="w-12 h-12 text-white/30 mx-auto mb-2" />
+                    <p className="text-white/60 text-sm">فایلی یافت نشد</p>
+                  </div>
+                ) : (
+                  <FileTree
+                    files={fileTree}
+                    selectedFile={selectedFile}
+                    onFileSelect={handleFileSelect}
+                    className="h-full"
+                  />
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -415,7 +407,7 @@ const ProjectDetailPage: React.FC = () => {
                           .map(([type, count]) => (
                             <div key={type} className="bg-white/5 rounded-lg p-3">
                               <div className="text-blue-400 font-medium">.{type}</div>
-                              <div className="text-white/80 text-sm">{count.toString()} فایل</div>
+                              <div className="text-white/80 text-sm">{Number(count)} فایل</div>
                             </div>
                           ))}
                       </div>
