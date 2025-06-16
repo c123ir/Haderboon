@@ -1,4 +1,4 @@
-// components/FileTree.tsx
+// components/FileTree.tsx - اگر این فایل موجود نیست
 import React, { useState, useMemo } from 'react';
 import {
   ChevronRightIcon,
@@ -8,9 +8,6 @@ import {
   DocumentIcon,
   CodeBracketIcon,
   PhotoIcon,
-  MusicalNoteIcon,
-  VideoCameraIcon,
-  ArchiveBoxIcon,
 } from '@heroicons/react/24/outline';
 
 interface FileNode {
@@ -39,14 +36,6 @@ const FileTree: React.FC<FileTreeProps> = ({
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
-  // Auto-expand root level folders
-  React.useEffect(() => {
-    const rootFolders = files
-      .filter(file => file.type === 'directory')
-      .map(folder => folder.path);
-    setExpandedFolders(new Set(rootFolders));
-  }, [files]);
-
   const toggleFolder = (path: string) => {
     const newExpanded = new Set(expandedFolders);
     if (newExpanded.has(path)) {
@@ -69,85 +58,22 @@ const FileTree: React.FC<FileTreeProps> = ({
     switch (extension) {
       case 'ts':
       case 'tsx':
-        return <CodeBracketIcon className="w-4 h-4 text-blue-500" />;
       case 'js':
       case 'jsx':
         return <CodeBracketIcon className="w-4 h-4 text-yellow-500" />;
-      case 'html':
-        return <CodeBracketIcon className="w-4 h-4 text-orange-500" />;
-      case 'css':
-      case 'scss':
-      case 'sass':
-        return <CodeBracketIcon className="w-4 h-4 text-pink-500" />;
-      case 'json':
-        return <CodeBracketIcon className="w-4 h-4 text-green-500" />;
-      case 'md':
-      case 'txt':
-        return <DocumentIcon className="w-4 h-4 text-gray-400" />;
       case 'png':
       case 'jpg':
       case 'jpeg':
       case 'gif':
-      case 'svg':
         return <PhotoIcon className="w-4 h-4 text-purple-500" />;
-      case 'mp3':
-      case 'wav':
-      case 'ogg':
-        return <MusicalNoteIcon className="w-4 h-4 text-green-600" />;
-      case 'mp4':
-      case 'avi':
-      case 'mov':
-        return <VideoCameraIcon className="w-4 h-4 text-red-500" />;
-      case 'zip':
-      case 'rar':
-      case 'tar':
-        return <ArchiveBoxIcon className="w-4 h-4 text-orange-600" />;
       default:
         return <DocumentIcon className="w-4 h-4 text-gray-400" />;
     }
   };
 
-  const getFileSize = (size?: number) => {
-    if (!size) return '';
-    
-    if (size < 1024) return `${size} B`;
-    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-    if (size < 1024 * 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-    return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-  };
-
   const buildTree = (flatFiles: FileNode[]): FileNode[] => {
-    const tree: FileNode[] = [];
-    const map = new Map<string, FileNode>();
-
-    // Create all nodes
-    flatFiles.forEach(file => {
-      const node: FileNode = {
-        ...file,
-        children: file.type === 'directory' ? [] : undefined
-      };
-      map.set(file.path, node);
-    });
-
-    // Build hierarchy
-    flatFiles.forEach(file => {
-      const node = map.get(file.path)!;
-      const pathParts = file.path.split('/').filter(Boolean);
-      
-      if (pathParts.length === 1) {
-        // Root level
-        tree.push(node);
-      } else {
-        // Find parent
-        const parentPath = pathParts.slice(0, -1).join('/');
-        const parent = map.get(parentPath);
-        if (parent && parent.children) {
-          parent.children.push(node);
-        }
-      }
-    });
-
-    return tree;
+    // Simple implementation - just return the files as-is for now
+    return flatFiles.filter(file => !file.path.includes('/'));
   };
 
   const treeData = useMemo(() => buildTree(files), [files]);
@@ -161,7 +87,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       <div key={node.path}>
         <div
           className={`
-            flex items-center cursor-pointer hover:bg-white/5 transition-colors duration-150
+            flex items-center cursor-pointer hover:bg-white/5 transition-colors duration-150 py-1
             ${isSelected ? 'bg-blue-500/20 border-r-2 border-blue-400' : ''}
           `}
           style={{ paddingLeft: `${paddingLeft}px` }}
@@ -174,13 +100,7 @@ const FileTree: React.FC<FileTreeProps> = ({
           }}
         >
           {node.type === 'directory' && (
-            <button
-              className="p-1 hover:bg-white/10 rounded"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleFolder(node.path);
-              }}
-            >
+            <button className="p-1">
               {isExpanded ? (
                 <ChevronDownIcon className="w-3 h-3 text-white/60" />
               ) : (
@@ -189,32 +109,13 @@ const FileTree: React.FC<FileTreeProps> = ({
             </button>
           )}
           
-          <div className="flex items-center flex-1 py-1 px-2 min-w-0">
+          <div className="flex items-center flex-1 px-2 min-w-0">
             {getFileIcon(node)}
-            <span className="text-white text-sm ml-2 truncate flex-1">
+            <span className="text-white text-sm ml-2 truncate">
               {node.name}
             </span>
-            {node.size && (
-              <span className="text-white/40 text-xs ml-auto">
-                {getFileSize(node.size)}
-              </span>
-            )}
           </div>
         </div>
-
-        {node.type === 'directory' && isExpanded && node.children && (
-          <div>
-            {node.children
-              .sort((a, b) => {
-                // Directories first, then files
-                if (a.type !== b.type) {
-                  return a.type === 'directory' ? -1 : 1;
-                }
-                return a.name.localeCompare(b.name);
-              })
-              .map(child => renderNode(child, depth + 1))}
-          </div>
-        )}
       </div>
     );
   };
@@ -222,15 +123,7 @@ const FileTree: React.FC<FileTreeProps> = ({
   return (
     <div className={`overflow-auto h-full ${className}`} dir="ltr">
       <div className="p-2">
-        {treeData
-          .sort((a, b) => {
-            // Directories first, then files
-            if (a.type !== b.type) {
-              return a.type === 'directory' ? -1 : 1;
-            }
-            return a.name.localeCompare(b.name);
-          })
-          .map(node => renderNode(node))}
+        {treeData.map(node => renderNode(node))}
       </div>
     </div>
   );
