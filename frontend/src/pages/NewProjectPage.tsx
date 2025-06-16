@@ -307,7 +307,7 @@ const NewProjectPage: React.FC = () => {
       alert('لطفاً حداقل یک فایل آپلود کنید');
       return;
 
-                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none"
+             //   className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none"
                 disabled={isUploading}
                 maxLength={500}
               />
