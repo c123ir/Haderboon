@@ -194,12 +194,21 @@ const validateFileList = (files: FileList | File[]): {
   return { validFiles, invalidFiles, totalSize };
 };
 
+// API response interface
+interface ApiResponse {
+  success: boolean;
+  message?: string;
+  token?: string;
+  user?: any;
+  data?: any;
+}
+
 // API methods
 export const apiService = {
   // Authentication
   async demoLogin(): Promise<any> {
     try {
-      const data = await api.post('/auth/demo-login');
+      const data = await api.post('/auth/demo-login') as ApiResponse;
       
       if (data.success && data.token) {
         localStorage.setItem('haderboon_token', data.token);
