@@ -45,6 +45,7 @@ This document provides the core rules and architectural guidelines for the "Hade
   cd /Users/imac2019/My-Apps/Haderboon/frontend && npm start
 
 
+
 ## 3. Frontend Technology Stack
 - **Framework:** React 18.2
 - **Language:** TypeScript
