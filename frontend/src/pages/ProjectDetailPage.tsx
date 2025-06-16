@@ -355,16 +355,16 @@ const ProjectDetailPage: React.FC = () => {
 
         {/* Main Panel */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Tabs */}
-          <div className="flex items-center border-b border-white/10 px-4">
-            sidebarCollapsed && (
-              <button
-                onClick={() => setSidebarCollapsed(false)}
-                className="text-white/60 hover:text-white p-2 ml-2"
-              >
-                <Bars3Icon className="w-4 h-4" />
-              </button>
-            )}
+                     {/* Tabs */}
+           <div className="flex items-center border-b border-white/10 px-4">
+             {sidebarCollapsed && (
+               <button
+                 onClick={() => setSidebarCollapsed(false)}
+                 className="text-white/60 hover:text-white p-2 ml-2"
+               >
+                 <Bars3Icon className="w-4 h-4" />
+               </button>
+             )}
             
             {[
               { id: 'files', label: 'نمایش فایل', icon: EyeIcon },
