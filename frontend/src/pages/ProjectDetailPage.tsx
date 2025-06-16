@@ -59,7 +59,7 @@ const ProjectDetailPage: React.FC = () => {
   const [isReanalyzing, setIsReanalyzing] = useState(false);
 
   // Event handlers
-  const handleFileSelect = useCallback(async (file: FileNode) => {
+  const handleFileSelect = useCallback(async (file: any) => {
     console.log('🔍 File select called with:', file);
     console.log('📦 Current project:', project);
     console.log('🆔 Project ID:', project?.id);
@@ -132,8 +132,8 @@ const ProjectDetailPage: React.FC = () => {
     refetchFiles();
   };
 
-  // Data processing
-  const fileTree: FileNode[] = React.useMemo(() => {
+  // Data processing - Convert files for FileTreeViewer
+  const processedFiles = React.useMemo(() => {
     if (!files || files.length === 0) return [];
     
     return files.map((file: any) => ({
@@ -144,7 +144,7 @@ const ProjectDetailPage: React.FC = () => {
       size: file.size,
       fileType: file.type,
       lastModified: file.updatedAt,
-      children: file.isDirectory ? [] : undefined
+      isDirectory: file.isDirectory
     }));
   }, [files]);
 
@@ -299,16 +299,16 @@ const ProjectDetailPage: React.FC = () => {
                       تلاش مجدد
                     </button>
                   </div>
-                ) : fileTree.length === 0 ? (
+                ) : processedFiles.length === 0 ? (
                   <div className="p-4 text-center">
                     <FolderIcon className="w-12 h-12 text-white/30 mx-auto mb-2" />
                     <p className="text-white/60 text-sm">فایلی یافت نشد</p>
                   </div>
                 ) : (
-                  <FileTree
-                    files={fileTree}
-                    selectedFile={selectedFile}
+                  <FileTreeViewer
+                    files={processedFiles}
                     onFileSelect={handleFileSelect}
+                    selectedFileId={selectedFile ? processedFiles.find(f => f.path === selectedFile)?.id : undefined}
                     className="h-full"
                   />
                 )}
