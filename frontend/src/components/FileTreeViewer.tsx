@@ -36,16 +36,35 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
   const [fileTree, setFileTree] = useState<FileTreeNode[]>([]);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
-  const buildFileTree = useCallback((files: any[]): FileTreeNode[] => {
+    const buildFileTree = useCallback((files: any[]): FileTreeNode[] => {
     const tree: { [key: string]: FileTreeNode } = {};
     
     console.log('🌳 Building client-side file tree from', files.length, 'files');
+    console.log('📁 Sample files:', files.slice(0, 3).map(f => ({ path: f.path, name: f.name })));
     
     files.forEach(file => {
       const pathParts = file.path.split('/').filter(Boolean);
       let currentPath = '';
       
-             pathParts.forEach((part: string, index: number) => {
+      // Handle root level files (no slash in path)
+      if (pathParts.length === 1) {
+        // This is a root level file
+        tree[file.path] = {
+          id: file.id,
+          name: file.name,
+          path: file.path,
+          type: 'file',
+          size: parseInt(file.size?.toString() || '0'),
+          children: undefined,
+          fileType: file.type,
+          analysis: file.analysis,
+          lastModified: file.updatedAt
+        };
+        return;
+      }
+      
+      // Handle nested files
+      pathParts.forEach((part: string, index: number) => {
         const isFile = index === pathParts.length - 1;
         const fullPath = currentPath ? `${currentPath}/${part}` : part;
         
@@ -91,6 +110,7 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
     const rootNodes = Object.values(tree).filter(node => !node.path.includes('/'));
     
     console.log('✅ Built tree with', rootNodes.length, 'root nodes');
+    console.log('📄 Root level files:', rootNodes.map(n => n.name));
     return rootNodes;
   }, []);
 
