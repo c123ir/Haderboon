@@ -51,7 +51,7 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
       // Build all parent directories first
       let currentPath = '';
       
-      pathParts.forEach((part, index) => {
+      pathParts.forEach((part: string, index: number) => {
         const isLastPart = index === pathParts.length - 1;
         const nodePath = currentPath ? `${currentPath}/${part}` : part;
         
