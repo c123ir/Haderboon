@@ -13,7 +13,7 @@ import {
   TrashIcon,
   PencilIcon,
 } from '@heroicons/react/24/outline';
-import apiService from '../services/api';
+import { apiService } from '../services/api';
 import { Project } from '../types';
 
 const ProjectsPage: React.FC = () => {
