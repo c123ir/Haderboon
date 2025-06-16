@@ -308,7 +308,7 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
       overSizeLimit: totalSize > MAX_TOTAL_SIZE,
       sizePercentage: Math.round((totalSize / MAX_TOTAL_SIZE) * 100)
     };
-  }, [files, selectedFiles, validateFile]);
+  }, [files, selectedFiles, validateFile, MAX_TOTAL_SIZE]);
 
   const handleConfirm = () => {
     const confirmedFiles = files.filter(file => 
