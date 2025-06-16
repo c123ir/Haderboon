@@ -17,6 +17,32 @@ This document provides the core rules and architectural guidelines for the "Hade
 
 ---
 
+## 2. Run backend & frontend
+- **CRITICAL**: Before running any project commands, you MUST execute them directly from the correct absolute path.
+- **For Backend**:  
+  1. Always run the following command to start the backend server:  
+     ```bash
+     cd /Users/imac2019/My-Apps/Haderboon/backend && npm run dev
+     ```
+  2. The backend runs on port `5550`.
+
+- **For Frontend**:  
+  1. Always run the following command to start the frontend server:  
+     ```bash
+     cd /Users/imac2019/My-Apps/Haderboon/frontend && npm start
+     ```
+  2. The frontend runs on port `3550`.
+
+- **Before starting**: Always ask the user (in Persian) to exit or stop any previously running instance of the project.
+- **Never run commands from the wrong directory**: This is a common mistake that causes execution failures.
+
+- **Quick Command Reference**:
+  ```bash
+  # Start backend
+  cd /Users/imac2019/My-Apps/Haderboon/backend && npm run dev
+
+  # Start frontend (in a separate terminal)
+  cd /Users/imac2019/My-Apps/Haderboon/frontend && npm start
 
 
 ## 2. Frontend Technology Stack
@@ -64,29 +90,3 @@ This document provides the core rules and architectural guidelines for the "Hade
 
 —-
 
-## 8. Run backend & frontend
-- **CRITICAL**: Before running any project commands, you MUST execute them directly from the correct absolute path.
-- **For Backend**:  
-  1. Always run the following command to start the backend server:  
-     ```bash
-     cd /Users/imac2019/My-Apps/Haderboon/backend && npm run dev
-     ```
-  2. The backend runs on port `5550`.
-
-- **For Frontend**:  
-  1. Always run the following command to start the frontend server:  
-     ```bash
-     cd /Users/imac2019/My-Apps/Haderboon/frontend && npm start
-     ```
-  2. The frontend runs on port `3550`.
-
-- **Before starting**: Always ask the user (in Persian) to exit or stop any previously running instance of the project.
-- **Never run commands from the wrong directory**: This is a common mistake that causes execution failures.
-
-- **Quick Command Reference**:
-  ```bash
-  # Start backend
-  cd /Users/imac2019/My-Apps/Haderboon/backend && npm run dev
-
-  # Start frontend (in a separate terminal)
-  cd /Users/imac2019/My-Apps/Haderboon/frontend && npm start
