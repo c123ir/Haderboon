@@ -55,3 +55,4 @@ This document provides the core rules and architectural guidelines for the "Hade
 
 ## 7. Always Test & Run Project in backend & frontend Haderboon
 For Test & Run bacend From Haderboon Directory ==> cd backend ==> npm run dev
+For Test & Run frontend From Haderboon Directory ==> cd frontend  ==> npm start
