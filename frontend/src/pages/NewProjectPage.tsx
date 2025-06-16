@@ -1,6 +1,6 @@
-// frontend/src/pages/NewProjectPage.tsx
+// frontend/src/pages/NewProjectPage.tsx - بهبود یافته
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CloudArrowUpIcon,
@@ -9,6 +9,8 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   XMarkIcon,
+  InformationCircleIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import apiService, { authHelpers } from '../services/api';
 import FileSelectionModal from '../components/FileSelectionModal';
@@ -18,6 +20,15 @@ interface UploadedFile {
   size: number;
   type: string;
   file: File;
+  status: 'pending' | 'valid' | 'invalid' | 'uploading' | 'uploaded' | 'error';
+  error?: string;
+}
+
+interface UploadProgress {
+  step: number;
+  totalSteps: number;
+  message: string;
+  percentage: number;
 }
 
 const NewProjectPage: React.FC = () => {
@@ -32,11 +43,23 @@ const NewProjectPage: React.FC = () => {
   const [uploadMode, setUploadMode] = useState<'files' | 'directory'>('files');
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
+    step: 0,
+    totalSteps: 5,
+    message: '',
+    percentage: 0
+  });
 
   const [loginError, setLoginError] = useState<string | null>(null);
   const [showFileModal, setShowFileModal] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [totalSize, setTotalSize] = useState(0);
+
+  // Constants
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_TOTAL_SIZE = 500 * 1024 * 1024; // 500MB
+  const MAX_FILES = 1000;
 
   // Check authentication on component mount
   useEffect(() => {
@@ -56,6 +79,64 @@ const NewProjectPage: React.FC = () => {
 
     checkAuth();
   }, []);
+
+  // Calculate total size when files change
+  useEffect(() => {
+    const total = uploadedFiles.reduce((sum, file) => sum + file.size, 0);
+    setTotalSize(total);
+  }, [uploadedFiles]);
+
+  // Validation functions
+  const validateFile = useCallback((file: File): { valid: boolean; error?: string } => {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      return { valid: false, error: `فایل بیش از حد مجاز بزرگ است (حداکثر ${formatFileSize(MAX_FILE_SIZE)})` };
+    }
+
+    // Check if it's node_modules
+    const path = file.webkitRelativePath || file.name;
+    if (path.includes('node_modules/')) {
+      return { valid: false, error: 'فایل‌های node_modules مجاز نیستند' };
+    }
+
+    // Check for dangerous files
+    const dangerousExtensions = ['.exe', '.bat', '.cmd', '.scr', '.vbs', '.com'];
+    const extension = getFileExtension(file.name);
+    if (dangerousExtensions.includes(extension)) {
+      return { valid: false, error: 'نوع فایل امن نیست' };
+    }
+
+    return { valid: true };
+  }, []);
+
+  const validateAllFiles = useCallback((files: UploadedFile[]): string[] => {
+    const errors: string[] = [];
+
+    // Check total number of files
+    if (files.length > MAX_FILES) {
+      errors.push(`تعداد فایل‌ها بیش از حد مجاز است (حداکثر ${MAX_FILES} فایل)`);
+    }
+
+    // Check total size
+    const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+    if (totalSize > MAX_TOTAL_SIZE) {
+      errors.push(`حجم کل فایل‌ها بیش از حد مجاز است (حداکثر ${formatFileSize(MAX_TOTAL_SIZE)})`);
+    }
+
+    // Check for duplicate files
+    const filePaths = files.map(f => f.name);
+    const duplicates = filePaths.filter((path, index) => filePaths.indexOf(path) !== index);
+    if (duplicates.length > 0) {
+      errors.push(`فایل‌های تکراری یافت شد: ${duplicates.slice(0, 3).join(', ')}${duplicates.length > 3 ? '...' : ''}`);
+    }
+
+    return errors;
+  }, []);
+
+  const updateUploadProgress = (step: number, message: string) => {
+    const percentage = Math.round((step / 5) * 100);
+    setUploadProgress({ step, totalSteps: 5, message, percentage });
+  };
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -86,16 +167,18 @@ const NewProjectPage: React.FC = () => {
   const handleDirectoryInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // Get directory path from first file
       const firstFile = files[0];
-      // Extract directory path (remove file name)
-      const directoryPath = firstFile.webkitRelativePath.split('/')[0];
-      setSelectedDirectory(directoryPath);
+      let directoryPath = '';
       
-      // Store directory info for future use
+      if (firstFile.webkitRelativePath) {
+        directoryPath = firstFile.webkitRelativePath.split('/')[0];
+      } else {
+        directoryPath = 'uploaded-directory';
+      }
+      
+      setSelectedDirectory(directoryPath);
       localStorage.setItem('lastSelectedDirectory', directoryPath);
       
-      // Store all files and show modal for selection
       const fileArray = Array.from(files);
       setPendingFiles(fileArray);
       setShowFileModal(true);
@@ -103,48 +186,57 @@ const NewProjectPage: React.FC = () => {
   };
 
   const handleFileModalConfirm = (selectedFiles: File[]) => {
-    const newFiles: UploadedFile[] = selectedFiles.map(file => ({
-      name: file.webkitRelativePath || file.name,
-      size: file.size,
-      type: file.type || getFileType(file.name),
-      file,
-    }));
+    const newFiles: UploadedFile[] = selectedFiles.map(file => {
+      const validation = validateFile(file);
+      return {
+        name: file.webkitRelativePath || file.name,
+        size: file.size,
+        type: file.type || getFileType(file.name),
+        file,
+        status: validation.valid ? 'valid' : 'invalid',
+        error: validation.error
+      };
+    });
     
     setUploadedFiles(newFiles);
     setShowFileModal(false);
-    // selectedDirectory را حفظ می‌کنیم - پاک نمی‌کنیم
+    
+    // Validate all files
+    const errors = validateAllFiles(newFiles);
+    setValidationErrors(errors);
   };
 
   const handleFileModalClose = () => {
     setShowFileModal(false);
     setPendingFiles([]);
-    // selectedDirectory را فقط در صورت انصراف پاک می‌کنیم
     setSelectedDirectory('');
     setUploadedFiles([]);
-    // Reset the file input
+    setValidationErrors([]);
+    
     if (directoryInputRef.current) {
       directoryInputRef.current.value = '';
     }
   };
 
-  // Function to check if file should be ignored (only node_modules) - حذف شد چون در backend انجام می‌شود
-  // const shouldIgnoreFile = (filePath: string): boolean => {
-  //   const ignoredPatterns = [
-  //     'node_modules/'
-  //   ];
-  //   
-  //   return ignoredPatterns.some(pattern => filePath.includes(pattern));
-  // };
-
   const handleFiles = (files: File[]) => {
-    const newFiles: UploadedFile[] = files.map(file => ({
-      name: file.name,
-      size: file.size,
-      type: file.type || getFileType(file.name),
-      file,
-    }));
+    const newFiles: UploadedFile[] = files.map(file => {
+      const validation = validateFile(file);
+      return {
+        name: file.name,
+        size: file.size,
+        type: file.type || getFileType(file.name),
+        file,
+        status: validation.valid ? 'valid' : 'invalid',
+        error: validation.error
+      };
+    });
     
-    setUploadedFiles(prev => [...prev, ...newFiles]);
+    setUploadedFiles(prev => {
+      const combined = [...prev, ...newFiles];
+      const errors = validateAllFiles(combined);
+      setValidationErrors(errors);
+      return combined;
+    });
   };
 
   const getFileType = (fileName: string): string => {
@@ -167,6 +259,10 @@ const NewProjectPage: React.FC = () => {
     return typeMap[extension || ''] || 'Unknown';
   };
 
+  const getFileExtension = (fileName: string): string => {
+    return '.' + fileName.split('.').pop()?.toLowerCase() || '';
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -176,12 +272,23 @@ const NewProjectPage: React.FC = () => {
   };
 
   const removeFile = (index: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    setUploadedFiles(prev => {
+      const newFiles = prev.filter((_, i) => i !== index);
+      const errors = validateAllFiles(newFiles);
+      setValidationErrors(errors);
+      return newFiles;
+    });
+  };
+
+  const retryUpload = () => {
+    setIsUploading(false);
+    setUploadProgress({ step: 0, totalSteps: 5, message: '', percentage: 0 });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Basic validation
     if (!projectName.trim()) {
       alert('لطفاً نام پروژه را وارد کنید');
       return;
@@ -197,13 +304,26 @@ const NewProjectPage: React.FC = () => {
       return;
     }
 
+    // Check for validation errors
+    if (validationErrors.length > 0) {
+      alert('لطفاً ابتدا خطاهای موجود را برطرف کنید');
+      return;
+    }
+
+    // Check for invalid files
+    const invalidFiles = uploadedFiles.filter(f => f.status === 'invalid');
+    if (invalidFiles.length > 0) {
+      alert(`${invalidFiles.length} فایل نامعتبر وجود دارد. لطفاً آنها را حذف کنید`);
+      return;
+    }
+
     setIsUploading(true);
-    setUploadProgress(0);
     
     try {
       // Step 1: Create project
-      setUploadProgress(10);
+      updateUploadProgress(1, 'ایجاد پروژه...');
       console.log('🚀 شروع ایجاد پروژه...');
+      
       const projectResponse = await apiService.createProject({
         name: projectName.trim(),
         description: projectDescription.trim() || undefined
@@ -216,58 +336,50 @@ const NewProjectPage: React.FC = () => {
       const projectId = projectResponse.data.id;
       console.log('✅ پروژه ایجاد شد:', projectId);
       
-      // Step 2: Upload files
-      setUploadProgress(25);
-      console.log('📤 شروع آپلود فایل‌ها...');
+      // Step 2: Prepare files
+      updateUploadProgress(2, 'آماده‌سازی فایل‌ها...');
+      
+      const validFiles = uploadedFiles.filter(f => f.status === 'valid');
+      console.log(`📤 آماده‌سازی ${validFiles.length} فایل برای آپلود...`);
+      
+      // Step 3: Upload files
+      updateUploadProgress(3, 'آپلود فایل‌ها...');
       
       let uploadResponse;
       
       if (uploadMode === 'directory') {
-        // Directory upload mode
-        // اگر selectedDirectory خالی است، از اولین فایل استخراج کن
         let directoryName = selectedDirectory;
-        if (!directoryName && uploadedFiles.length > 0) {
-          const firstFile = uploadedFiles[0];
+        if (!directoryName && validFiles.length > 0) {
+          const firstFile = validFiles[0];
           if (firstFile.name.includes('/')) {
             directoryName = firstFile.name.split('/')[0];
           } else if (firstFile.file.webkitRelativePath) {
             directoryName = firstFile.file.webkitRelativePath.split('/')[0];
           } else {
-            directoryName = 'uploaded-files'; // نام پیش‌فرض
+            directoryName = 'uploaded-files';
           }
         }
         
-        // اگر هنوز هم خالی است، از localStorage بخوان
         if (!directoryName) {
           directoryName = localStorage.getItem('lastSelectedDirectory') || 'uploaded-directory';
         }
         
-        console.log('📁 آپلود پوشه:', directoryName, `(${uploadedFiles.length} فایل)`);
-        console.log('🔍 Debug - selectedDirectory:', selectedDirectory);
-        console.log('🔍 Debug - uploadedFiles[0].name:', uploadedFiles[0]?.name);
-        setUploadProgress(35);
+        console.log('📁 آپلود پوشه:', directoryName, `(${validFiles.length} فایل)`);
         
-        // For web browsers, we use the files from directory input with preserved paths
-        const fileList = uploadedFiles.map(uf => uf.file);
+        const fileList = validFiles.map(uf => uf.file);
         const dt = new DataTransfer();
         fileList.forEach(file => dt.items.add(file));
         
-        setUploadProgress(50);
         uploadResponse = await apiService.uploadLocalDirectory(projectId, dt.files, directoryName);
       } else {
-        // File upload mode
-        const zipFiles = uploadedFiles.filter(f => f.name.toLowerCase().endsWith('.zip'));
+        const zipFiles = validFiles.filter(f => f.name.toLowerCase().endsWith('.zip'));
         
-        if (zipFiles.length === 1 && uploadedFiles.length === 1) {
-          // Single ZIP file - use uploadProjectZip
+        if (zipFiles.length === 1 && validFiles.length === 1) {
           console.log('📦 آپلود فایل ZIP:', zipFiles[0].name);
-          setUploadProgress(50);
           uploadResponse = await apiService.uploadProjectZip(projectId, zipFiles[0].file);
         } else {
-          // Multiple files or non-ZIP files - use regular upload
-          console.log('📁 آپلود فایل‌های متعدد:', uploadedFiles.length);
-          setUploadProgress(50);
-          const fileList = uploadedFiles.map(uf => uf.file);
+          console.log('📁 آپلود فایل‌های متعدد:', validFiles.length);
+          const fileList = validFiles.map(uf => uf.file);
           const dt = new DataTransfer();
           fileList.forEach(file => dt.items.add(file));
           uploadResponse = await apiService.uploadFiles(projectId, dt.files);
@@ -279,12 +391,10 @@ const NewProjectPage: React.FC = () => {
       }
 
       console.log('✅ آپلود فایل‌ها تکمیل شد');
-      setUploadProgress(90);
       
-      // Step 3: Finalization
-      setUploadProgress(95);
+      // Step 4: Post-processing
+      updateUploadProgress(4, 'پردازش نهایی...');
       
-      // Start watching if directory mode was used
       if (uploadMode === 'directory') {
         try {
           console.log('👁️ شروع نظارت بر پروژه...');
@@ -295,35 +405,35 @@ const NewProjectPage: React.FC = () => {
         }
       }
 
-      setUploadProgress(100);
+      // Step 5: Complete
+      updateUploadProgress(5, 'تکمیل شد!');
       console.log('🎉 همه مراحل تکمیل شد!');
       
-      // Show success message
-      if (uploadMode === 'directory') {
-        alert('پروژه با موفقیت ایجاد شد و نظارت بر تغییرات فعال شد!');
-      } else {
-        alert('پروژه با موفقیت ایجاد شد!');
-      }
+      // Success message
+      const successMessage = uploadMode === 'directory' 
+        ? 'پروژه با موفقیت ایجاد شد و نظارت بر تغییرات فعال شد!'
+        : 'پروژه با موفقیت ایجاد شد!';
       
-      // Success - navigate to project
+      // Wait a moment then navigate
       setTimeout(() => {
+        alert(successMessage);
         navigate(`/projects/${projectId}`);
-      }, 1500);
+      }, 1000);
       
     } catch (error: any) {
       console.error('خطا در ایجاد پروژه:', error);
-      alert(error.message || 'خطا در ایجاد پروژه');
+      const errorMessage = error.response?.data?.error || error.message || 'خطا در ایجاد پروژه';
+      alert(errorMessage);
       setIsUploading(false);
-      setUploadProgress(0);
+      setUploadProgress({ step: 0, totalSteps: 5, message: '', percentage: 0 });
     }
   };
-
-  const totalSize = uploadedFiles.reduce((sum, file) => sum + file.size, 0);
 
   // Show login error if exists
   if (loginError) {
     return (
       <div className="max-w-4xl mx-auto text-center py-16">
+        <ExclamationTriangleIcon className="w-12 h-12 text-red-400 mx-auto mb-4" />
         <h2 className="text-xl font-semibold text-white mb-2">خطا در احراز هویت</h2>
         <p className="text-white/60 mb-6">{loginError}</p>
         <button
@@ -336,8 +446,15 @@ const NewProjectPage: React.FC = () => {
     );
   }
 
+  const validFilesCount = uploadedFiles.filter(f => f.status === 'valid').length;
+  const invalidFilesCount = uploadedFiles.filter(f => f.status === 'invalid').length;
+  const canSubmit = !isUploading && 
+                   projectName.trim() && 
+                   validFilesCount > 0 && 
+                   validationErrors.length === 0;
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white">پروژه جدید</h1>
@@ -364,7 +481,11 @@ const NewProjectPage: React.FC = () => {
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                 required
                 disabled={isUploading}
+                maxLength={100}
               />
+              <p className="text-xs text-white/40 mt-1">
+                {projectName.length}/100 کاراکتر
+              </p>
             </div>
             
             <div>
@@ -378,7 +499,11 @@ const NewProjectPage: React.FC = () => {
                 rows={3}
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none"
                 disabled={isUploading}
+                maxLength={500}
               />
+              <p className="text-xs text-white/40 mt-1">
+                {projectDescription.length}/500 کاراکتر
+              </p>
             </div>
           </div>
         </div>
@@ -394,6 +519,7 @@ const NewProjectPage: React.FC = () => {
                 setUploadMode('files');
                 setUploadedFiles([]);
                 setSelectedDirectory('');
+                setValidationErrors([]);
               }}
               disabled={isUploading}
               className={`p-4 rounded-lg border-2 transition-all duration-200 ${
@@ -413,6 +539,7 @@ const NewProjectPage: React.FC = () => {
                 setUploadMode('directory');
                 setUploadedFiles([]);
                 setSelectedDirectory('');
+                setValidationErrors([]);
               }}
               disabled={isUploading}
               className={`p-4 rounded-lg border-2 transition-all duration-200 ${
@@ -439,6 +566,8 @@ const NewProjectPage: React.FC = () => {
             className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors duration-200 ${
               dragActive
                 ? 'border-blue-400 bg-blue-500/10'
+                : validationErrors.length > 0
+                ? 'border-red-400 bg-red-500/10'
                 : 'border-white/30 hover:border-white/50'
             } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
             onDragEnter={handleDrag}
@@ -488,9 +617,7 @@ const NewProjectPage: React.FC = () => {
               multiple
               onChange={handleFileInput}
               className="hidden"
-              accept=".js,.ts,.jsx,.tsx,.vue,.py,.java,.html,.css,.scss,.json,.md,.txt,.zip"
               disabled={isUploading}
-              style={{ display: uploadMode === 'files' ? 'none' : 'none' }}
             />
             
             <input
@@ -500,7 +627,6 @@ const NewProjectPage: React.FC = () => {
               onChange={handleDirectoryInput}
               className="hidden"
               disabled={isUploading}
-              style={{ display: uploadMode === 'directory' ? 'none' : 'none' }}
             />
           </div>
 
@@ -508,24 +634,52 @@ const NewProjectPage: React.FC = () => {
           {isUploading && (
             <div className="mt-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-white/70">
-                  {uploadProgress < 15 ? 'ایجاد پروژه...' :
-                   uploadProgress < 50 ? 'آماده‌سازی فایل‌ها...' :
-                   uploadProgress < 95 ? `آپلود فایل‌ها... (${uploadedFiles.length} فایل)` :
-                   'تکمیل نهایی...'}
+                <span className="text-white/70 text-sm">
+                  مرحله {uploadProgress.step} از {uploadProgress.totalSteps}: {uploadProgress.message}
                 </span>
-                <span className="text-white/70">{uploadProgress}%</span>
+                <span className="text-white/70 text-sm">{uploadProgress.percentage}%</span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-3">
                 <div 
                   className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out relative overflow-hidden"
-                  style={{ width: `${uploadProgress}%` }}
+                  style={{ width: `${uploadProgress.percentage}%` }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-pulse"></div>
                 </div>
               </div>
-              <div className="mt-2 text-xs text-white/50 text-center">
-                {uploadedFiles.length > 0 && `${uploadedFiles.length} فایل انتخاب شده`}
+              
+              {uploadedFiles.length > 0 && (
+                <div className="mt-2 text-xs text-white/50 text-center">
+                  {validFilesCount} فایل معتبر از {uploadedFiles.length} فایل انتخاب شده
+                </div>
+              )}
+              
+              <div className="mt-3 text-center">
+                <button
+                  type="button"
+                  onClick={retryUpload}
+                  className="text-white/60 hover:text-white text-sm underline inline-flex items-center"
+                >
+                  <ArrowPathIcon className="w-4 h-4 ml-1" />
+                  لغو و تلاش مجدد
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <div className="mt-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <div className="flex items-start">
+                <ExclamationTriangleIcon className="w-5 h-5 text-red-400 ml-3 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="text-red-400 font-medium mb-2">خطاهای موجود:</h4>
+                  <ul className="space-y-1">
+                    {validationErrors.map((error, index) => (
+                      <li key={index} className="text-red-300 text-sm">• {error}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           )}
@@ -537,13 +691,16 @@ const NewProjectPage: React.FC = () => {
                 <h3 className="text-lg font-medium text-white">
                   پوشه انتخاب شده
                 </h3>
+                <span className="text-white/60 text-sm">
+                  {uploadedFiles.length} فایل
+                </span>
               </div>
               <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
                 <div className="flex items-center">
                   <FolderIcon className="w-5 h-5 text-blue-400 ml-3" />
                   <span className="text-white font-medium">{selectedDirectory}</span>
                   <span className="text-white/60 text-sm mr-auto">
-                    {uploadedFiles.length} فایل
+                    {formatFileSize(totalSize)}
                   </span>
                 </div>
               </div>
@@ -557,26 +714,50 @@ const NewProjectPage: React.FC = () => {
                 <h3 className="text-lg font-medium text-white">
                   فایل‌های انتخاب شده ({uploadedFiles.length})
                 </h3>
-                <span className="text-sm text-white/60">
-                  حجم کل: {formatFileSize(totalSize)}
-                </span>
+                <div className="flex items-center space-x-4 space-x-reverse text-sm">
+                  {validFilesCount > 0 && (
+                    <span className="text-green-400">✓ {validFilesCount} معتبر</span>
+                  )}
+                  {invalidFilesCount > 0 && (
+                    <span className="text-red-400">✗ {invalidFilesCount} نامعتبر</span>
+                  )}
+                  <span className="text-white/60">
+                    {formatFileSize(totalSize)}
+                  </span>
+                </div>
               </div>
               
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {uploadedFiles.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10"
+                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                      file.status === 'valid' 
+                        ? 'bg-white/5 border-white/10' 
+                        : 'bg-red-500/5 border-red-500/30'
+                    }`}
                   >
                     <div className="flex items-center flex-1">
+                      <div className={`w-2 h-2 rounded-full ml-3 flex-shrink-0 ${
+                        file.status === 'valid' ? 'bg-green-400' : 'bg-red-400'
+                      }`}></div>
                       <DocumentIcon className="w-5 h-5 text-blue-400 ml-3 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-medium truncate">
+                        <p className={`font-medium truncate ${
+                          file.status === 'valid' ? 'text-white' : 'text-red-300'
+                        }`}>
                           {file.name}
                         </p>
-                        <p className="text-white/60 text-sm">
-                          {file.type} • {formatFileSize(file.size)}
-                        </p>
+                        <div className="flex items-center space-x-2 space-x-reverse">
+                          <p className="text-white/60 text-sm">
+                            {file.type} • {formatFileSize(file.size)}
+                          </p>
+                          {file.error && (
+                            <p className="text-red-400 text-xs">
+                              {file.error}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                     
@@ -585,6 +766,7 @@ const NewProjectPage: React.FC = () => {
                         type="button"
                         onClick={() => removeFile(index)}
                         className="p-1 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors duration-200"
+                        title="حذف فایل"
                       >
                         <XMarkIcon className="w-4 h-4" />
                       </button>
@@ -594,16 +776,92 @@ const NewProjectPage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Upload Summary */}
+          {uploadedFiles.length > 0 && (
+            <div className="mt-6 p-4 bg-white/5 rounded-lg">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <p className="text-2xl font-bold text-white">{uploadedFiles.length}</p>
+                  <p className="text-white/60 text-sm">کل فایل‌ها</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-green-400">{validFilesCount}</p>
+                  <p className="text-white/60 text-sm">معتبر</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-red-400">{invalidFilesCount}</p>
+                  <p className="text-white/60 text-sm">نامعتبر</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-blue-400">{formatFileSize(totalSize)}</p>
+                  <p className="text-white/60 text-sm">حجم کل</p>
+                </div>
+              </div>
+              
+              {/* Progress bar for size limit */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white/60 text-sm">حجم استفاده شده</span>
+                  <span className="text-white/60 text-sm">
+                    {Math.round((totalSize / MAX_TOTAL_SIZE) * 100)}% از {formatFileSize(MAX_TOTAL_SIZE)}
+                  </span>
+                </div>
+                <div className="w-full bg-white/10 rounded-full h-2">
+                  <div 
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      totalSize > MAX_TOTAL_SIZE ? 'bg-red-500' : 'bg-blue-500'
+                    }`}
+                    style={{ width: `${Math.min((totalSize / MAX_TOTAL_SIZE) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Warning */}
-        <div className="flex items-start p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-          <ExclamationTriangleIcon className="w-5 h-5 text-yellow-400 ml-3 mt-0.5 flex-shrink-0" />
-          <div className="text-sm">
-            <p className="text-yellow-300 font-medium mb-1">نکته مهم:</p>
-            <p className="text-yellow-200/80">
-              فقط فایل‌های کد و مستندات پروژه را آپلود کنید. فایل‌های حساس مانند کلیدهای API، رمزهای عبور و اطلاعات شخصی را آپلود نکنید.
-            </p>
+        {/* Guidelines and Tips */}
+        <div className="glass-card">
+          <div className="flex items-start">
+            <InformationCircleIcon className="w-6 h-6 text-blue-400 ml-3 mt-1 flex-shrink-0" />
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">راهنما و نکات مهم</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="text-white font-medium mb-2">✅ فایل‌های پشتیبانی شده:</h4>
+                  <ul className="space-y-1 text-white/70 text-sm">
+                    <li>• کدهای برنامه‌نویسی: JS, TS, Python, Java, PHP</li>
+                    <li>• فایل‌های وب: HTML, CSS, JSON, XML</li>
+                    <li>• مستندات: MD, TXT, PDF</li>
+                    <li>• تصاویر: PNG, JPG, SVG</li>
+                    <li>• پیکربندی: ENV, CONFIG, YAML</li>
+                    <li>• آرشیو: ZIP, RAR</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="text-white font-medium mb-2">⚠️ محدودیت‌ها:</h4>
+                  <ul className="space-y-1 text-white/70 text-sm">
+                    <li>• حداکثر حجم هر فایل: {formatFileSize(MAX_FILE_SIZE)}</li>
+                    <li>• حداکثر حجم کل: {formatFileSize(MAX_TOTAL_SIZE)}</li>
+                    <li>• حداکثر تعداد فایل: {MAX_FILES.toLocaleString()}</li>
+                    <li>• فایل‌های node_modules مجاز نیستند</li>
+                    <li>• فایل‌های اجرایی (.exe, .bat) مجاز نیستند</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <h4 className="text-blue-400 font-medium mb-2">💡 توصیه‌های بهینه‌سازی:</h4>
+                <ul className="space-y-1 text-blue-300/80 text-sm">
+                  <li>• پوشه‌های غیرضروری (dist, build, .git) حذف می‌شوند</li>
+                  <li>• در حالت انتخاب پوشه، ساختار کامل حفظ می‌شود</li>
+                  <li>• فایل‌های ZIP به صورت خودکار استخراج می‌شوند</li>
+                  <li>• تحلیل کد فقط روی فایل‌های متنی انجام می‌شود</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -620,8 +878,12 @@ const NewProjectPage: React.FC = () => {
           
           <button
             type="submit"
-            disabled={isUploading || !projectName.trim() || (uploadMode === 'files' ? uploadedFiles.length === 0 : uploadedFiles.length === 0)}
-            className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+            disabled={!canSubmit}
+            className={`inline-flex items-center px-6 py-3 rounded-lg transition-all duration-200 ${
+              canSubmit
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg'
+                : 'bg-gray-600 cursor-not-allowed text-gray-300'
+            }`}
           >
             {isUploading ? (
               <>
@@ -631,47 +893,12 @@ const NewProjectPage: React.FC = () => {
             ) : (
               <>
                 <CheckCircleIcon className="w-4 h-4 ml-2" />
-                ایجاد پروژه
+                ایجاد پروژه ({validFilesCount} فایل)
               </>
             )}
           </button>
         </div>
       </form>
-
-      {/* Tips */}
-      <div className="glass-card">
-        <h3 className="text-lg font-semibold text-white mb-4">نکات مفید:</h3>
-        <ul className="space-y-2 text-white/70">
-          <li className="flex items-start">
-            <span className="text-blue-400 ml-2">•</span>
-            فایل‌های پشتیبانی شده: JavaScript, TypeScript, React, Vue, Python, Java, HTML, CSS و...
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-400 ml-2">•</span>
-            حداکثر حجم هر فایل: 10 مگابایت
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-400 ml-2">•</span>
-            هادربون به صورت خودکار ساختار پروژه را تشخیص می‌دهد
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-400 ml-2">•</span>
-            پوشه‌های غیرضروری مثل node_modules و .git به صورت خودکار نادیده گرفته می‌شوند
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-400 ml-2">•</span>
-            در حالت انتخاب پوشه، تمام زیرپوشه‌ها و فایل‌ها اسکن می‌شوند
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-400 ml-2">•</span>
-            پس از ایجاد، می‌توانید با دستیار چت کنید تا مستندات را بهبود دهید
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-400 ml-2">•</span>
-            فایل‌های ZIP نیز پشتیبانی می‌شوند و به صورت خودکار استخراج می‌شوند
-          </li>
-        </ul>
-      </div>
 
       {/* File Selection Modal */}
       <FileSelectionModal
