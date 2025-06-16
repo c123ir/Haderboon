@@ -353,11 +353,13 @@ const NewProjectPage: React.FC = () => {
       console.log('📦 Project Data:', projectResponse.data);
       
       // Extract project ID from nested response structure
-      let projectId;
+      let projectId: string;
       if (projectResponse.data?.data?.id) {
         projectId = projectResponse.data.data.id;
       } else if (projectResponse.data?.id) {
         projectId = projectResponse.data.id;
+      } else {
+        throw new Error('شناسه پروژه در پاسخ سرور یافت نشد');
       }
       
       console.log('🆔 Project ID:', projectId);
