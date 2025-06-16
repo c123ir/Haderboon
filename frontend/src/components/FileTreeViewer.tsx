@@ -33,69 +33,62 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
   selectedFileId,
   className = ""
 }) => {
-      const [fileTree, setFileTree] = useState<FileTreeNode[]>([]);
-    const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [fileTree, setFileTree] = useState<FileTreeNode[]>([]);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
-    const buildFileTree = useCallback((files: any[]): FileTreeNode[] => {
+  const buildFileTree = useCallback((files: any[]): FileTreeNode[] => {
+    console.log('🌳 Building file tree from', files.length, 'files');
+    console.log('📄 Sample files:', files.slice(0, 3).map(f => ({ path: f.path, name: f.name, type: f.type })));
+
     const tree: { [key: string]: FileTreeNode } = {};
-    
 
-    
     files.forEach(file => {
-      const pathParts = file.path.split('/').filter(Boolean);
+      console.log('📁 Processing file:', file.path);
+      
+      const fullPath = file.path;
+      const pathParts = fullPath.split('/').filter(Boolean);
+      
+      // Build all parent directories first
       let currentPath = '';
       
-      // Handle root level files (no slash in path)
-      if (pathParts.length === 1) {
-        // This is a root level file
-        tree[file.path] = {
-          id: file.id,
-          name: file.name,
-          path: file.path,
-          type: 'file',
-          size: parseInt(file.size?.toString() || '0'),
-          children: undefined,
-          fileType: file.type,
-          analysis: file.analysis,
-          lastModified: file.updatedAt
-        };
-        return;
-      }
-      
-      // Handle nested files
-      pathParts.forEach((part: string, index: number) => {
-        const isFile = index === pathParts.length - 1;
-        const fullPath = currentPath ? `${currentPath}/${part}` : part;
+      pathParts.forEach((part, index) => {
+        const isLastPart = index === pathParts.length - 1;
+        const nodePath = currentPath ? `${currentPath}/${part}` : part;
         
-        if (!tree[fullPath]) {
-          tree[fullPath] = {
-            id: isFile ? file.id : `dir_${fullPath.replace(/[^a-zA-Z0-9]/g, '_')}`,
+        if (!tree[nodePath]) {
+          tree[nodePath] = {
+            id: isLastPart ? file.id : `dir_${nodePath.replace(/[^a-zA-Z0-9]/g, '_')}`,
             name: part,
-            path: fullPath,
-            type: isFile ? 'file' : 'directory',
-            size: isFile ? parseInt(file.size?.toString() || '0') : undefined,
-            children: isFile ? undefined : [],
-            fileType: isFile ? file.type : undefined,
-            analysis: isFile ? file.analysis : undefined,
-            lastModified: isFile ? file.updatedAt : undefined
+            path: nodePath,
+            type: isLastPart ? 'file' : 'directory',
+            size: isLastPart ? parseInt(file.size?.toString() || '0') : undefined,
+            children: isLastPart ? undefined : [],
+            fileType: isLastPart ? file.type : undefined,
+            analysis: isLastPart ? file.analysis : undefined,
+            lastModified: isLastPart ? file.updatedAt : undefined
           };
+          
+          console.log(`📂 Created ${isLastPart ? 'file' : 'directory'}: ${nodePath}`);
         }
         
-        // Add to parent's children
+        // Add to parent's children if this is not root
         if (currentPath && tree[currentPath] && tree[currentPath].children) {
-          const existsInChildren = tree[currentPath].children!.some(child => child.path === fullPath);
+          const parentNode = tree[currentPath];
+          const existsInChildren = parentNode.children!.some(child => child.path === nodePath);
+          
           if (!existsInChildren) {
-            tree[currentPath].children!.push(tree[fullPath]);
+            parentNode.children!.push(tree[nodePath]);
+            console.log(`➡️ Added ${nodePath} to parent ${currentPath}`);
           }
         }
         
-        currentPath = fullPath;
+        currentPath = nodePath;
       });
     });
-    
-    // Sort children: directories first, then files
+
+    // Sort all children
     Object.values(tree).forEach(node => {
-      if (node.children) {
+      if (node.children && node.children.length > 0) {
         node.children.sort((a, b) => {
           if (a.type !== b.type) {
             return a.type === 'directory' ? -1 : 1;
@@ -104,16 +97,30 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
         });
       }
     });
-    
-    // Return root level nodes
-    const rootNodes = Object.values(tree).filter(node => !node.path.includes('/'));
-    
 
+    // Find root nodes (those that are not children of any other node)
+    const allPaths = new Set(Object.keys(tree));
+    const childPaths = new Set<string>();
+    
+    Object.values(tree).forEach(node => {
+      if (node.children) {
+        node.children.forEach(child => {
+          childPaths.add(child.path);
+        });
+      }
+    });
+
+    const rootNodes = Object.values(tree).filter(node => !childPaths.has(node.path));
+    
+    console.log('🌲 Built tree with', Object.keys(tree).length, 'total nodes');
+    console.log('🌿 Root nodes:', rootNodes.length, rootNodes.map(n => n.path));
+    
     return rootNodes;
   }, []);
 
   useEffect(() => {
     if (files.length > 0) {
+      console.log('🔄 Files updated, rebuilding tree...');
       const tree = buildFileTree(files);
       setFileTree(tree);
       
@@ -121,7 +128,12 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
       const firstLevelDirs = tree
         .filter(node => node.type === 'directory')
         .map(node => node.path);
+      
+      console.log('📂 Auto-expanding directories:', firstLevelDirs);
       setExpandedNodes(new Set(firstLevelDirs));
+    } else {
+      console.log('❌ No files provided');
+      setFileTree([]);
     }
   }, [files, buildFileTree]);
 
@@ -129,8 +141,10 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
     const newExpanded = new Set(expandedNodes);
     if (newExpanded.has(nodePath)) {
       newExpanded.delete(nodePath);
+      console.log('🔽 Collapsed:', nodePath);
     } else {
       newExpanded.add(nodePath);
+      console.log('🔼 Expanded:', nodePath);
     }
     setExpandedNodes(newExpanded);
   };
@@ -139,6 +153,7 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
     if (node.type === 'directory') {
       toggleExpand(node.path);
     } else {
+      console.log('📄 File selected:', node.path);
       onFileSelect?.(node);
     }
   };
@@ -222,6 +237,8 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
     );
   };
 
+  console.log('🎨 Rendering FileTreeViewer with', fileTree.length, 'root nodes');
+
   return (
     <div className={className}>
       {fileTree.length > 0 ? (
@@ -231,7 +248,9 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
       ) : (
         <div className="text-center py-8">
           <FolderIcon className="w-12 h-12 text-white/40 mx-auto mb-3" />
-          <p className="text-white/60 text-sm">هیچ فایلی موجود نیست</p>
+          <p className="text-white/60 text-sm">
+            {files.length > 0 ? 'در حال ساخت ساختار فایل...' : 'هیچ فایلی موجود نیست'}
+          </p>
         </div>
       )}
     </div>
