@@ -56,11 +56,16 @@ const ProjectsPage: React.FC = () => {
   );
 
   const getStatusColor = (status: Project['status']) => {
-    switch (status) {
+    const normalizedStatus = status?.toLowerCase();
+    switch (normalizedStatus) {
       case 'ready':
         return 'bg-green-500/20 text-green-400 border-green-500/30';
       case 'analyzing':
         return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'watching':
+        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+      case 'uploading':
+        return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
       case 'error':
         return 'bg-red-500/20 text-red-400 border-red-500/30';
       default:
@@ -69,11 +74,16 @@ const ProjectsPage: React.FC = () => {
   };
 
   const getStatusText = (status: Project['status']) => {
-    switch (status) {
+    const normalizedStatus = status?.toLowerCase();
+    switch (normalizedStatus) {
       case 'ready':
         return 'آماده';
       case 'analyzing':
         return 'در حال تحلیل';
+      case 'watching':
+        return 'نظارت فعال';
+      case 'uploading':
+        return 'در حال آپلود';
       case 'error':
         return 'خطا';
       default:
