@@ -490,6 +490,14 @@ const buildFileTree = (files: any[]): any[] => {
   const tree: any[] = [];
   const pathMap = new Map<string, any>();
 
+  console.log(`🌳 Building file tree from ${files.length} files`);
+  
+  // Separate directories and files
+  const directories = files.filter(f => f.isDirectory);
+  const regularFiles = files.filter(f => !f.isDirectory);
+  
+  console.log(`📁 Found ${directories.length} directories and ${regularFiles.length} files`);
+
   // Sort files by path to ensure proper tree building
   files.sort((a, b) => a.path.localeCompare(b.path));
 
@@ -497,6 +505,8 @@ const buildFileTree = (files: any[]): any[] => {
     const pathParts = file.path.split('/').filter(Boolean);
     let currentLevel = tree;
     let currentPath = '';
+
+    console.log(`🔍 Processing: ${file.path} (isDirectory: ${file.isDirectory})`);
 
     // Build path hierarchy
     for (let i = 0; i < pathParts.length; i++) {
@@ -506,26 +516,48 @@ const buildFileTree = (files: any[]): any[] => {
       const isLastPart = i === pathParts.length - 1;
       
       if (isLastPart) {
-        // This is the file itself
-        const fileNode = {
-          id: file.id,
-          name: file.name,
-          type: 'file',
-          path: file.path,
-          size: parseInt(file.size.toString()),
-          fileType: file.type,
-          analysis: file.analysis,
-          lastModified: file.updatedAt
-        };
-        currentLevel.push(fileNode);
-        pathMap.set(currentPath, fileNode);
+        if (file.isDirectory) {
+          // This is a directory entry
+          let dirNode = pathMap.get(currentPath);
+          
+          if (!dirNode) {
+            dirNode = {
+              id: file.id,
+              name: file.name,
+              type: 'directory',
+              path: file.path,
+              children: []
+            };
+            currentLevel.push(dirNode);
+            pathMap.set(currentPath, dirNode);
+            console.log(`📂 Created directory node: ${currentPath}`);
+          }
+        } else {
+          // This is a file
+          const fileNode = {
+            id: file.id,
+            name: file.name,
+            type: 'file',
+            path: file.path,
+            size: parseInt(file.size.toString()),
+            fileType: file.type,
+            analysis: file.analysis,
+            lastModified: file.updatedAt
+          };
+          currentLevel.push(fileNode);
+          pathMap.set(currentPath, fileNode);
+          console.log(`📄 Created file node: ${currentPath}`);
+        }
       } else {
-        // This is a directory
+        // This is an intermediate directory
         let dirNode = pathMap.get(currentPath);
         
         if (!dirNode) {
+          // Check if we have an explicit directory entry for this path
+          const explicitDir = directories.find(d => d.path === currentPath);
+          
           dirNode = {
-            id: `dir_${currentPath.replace(/[^a-zA-Z0-9]/g, '_')}`,
+            id: explicitDir ? explicitDir.id : `dir_${currentPath.replace(/[^a-zA-Z0-9]/g, '_')}`,
             name: part,
             type: 'directory',
             path: currentPath,
@@ -533,6 +565,7 @@ const buildFileTree = (files: any[]): any[] => {
           };
           currentLevel.push(dirNode);
           pathMap.set(currentPath, dirNode);
+          console.log(`📁 Created intermediate directory: ${currentPath}`);
         }
         
         currentLevel = dirNode.children;
@@ -540,6 +573,7 @@ const buildFileTree = (files: any[]): any[] => {
     }
   }
 
+  console.log(`✅ File tree built successfully with ${tree.length} top-level nodes`);
   return tree;
 };
 
