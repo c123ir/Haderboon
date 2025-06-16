@@ -1,4 +1,4 @@
-// pages/ProjectDetailPage.tsx - نسخه نهایی
+// pages/ProjectDetailPage.tsx - تصحیح import ها
 import React, { useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
@@ -13,7 +13,7 @@ import {
   DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 
-// Import های محلی - از فایل‌هایی که قبلاً ایجاد کردیم
+// Import های اصلاح شده
 import { apiService } from '../services/api';
 import { useProject } from '../hooks/useProject';
 import { useProjectFiles } from '../hooks/useProjectFiles';
@@ -107,11 +107,15 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
+  const handleFileUpdate = () => {
+    refetchFiles();
+  };
+
   // Data processing
   const fileTree: FileNode[] = React.useMemo(() => {
     if (!files || files.length === 0) return [];
     
-    return files.map(file => ({
+    return files.map((file: any) => ({
       id: file.id,
       name: file.name,
       path: file.path,
@@ -126,7 +130,7 @@ const ProjectDetailPage: React.FC = () => {
   const getProjectStats = useCallback(() => {
     if (!files) return { totalFiles: 0, totalSize: 0, fileTypes: {} };
     
-    const stats = files.reduce((acc, file) => {
+    const stats = files.reduce((acc: any, file: any) => {
       if (!file.isDirectory) {
         acc.totalFiles++;
         acc.totalSize += file.size || 0;
@@ -406,7 +410,7 @@ const ProjectDetailPage: React.FC = () => {
                       <h3 className="text-lg font-semibold text-white mb-4">آمار انواع فایل‌ها</h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                         {Object.entries(stats.fileTypes)
-                          .sort(([,a], [,b]) => b - a)
+                          .sort(([,a], [,b]) => (b as number) - (a as number))
                           .slice(0, 8)
                           .map(([type, count]) => (
                             <div key={type} className="bg-white/5 rounded-lg p-3">
@@ -450,7 +454,10 @@ const ProjectDetailPage: React.FC = () => {
 
             {activeTab === 'manager' && (
               <div className="p-6 overflow-auto">
-                <ProjectFileManager projectId={project.id} />
+                <ProjectFileManager 
+                  projectId={project.id} 
+                  onFileUpdate={handleFileUpdate}
+                />
               </div>
             )}
           </div>
