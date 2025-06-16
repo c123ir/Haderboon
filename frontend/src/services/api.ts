@@ -215,8 +215,7 @@ export const apiService = {
 
   async login(email: string, password?: string): Promise<any> {
     try {
-      const response = await api.post('/auth/login', { email, password });
-      const data = response.data;
+      const data = await api.post('/auth/login', { email, password });
       
       if (data.success && data.token) {
         localStorage.setItem('haderboon_token', data.token);
