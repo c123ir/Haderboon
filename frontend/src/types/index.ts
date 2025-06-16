@@ -11,10 +11,11 @@ export interface Project {
   name: string;
   description?: string;
   path: string;
+  originalPath?: string;
   userId: string;
   filesCount: number;
   lastAnalyzed?: string;
-  status: 'analyzing' | 'ready' | 'error';
+  status: 'WATCHING' | 'READY' | 'ANALYZING' | 'UPLOADING' | 'ERROR' | 'ARCHIVED' | 'analyzing' | 'ready' | 'error';
   createdAt: string;
   updatedAt: string;
 }
@@ -111,6 +112,33 @@ export interface FileTreeNode {
   children?: FileTreeNode[];
   size?: number;
   lastModified?: string;
+}
+
+export interface FileNode {
+  id: string;
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  size?: number;
+  fileType?: string;
+  lastModified?: string;
+  children?: FileNode[];
+}
+
+export interface FileContent {
+  name: string;
+  content: string;
+  path: string;
+  size: number;
+  lastModified: string;
+  type: string;
+}
+
+export interface ProjectStats {
+  totalProjects: number;
+  totalFiles: number;
+  totalDocuments: number;
+  recentActivity: number;
 }
 
 export type AnalysisStatus = 'pending' | 'analyzing' | 'completed' | 'error';
