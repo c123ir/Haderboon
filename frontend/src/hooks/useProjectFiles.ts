@@ -27,27 +27,33 @@ export const useProjectFiles = (projectId: string) => {
       console.log('📁 API Response for files:', response);
       
       if (response.success) {
-        // Handle the API response structure correctly - try multiple possible locations
+        // The API service wraps the backend response, so we need to access response.data.data.files
+        // Backend response: { success: true, data: { files: [...], fileTree: [...] }, message: "..." }
+        // API service response: { success: true, data: <backend-response> }
         let filesData;
         
         if (response.data?.data?.files) {
+          // Double-wrapped response from API service
           filesData = response.data.data.files;
           console.log('📄 Files data found at response.data.data.files:', filesData);
         } else if (response.data?.files) {
+          // Single-wrapped response (direct from backend)
           filesData = response.data.files;
           console.log('📄 Files data found at response.data.files:', filesData);
         } else if (Array.isArray(response.data)) {
+          // Direct array response
           filesData = response.data;
           console.log('📄 Files data found at response.data (direct array):', filesData);
         } else {
-          console.error('❌ Files data structure:', response.data);
+          console.error('❌ Files data structure not found:', response.data);
           filesData = [];
         }
         
-        console.log('📄 Final files data:', filesData);
+        console.log('📄 Final files data type:', typeof filesData, 'is array:', Array.isArray(filesData));
         
         if (Array.isArray(filesData)) {
           setFiles(filesData);
+          console.log('✅ Successfully set files:', filesData.length, 'files');
         } else {
           console.error('❌ Files data is not an array:', typeof filesData, filesData);
           setFiles([]);
