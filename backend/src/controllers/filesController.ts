@@ -490,13 +490,9 @@ const buildFileTree = (files: any[]): any[] => {
   const tree: any[] = [];
   const pathMap = new Map<string, any>();
 
-  console.log(`🌳 Building file tree from ${files.length} files`);
-  
   // Separate directories and files
   const directories = files.filter(f => f.isDirectory);
   const regularFiles = files.filter(f => !f.isDirectory);
-  
-  console.log(`📁 Found ${directories.length} directories and ${regularFiles.length} files`);
 
   // Sort files by path to ensure proper tree building
   files.sort((a, b) => a.path.localeCompare(b.path));
