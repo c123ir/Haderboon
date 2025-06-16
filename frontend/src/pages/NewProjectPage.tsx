@@ -10,8 +10,8 @@ import {
   CheckCircleIcon,
   XMarkIcon,
   InformationCircleIcon,
-
   EyeIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import { apiService, authHelpers } from '../services/api';
 import FileSelectionModal from '../components/FileSelectionModal';
@@ -293,11 +293,6 @@ const NewProjectPage: React.FC = () => {
     setUploadedFiles(newFiles);
     const errors = validateAllFiles(newFiles);
     setValidationErrors(errors);
-  };
-
-  const retryUpload = () => {
-    setIsUploading(false);
-    setUploadProgress({ step: 0, totalSteps: 5, message: '', percentage: 0 });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
