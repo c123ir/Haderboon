@@ -502,8 +502,6 @@ const buildFileTree = (files: any[]): any[] => {
     let currentLevel = tree;
     let currentPath = '';
 
-    console.log(`🔍 Processing: ${file.path} (isDirectory: ${file.isDirectory})`);
-
     // Build path hierarchy
     for (let i = 0; i < pathParts.length; i++) {
       const part = pathParts[i];
