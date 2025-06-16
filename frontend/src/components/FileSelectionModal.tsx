@@ -1,4 +1,4 @@
-// frontend/src/components/FileSelectionModal.tsx - بهبود یافته
+// frontend/src/components/FileSelectionModal.tsx - برطرف شده
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
@@ -431,8 +431,9 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
             <XMarkIcon className="w-5 h-5 text-white/60" />
           </button>
         </div>
-{/* Controls */}
-<div className="p-4 border-b border-white/10 space-y-4">
+
+        {/* Controls */}
+        <div className="p-4 border-b border-white/10 space-y-4">
           {/* Search and Filters */}
           <div className="flex items-center space-x-4 space-x-reverse">
             <div className="flex-1 relative">
@@ -651,3 +652,5 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
     </div>
   );
 };
+
+export default FileSelectionModal;
