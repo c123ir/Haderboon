@@ -28,12 +28,19 @@ const ProjectsPage: React.FC = () => {
       try {
         setLoading(true);
         const response = await apiService.getProjects();
+        console.log('📊 Projects API Response:', response);
+        
         if (response.success) {
-          setProjects(response.data.projects || []);
+          // Handle nested response structure
+          const projectsData = response.data?.data?.projects || response.data?.projects || response.data || [];
+          console.log('📊 Projects Data:', projectsData);
+          setProjects(projectsData);
         } else {
+          console.error('📊 Projects API Error:', response.message);
           setError('خطا در دریافت پروژه‌ها');
         }
       } catch (error) {
+        console.error('📊 Projects Fetch Error:', error);
         setError('خطا در دریافت پروژه‌ها');
       } finally {
         setLoading(false);
