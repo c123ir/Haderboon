@@ -23,6 +23,34 @@ export const authenticateToken = async (
       return;
     }
 
+    // Check for demo token (for development)
+    if (token.startsWith('demo-token-')) {
+      console.log('🧪 Using demo authentication...');
+      
+      // Create or get demo user
+      let demoUser = await prisma.user.findUnique({
+        where: { email: 'demo@haderboon.com' },
+        select: { id: true, email: true, name: true }
+      });
+
+      if (!demoUser) {
+        console.log('👤 Creating demo user...');
+        demoUser = await prisma.user.create({
+          data: {
+            email: 'demo@haderboon.com',
+            name: 'کاربر آزمایشی',
+            password: 'demo-password' // This should be hashed in production
+          },
+          select: { id: true, email: true, name: true }
+        });
+        console.log('✅ Demo user created:', demoUser.id);
+      }
+
+      req.user = demoUser;
+      next();
+      return;
+    }
+
     // Verify JWT token
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
     
