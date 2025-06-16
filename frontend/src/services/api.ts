@@ -42,6 +42,7 @@ api.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('haderboon_token');
+      localStorage.removeItem('haderboon_user');
       // در صورت نیاز به صفحه لاگین ریدایرکت کنید
     }
     return Promise.reject(error);
@@ -52,8 +53,19 @@ api.interceptors.response.use(
 export const authHelpers = {
   getToken: () => localStorage.getItem('haderboon_token'),
   setToken: (token: string) => localStorage.setItem('haderboon_token', token),
-  removeToken: () => localStorage.removeItem('haderboon_token'),
+  removeToken: () => {
+    localStorage.removeItem('haderboon_token');
+    localStorage.removeItem('haderboon_user');
+  },
   isAuthenticated: () => !!localStorage.getItem('haderboon_token'),
+  isLoggedIn: () => !!localStorage.getItem('haderboon_token'),
+  getCurrentUser: () => {
+    const userStr = localStorage.getItem('haderboon_user');
+    return userStr ? JSON.parse(userStr) : null;
+  },
+  setCurrentUser: (user: any) => {
+    localStorage.setItem('haderboon_user', JSON.stringify(user));
+  }
 };
 
 // API methods
@@ -183,6 +195,65 @@ const uploadFiles = async (projectId: string, files: FileList | File[]) => {
   }
 };
 
+const uploadLocalDirectory = async (projectId: string, files: FileList | File[], directoryName: string) => {
+  try {
+    const formData = new FormData();
+    Array.from(files).forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('directoryName', directoryName);
+
+    const response = await api.post(
+      `/files/projects/${projectId}/upload-directory`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    return {
+      success: true,
+      data: response.data
+    };
+  } catch (error: any) {
+    console.error('Upload directory error:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || 'خطا در آپلود پوشه'
+    };
+  }
+};
+
+const uploadProjectZip = async (projectId: string, file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append('zipFile', file);
+
+    const response = await api.post(
+      `/files/projects/${projectId}/upload-zip`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    return {
+      success: true,
+      data: response.data
+    };
+  } catch (error: any) {
+    console.error('Upload zip error:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || 'خطا در آپلود فایل ZIP'
+    };
+  }
+};
+
 const createProject = async (data: { name: string; description?: string }) => {
   try {
     const response = await api.post('/projects', data);
@@ -199,9 +270,14 @@ const createProject = async (data: { name: string; description?: string }) => {
   }
 };
 
-const getProjects = async () => {
+const getProjects = async (options?: { limit?: number }) => {
   try {
-    const response = await api.get('/projects');
+    const params = options ? new URLSearchParams() : undefined;
+    if (options?.limit) {
+      params?.append('limit', options.limit.toString());
+    }
+    
+    const response = await api.get('/projects', { params });
     return {
       success: true,
       data: response.data
@@ -211,6 +287,27 @@ const getProjects = async () => {
     return {
       success: false,
       message: error.response?.data?.message || 'خطا در دریافت پروژه‌ها'
+    };
+  }
+};
+
+const getProjectStats = async () => {
+  try {
+    const response = await api.get('/projects/stats');
+    return {
+      success: true,
+      data: response.data
+    };
+  } catch (error: any) {
+    console.error('Get project stats error:', error);
+    return {
+      success: false,
+      data: {
+        totalProjects: 0,
+        totalFiles: 0,
+        totalDocuments: 0,
+        recentActivity: 0
+      }
     };
   }
 };
@@ -236,10 +333,14 @@ const demoLogin = async () => {
   try {
     // شبیه‌سازی لاگین موفق
     const demoToken = 'demo-token-' + Date.now();
+    const demoUser = { id: 'demo-user', name: 'کاربر آزمایشی', email: 'demo@haderboon.com' };
+    
     authHelpers.setToken(demoToken);
+    authHelpers.setCurrentUser(demoUser);
+    
     return {
       success: true,
-      data: { token: demoToken, user: { id: 'demo-user', name: 'کاربر آزمایشی' } }
+      data: { token: demoToken, user: demoUser }
     };
   } catch (error: any) {
     return {
@@ -258,8 +359,11 @@ export const apiService = {
   startProjectWatching,
   stopProjectWatching,
   uploadFiles,
+  uploadLocalDirectory,
+  uploadProjectZip,
   createProject,
   getProjects,
+  getProjectStats,
   deleteProject,
   demoLogin,
   
