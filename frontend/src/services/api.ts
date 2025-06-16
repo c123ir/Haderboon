@@ -234,7 +234,8 @@ export const apiService = {
 
   async register(name: string, email: string, password?: string): Promise<any> {
     try {
-      const data = await api.post('/auth/register', { name, email, password });
+      const response = await api.post('/auth/register', { name, email, password });
+      const data = response.data;
       
       if (data.success && data.token) {
         localStorage.setItem('haderboon_token', data.token);
