@@ -370,7 +370,7 @@ const ProjectDetailPage: React.FC = () => {
                 <div className="space-y-6">
                   {/* Project Information */}
                   <div className="glass-card">
-                    <h3 className="text-lg font-semibold text-white mb-4">اطلاعات پرو۱ژه</h3>
+                    <h3 className="text-lg font-semibold text-white mb-4">اطلاعات پروژه</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-white/60">نام پروژه:</span>
