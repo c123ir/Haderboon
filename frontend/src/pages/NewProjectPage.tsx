@@ -339,12 +339,37 @@ const NewProjectPage: React.FC = () => {
       updateUploadProgress(1, 'ایجاد پروژه...');
       console.log('🚀 شروع ایجاد پروژه...');
       
-      const projectResponse = await apiService.createProject({
+      // انجام demo login اگر کاربر authenticate نباشد
+      if (!apiService.auth.isAuthenticated()) {
+        console.log('🔑 انجام demo login...');
+        const loginResult = await apiService.demoLogin();
+        if (!loginResult.success) {
+          throw new Error('خطا در انجام demo login');
+        }
+        console.log('✅ Demo login موفق');
+      }
+      
+      let projectResponse = await apiService.createProject({
         name: projectName.trim(),
         description: projectDescription.trim() || undefined
       });
 
       console.log('📝 Full API Response:', JSON.stringify(projectResponse, null, 2));
+
+      // اگر خطای authentication بود، storage را پاک کن و دوباره تلاش کن
+      if (!projectResponse.success && projectResponse.message?.includes('401')) {
+        console.log('🔄 خطای authentication - پاک کردن storage و تلاش مجدد...');
+        apiService.auth.removeToken();
+        
+        const loginResult = await apiService.demoLogin();
+        if (loginResult.success) {
+          console.log('✅ Demo login دوباره موفق');
+          projectResponse = await apiService.createProject({
+            name: projectName.trim(),
+            description: projectDescription.trim() || undefined
+          });
+        }
+      }
 
       if (!projectResponse.success) {
         throw new Error(projectResponse.message || 'خطا در ایجاد پروژه');
