@@ -79,8 +79,7 @@ const ProjectDetailPage: React.FC = () => {
       }
 
       if (filesResponse.success) {
-        console.log('📁 File tree data:', filesResponse.data);
-        console.log('📁 File tree structure:', JSON.stringify(filesResponse.data.fileTree, null, 2));
+        console.log('📁 File tree received:', filesResponse.data.fileTree?.length || 0, 'nodes');
         setFileTree(filesResponse.data.fileTree || []);
         
         // Auto-expand first level directories
