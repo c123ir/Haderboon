@@ -78,33 +78,19 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
-  const toggleNode = (nodeId: string) => {
-    const newExpanded = new Set(expandedNodes);
-    if (newExpanded.has(nodeId)) {
-      newExpanded.delete(nodeId);
-    } else {
-      newExpanded.add(nodeId);
-    }
-    setExpandedNodes(newExpanded);
-  };
-
   const handleFileSelect = async (node: FileTreeNode) => {
-    if (node.type === 'directory') {
-      toggleNode(node.id);
-    } else {
-      setSelectedFile(node);
-      setLoadingFileContent(true);
-      
-      try {
-        const response = await apiService.getFileContent(id!, node.id);
-        if (response.success) {
-          setSelectedFileContent(response.data);
-        }
-      } catch (error) {
-        console.error('خطا در بارگذاری محتوای فایل:', error);
-      } finally {
-        setLoadingFileContent(false);
+    setSelectedFile(node);
+    setLoadingFileContent(true);
+    
+    try {
+      const response = await apiService.getFileContent(id!, node.id);
+      if (response.success) {
+        setSelectedFileContent(response.data);
       }
+    } catch (error) {
+      console.error('خطا در بارگذاری محتوای فایل:', error);
+    } finally {
+      setLoadingFileContent(false);
     }
   };
 
