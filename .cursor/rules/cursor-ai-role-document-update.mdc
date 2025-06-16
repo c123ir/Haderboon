@@ -63,24 +63,28 @@ This document provides the core rules and architectural guidelines for the "Hade
 —-
 
 ## 8. Run backend & frontend
-- **CRITICAL**: Before running any project commands, you MUST navigate to the correct directory first.
-- **For Backend**: 
-  1. Always run `cd backend` from the project root first
-  2. Then run `npm run dev`
-  3. Backend runs on port `5550`
-- **For Frontend**: 
-  1. Always run `cd frontend` from the project root first  
-  2. Then run `npm start`
-  3. Frontend runs on port `3550`
-- **Before starting**: Always ask the user in Persian to exit/stop the project if it's already running
-- **Never run commands from wrong directories**: This is a common mistake that causes errors
-- **Command sequence example**:
+- **CRITICAL**: Before running any project commands, you MUST execute them directly from the correct absolute path.
+- **For Backend**:  
+  1. Always run the following command to start the backend server:  
+     ```bash
+     cd /Users/imac2019/My-Apps/Haderboon/backend && npm run dev
+     ```
+  2. The backend runs on port `5550`.
+
+- **For Frontend**:  
+  1. Always run the following command to start the frontend server:  
+     ```bash
+     cd /Users/imac2019/My-Apps/Haderboon/frontend && npm start
+     ```
+  2. The frontend runs on port `3550`.
+
+- **Before starting**: Always ask the user (in Persian) to exit or stop any previously running instance of the project.
+- **Never run commands from the wrong directory**: This is a common mistake that causes execution failures.
+
+- **Quick Command Reference**:
   ```bash
-  # For backend:
-  cd backend
-  npm run dev
-  
-  # For frontend (in a separate terminal):
-  cd frontend  
-  npm start
-  ```
+  # Start backend
+  cd /Users/imac2019/My-Apps/Haderboon/backend && npm run dev
+
+  # Start frontend (in a separate terminal)
+  cd /Users/imac2019/My-Apps/Haderboon/frontend && npm start
