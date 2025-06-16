@@ -47,7 +47,7 @@ const ProjectDetailPage: React.FC = () => {
     if (id) {
       loadProjectData();
     }
-  }, [id]);
+  }, [id]); // loadProjectData is stable as it doesn't depend on state
 
   useEffect(() => {
     console.log('🐛 Files state updated:', files.length, files.slice(0, 2));
