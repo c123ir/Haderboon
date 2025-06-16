@@ -1,6 +1,6 @@
 // frontend/src/services/api.ts - برطرف شده
 
-import axios, { AxiosProgressEvent } from 'axios';
+import axios, { AxiosProgressEvent, AxiosResponse } from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5550/api';
 
@@ -35,7 +35,7 @@ api.interceptors.request.use(
 
 // Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     // Log successful responses in development
     if (process.env.NODE_ENV === 'development') {
       console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
@@ -75,7 +75,9 @@ api.interceptors.response.use(
       
       // Try to re-authenticate with demo login
       try {
-        const responseData = await api.post('/auth/demo-login');
+        const response = await axios.post(`${API_BASE_URL}/auth/demo-login`);
+        const responseData = response.data;
+        
         if (responseData.success && responseData.token) {
           localStorage.setItem('haderboon_token', responseData.token);
           localStorage.setItem('haderboon_user', JSON.stringify(responseData.user));
