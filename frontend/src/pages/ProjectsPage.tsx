@@ -158,9 +158,9 @@ const ProjectsPage: React.FC = () => {
 
               {/* Project Stats */}
               <div className="flex items-center justify-between text-sm text-white/60 mb-4">
-                <span>{project.filesCount} فایل</span>
+                <span>{project.filesCount || 0} فایل</span>
                 <span>
-                  {project.lastAnalyzed
+                  {project.lastAnalyzed && Object.keys(project.lastAnalyzed).length > 0
                     ? `آخرین تحلیل: ${new Date(project.lastAnalyzed).toLocaleDateString('fa-IR')}`
                     : 'تحلیل نشده'
                   }
