@@ -348,6 +348,12 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* File Tree Test */}
+      <div>
+        <h2 className="text-2xl font-bold text-white mb-6">تست File Tree</h2>
+        <FileTreeTest />
+      </div>
     </div>
   );
 };
