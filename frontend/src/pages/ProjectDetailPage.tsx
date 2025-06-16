@@ -1,173 +1,202 @@
-// pages/ProjectDetailPage.tsx
+// frontend/src/pages/ProjectDetailPage.tsx
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  ArrowLeftIcon,
+  FolderIcon,
+  DocumentIcon,
   ChatBubbleLeftRightIcon,
   SparklesIcon,
-  ArrowPathIcon,
-  Bars3Icon,
-  XMarkIcon,
-  FolderIcon,
   CodeBracketIcon,
-  DocumentTextIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  ArrowPathIcon,
+  PlusIcon,
+  EyeIcon,
+  XMarkIcon,
+  Bars3Icon,
 } from '@heroicons/react/24/outline';
-import { useProject } from '../hooks/useProject';
-import { useProjectFiles } from '../hooks/useProjectFiles';
-import { apiService } from '../services/api';
+import apiService from '../services/api';
 import WatchingStatus from '../components/WatchingStatus';
-import FileTree from '../components/FileTree';
-import FileContentViewer from '../components/FileContentViewer';
 import ProjectFileManager from '../components/ProjectFileManager';
+import FileTreeViewer, { FileTreeNode } from '../components/FileTreeViewer';
 
-interface FileNode {
+interface FileContent {
   id: string;
   name: string;
   path: string;
-  type: 'file' | 'directory';
-  size?: number;
-  fileType?: string;
-  lastModified?: string;
-  children?: FileNode[];
-}
-
-interface FileContent {
-  name: string;
-  content: string;
-  path: string;
-  size: number;
-  lastModified: string;
   type: string;
+  size: string;
+  content: string;
+  analysis?: any;
 }
 
 const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { project, loading: projectLoading, error: projectError, refetch: refetchProject } = useProject(id!);
-  const { files, loading: filesLoading, error: filesError, refetch: refetchFiles } = useProjectFiles(id!);
-  
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<'files' | 'overview' | 'manager'>('files');
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [fileContent, setFileContent] = useState<FileContent | null>(null);
-  const [loadingContent, setLoadingContent] = useState(false);
+  const [project, setProject] = useState<any>(null);
+  const [files, setFiles] = useState<any[]>([]);
+  const [selectedFile, setSelectedFile] = useState<FileTreeNode | null>(null);
+  const [selectedFileContent, setSelectedFileContent] = useState<FileContent | null>(null);
+  const [activeTab, setActiveTab] = useState<'files' | 'analysis' | 'manage'>('files');
+  const [loading, setLoading] = useState(true);
   const [isReanalyzing, setIsReanalyzing] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [loadingFileContent, setLoadingFileContent] = useState(false);
 
-  const handleFileSelect = useCallback(async (file: FileNode) => {
-    if (file.type === 'directory') return;
-    
-    setSelectedFile(file.path);
-    setLoadingContent(true);
+  const loadProjectData = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Load project details and files in parallel
+      const [projectResponse, filesResponse] = await Promise.all([
+        apiService.getProject(id!),
+        apiService.getProjectFiles(id!)
+      ]);
+
+      if (projectResponse.success) {
+        setProject(projectResponse.data);
+      }
+
+      if (filesResponse.success) {
+        console.log('📁 Files received:', filesResponse.data.files?.length || 0, 'files');
+        setFiles(filesResponse.data.files || []);
+      }
+
+    } catch (error) {
+      console.error('خطا در بارگذاری اطلاعات پروژه:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      loadProjectData();
+    }
+  }, [id, loadProjectData]);
+
+  useEffect(() => {
+    console.log('🐛 Files state updated:', files.length, files.slice(0, 2));
+    if (files.length > 0) {
+      console.log('📋 First 3 files structure:');
+      files.slice(0, 3).forEach((file, index) => {
+        console.log(`File ${index}:`, {
+          id: file.id,
+          name: file.name,
+          path: file.path,
+          type: file.type,
+          size: file.size,
+          isDirectory: file.isDirectory
+        });
+      });
+    }
+  }, [files]);
+
+  const handleFileSelect = async (node: FileTreeNode) => {
+    setSelectedFile(node);
+    setLoadingFileContent(true);
     
     try {
-      const response = await apiService.getFileContent(project!.id, file.id);
-      if (response.success && response.data) {
-        setFileContent({
-          name: file.name,
-          content: response.data.content || '',
-          path: file.path,
-          size: file.size || 0,
-          lastModified: file.lastModified || new Date().toISOString(),
-          type: file.fileType || 'text'
-        });
+      const response = await apiService.getFileContent(id!, node.id);
+      if (response.success) {
+        setSelectedFileContent(response.data);
       }
     } catch (error) {
-      console.error('Error loading file content:', error);
-      setFileContent(null);
+      console.error('خطا در بارگذاری محتوای فایل:', error);
     } finally {
-      setLoadingContent(false);
+      setLoadingFileContent(false);
     }
-  }, [project]);
+  };
 
   const handleReanalyze = async () => {
-    if (!project) return;
-    
-    setIsReanalyzing(true);
     try {
-      await apiService.reAnalyzeProject(project.id);
-      await refetchProject();
-      await refetchFiles();
-    } catch (error) {
-      console.error('Error re-analyzing project:', error);
+      setIsReanalyzing(true);
+      const response = await apiService.reAnalyzeProject(id!);
+      
+      if (response.success) {
+        await loadProjectData();
+        alert('تحلیل مجدد با موفقیت انجام شد');
+      }
+    } catch (error: any) {
+      console.error('خطا در تحلیل مجدد:', error);
+      alert(error.message || 'خطا در تحلیل مجدد');
     } finally {
       setIsReanalyzing(false);
     }
   };
 
-  // Convert flat files list to tree structure
-  const fileTree: FileNode[] = React.useMemo(() => {
-    if (!files || files.length === 0) return [];
-    
-    return files.map(file => ({
-      id: file.id,
-      name: file.name,
-      path: file.path,
-      type: file.isDirectory ? 'directory' : 'file',
-      size: file.size,
-      fileType: file.type,
-      lastModified: file.updatedAt,
-      children: file.isDirectory ? [] : undefined
-    }));
-  }, [files]);
 
-  const getProjectStats = () => {
-    if (!files) return { totalFiles: 0, totalSize: 0, fileTypes: {} };
-    
-    const stats = files.reduce((acc, file) => {
-      if (!file.isDirectory) {
-        acc.totalFiles++;
-        acc.totalSize += file.size || 0;
-        
-        const ext = file.name.split('.').pop()?.toLowerCase() || 'other';
-        acc.fileTypes[ext] = (acc.fileTypes[ext] || 0) + 1;
-      }
-      return acc;
-    }, { totalFiles: 0, totalSize: 0, fileTypes: {} as Record<string, number> });
-    
-    return stats;
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
-  if (projectLoading) {
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'READY':
+        return <CheckCircleIcon className="w-5 h-5 text-green-400" />;
+      case 'ANALYZING':
+        return <ClockIcon className="w-5 h-5 text-yellow-400" />;
+      default:
+        return <ClockIcon className="w-5 h-5 text-gray-400" />;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'READY':
+        return 'آماده';
+      case 'ANALYZING':
+        return 'در حال تحلیل';
+      case 'UPLOADING':
+        return 'در حال آپلود';
+      default:
+        return 'نامشخص';
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex items-center space-x-3 space-x-reverse">
-          <ArrowPathIcon className="w-6 h-6 text-blue-400 animate-spin" />
-          <span className="text-white">بارگذاری پروژه...</span>
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/70">در حال بارگذاری...</p>
         </div>
       </div>
     );
   }
 
-  if (projectError || !project) {
+  if (!project) {
     return (
       <div className="text-center py-16">
-        <h2 className="text-xl font-semibold text-white mb-2">خطا در بارگذاری پروژه</h2>
-        <p className="text-white/60 mb-4">{projectError}</p>
-        <Link to="/projects" className="text-blue-400 hover:text-blue-300">
+        <FolderIcon className="w-12 h-12 text-white/40 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-white mb-2">پروژه یافت نشد</h2>
+        <p className="text-white/60 mb-4">پروژه‌ای با این شناسه موجود نیست</p>
+        <Link
+          to="/projects"
+          className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+        >
           بازگشت به پروژه‌ها
         </Link>
       </div>
     );
   }
 
-  const stats = getProjectStats();
-
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden p-6">
       {/* Header */}
-      <div className="flex-shrink-0 glass-card mb-6">
+      <div className="glass-card mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Link
-              to="/projects"
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200 ml-3"
-            >
-              <ArrowLeftIcon className="w-5 h-5 text-white/60" />
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-white">{project.name}</h1>
-              <p className="text-white/60 text-sm">
-                {project.description || 'بدون توضیحات'}
-              </p>
+            <FolderIcon className="w-6 h-6 text-blue-400 ml-3" />
+            <h1 className="text-xl font-bold text-white">{project.name}</h1>
+            <div className="flex items-center mr-4">
+              {getStatusIcon(project.status)}
+              <span className="text-sm text-white/60 mr-2">{getStatusText(project.status)}</span>
             </div>
           </div>
           
@@ -175,7 +204,7 @@ const ProjectDetailPage: React.FC = () => {
             <button
               onClick={handleReanalyze}
               disabled={isReanalyzing}
-              className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg transition-colors duration-200 text-sm"
+              className="inline-flex items-center px-3 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
             >
               <ArrowPathIcon className={`w-4 h-4 ml-2 ${isReanalyzing ? 'animate-spin' : ''}`} />
               {isReanalyzing ? 'تحلیل...' : 'تحلیل مجدد'}
@@ -199,7 +228,7 @@ const ProjectDetailPage: React.FC = () => {
       </div>
 
       {/* Watching Status */}
-      <div className="flex-shrink-0 mb-4">
+      <div className="mb-4">
         <WatchingStatus 
           projectId={project.id}
           projectName={project.name}
@@ -211,231 +240,219 @@ const ProjectDetailPage: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden glass-card">
         {/* Sidebar - File Tree */}
-        <div className={`${sidebarCollapsed ? 'w-0' : 'w-80'} transition-all duration-300 border-l border-white/10 bg-gray-900/30 flex flex-col overflow-hidden`} dir="ltr">
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-4 border-b border-white/10">
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <FolderIcon className="w-5 h-5 text-blue-400" />
-              <span className="text-white font-medium text-sm">ساختار پروژه</span>
+        <div className={`${sidebarCollapsed ? 'w-0' : 'w-80'} flex-shrink-0 border-l border-white/20 transition-all duration-200 overflow-hidden`}>
+          <div className="h-full flex flex-col">
+            {/* Sidebar Header */}
+            <div className="flex items-center justify-between p-3 border-b border-white/10">
+              <h3 className="text-sm font-medium text-white">ساختار پروژه</h3>
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="text-white/60 hover:text-white p-1"
+              >
+                <XMarkIcon className="w-4 h-4" />
+              </button>
             </div>
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-1 hover:bg-white/10 rounded transition-colors duration-200"
-            >
-              {sidebarCollapsed ? (
-                <Bars3Icon className="w-4 h-4 text-white/60" />
-              ) : (
-                <XMarkIcon className="w-4 h-4 text-white/60" />
-              )}
-            </button>
+            
+            {/* File Tree */}
+            <div className="flex-1 overflow-auto p-2">
+              <FileTreeViewer
+                files={files}
+                onFileSelect={handleFileSelect}
+                selectedFileId={selectedFile?.id}
+              />
+            </div>
+            
+            {/* Sidebar Footer */}
+            <div className="p-3 border-t border-white/10 text-xs text-white/60">
+              {project.filesCount || 0} فایل
+            </div>
           </div>
-
-          {/* File Tree */}
-          {!sidebarCollapsed && (
-            <div className="flex-1 overflow-hidden">
-              {filesLoading ? (
-                <div className="flex items-center justify-center h-32">
-                  <ArrowPathIcon className="w-5 h-5 text-blue-400 animate-spin" />
-                  <span className="text-white/60 text-sm mr-2">بارگذاری فایل‌ها...</span>
-                </div>
-              ) : filesError ? (
-                <div className="p-4 text-center">
-                  <p className="text-red-400 text-sm mb-2">خطا در بارگذاری فایل‌ها</p>
-                  <button
-                    onClick={refetchFiles}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
-                  >
-                    تلاش مجدد
-                  </button>
-                </div>
-              ) : (
-                <FileTree
-                  files={fileTree}
-                  selectedFile={selectedFile}
-                  onFileSelect={handleFileSelect}
-                  className="h-full"
-                />
-              )}
-            </div>
-          )}
         </div>
 
-        {/* Main Content */}
+        {/* Main Panel */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Tab Navigation */}
-          <div className="flex border-b border-white/10 bg-gray-800/20">
-            <button
-              onClick={() => setActiveTab('files')}
-              className={`px-4 py-3 text-sm font-medium transition-colors duration-200 border-b-2 ${
-                activeTab === 'files'
-                  ? 'text-blue-400 border-blue-400'
-                  : 'text-white/60 border-transparent hover:text-white hover:border-white/20'
-              }`}
-            >
-              <CodeBracketIcon className="w-4 h-4 inline ml-2" />
-              محتوای فایل
-            </button>
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`px-4 py-3 text-sm font-medium transition-colors duration-200 border-b-2 ${
-                activeTab === 'overview'
-                  ? 'text-blue-400 border-blue-400'
-                  : 'text-white/60 border-transparent hover:text-white hover:border-white/20'
-              }`}
-            >
-              <DocumentTextIcon className="w-4 h-4 inline ml-2" />
-              خلاصه پروژه
-            </button>
-            <button
-              onClick={() => setActiveTab('manager')}
-              className={`px-4 py-3 text-sm font-medium transition-colors duration-200 border-b-2 ${
-                activeTab === 'manager'
-                  ? 'text-blue-400 border-blue-400'
-                  : 'text-white/60 border-transparent hover:text-white hover:border-white/20'
-              }`}
-            >
-              <FolderIcon className="w-4 h-4 inline ml-2" />
-              مدیریت فایل‌ها
-            </button>
+                     {/* Tabs */}
+           <div className="flex items-center border-b border-white/10 px-4">
+             {sidebarCollapsed && (
+               <button
+                 onClick={() => setSidebarCollapsed(false)}
+                 className="text-white/60 hover:text-white p-2 ml-2"
+               >
+                 <Bars3Icon className="w-4 h-4" />
+               </button>
+             )}
+            
+            {[
+              { id: 'files', label: 'نمایش فایل', icon: EyeIcon },
+              { id: 'analysis', label: 'تحلیل', icon: CodeBracketIcon },
+              { id: 'manage', label: 'مدیریت', icon: PlusIcon },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center px-4 py-3 text-sm transition-colors duration-200 border-b-2 ${
+                    activeTab === tab.id
+                      ? 'border-blue-400 text-white'
+                      : 'border-transparent text-white/60 hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 ml-2" />
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Tab Content */}
-          <div className="flex-1 overflow-hidden">
+          {/* Content Area */}
+          <div className="flex-1 overflow-auto p-6">
             {activeTab === 'files' && (
-              <div className="h-full">
-                {loadingContent ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="flex items-center space-x-3 space-x-reverse">
-                      <ArrowPathIcon className="w-5 h-5 text-blue-400 animate-spin" />
-                      <span className="text-white/60">بارگذاری محتوای فایل...</span>
+              <div>
+                {selectedFile ? (
+                  <div className="space-y-6">
+                    {/* File Info Header */}
+                    <div className="bg-white/5 rounded-lg p-4">
+                      <div className="flex items-center mb-3">
+                        <DocumentIcon className="w-5 h-5 text-gray-400 ml-3" />
+                        <h2 className="text-lg font-medium text-white">{selectedFile.name}</h2>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="text-white/60">مسیر:</span>
+                          <p className="text-white font-mono text-xs mt-1 break-all">{selectedFile.path}</p>
+                        </div>
+                        {selectedFile.size && (
+                          <div>
+                            <span className="text-white/60">حجم:</span>
+                            <p className="text-white mt-1">{formatFileSize(selectedFile.size)}</p>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-white/60">نوع:</span>
+                          <p className="text-white mt-1">{selectedFile.fileType || 'نامشخص'}</p>
+                        </div>
+                        <div>
+                          <span className="text-white/60">آخرین تغییر:</span>
+                          <p className="text-white mt-1">
+                            {selectedFile.lastModified 
+                              ? new Date(selectedFile.lastModified).toLocaleDateString('fa-IR')
+                              : 'نامشخص'
+                            }
+                          </p>
+                        </div>
+                      </div>
                     </div>
+
+                    {/* File Content */}
+                    {loadingFileContent ? (
+                      <div className="bg-black/20 rounded-lg p-8 text-center">
+                        <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-white/60">در حال بارگذاری محتوا...</p>
+                      </div>
+                    ) : selectedFileContent?.content ? (
+                      <div className="bg-black/20 rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10">
+                          <span className="text-sm text-white/60">محتوای فایل</span>
+                          <span className="text-xs text-white/40">
+                            {selectedFileContent.content.split('\n').length} خط
+                          </span>
+                        </div>
+                        <pre className="p-4 text-white/90 text-sm overflow-auto max-h-96 leading-relaxed">
+                          <code>{selectedFileContent.content}</code>
+                        </pre>
+                      </div>
+                    ) : (
+                      <div className="bg-white/5 rounded-lg p-8 text-center">
+                        <DocumentIcon className="w-12 h-12 text-white/40 mx-auto mb-4" />
+                        <p className="text-white/60">محتوای فایل قابل نمایش نیست</p>
+                      </div>
+                    )}
+
+                    {/* File Analysis */}
+                    {selectedFileContent?.analysis && (
+                      <div className="bg-white/5 rounded-lg p-4">
+                        <h3 className="text-white font-medium mb-3">تحلیل فایل</h3>
+                        <div className="text-sm text-white/70">
+                          <pre className="whitespace-pre-wrap">{JSON.stringify(selectedFileContent.analysis, null, 2)}</pre>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <FileContentViewer 
-                    file={fileContent}
-                    className="h-full"
-                  />
+                  <div className="text-center py-16">
+                    <FolderIcon className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-white mb-2">فایلی انتخاب نشده</h3>
+                    <p className="text-white/60">از sidebar یک فایل انتخاب کنید تا محتوای آن نمایش داده شود</p>
+                  </div>
                 )}
               </div>
             )}
 
-            {activeTab === 'overview' && (
-              <div className="p-6 overflow-auto">
-                <div className="space-y-6">
-                  {/* Project Information */}
-                  <div className="glass-card">
-                    <h3 className="text-lg font-semibold text-white mb-4">اطلاعات پروژه</h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-white/60">نام پروژه:</span>
-                        <span className="text-white mr-2">{project.name}</span>
+            {activeTab === 'analysis' && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-white">تحلیل پروژه</h3>
+                {project.analysisData ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white/5 p-4 rounded-lg">
+                        <h4 className="text-white font-medium mb-2">کل فایل‌ها</h4>
+                        <p className="text-2xl font-bold text-blue-400">{project.analysisData.totalFiles || 0}</p>
                       </div>
-                      <div>
-                        <span className="text-white/60">وضعیت:</span>
-                        <span className={`mr-2 px-2 py-1 rounded text-xs ${
-                          project.status === 'READY' ? 'bg-green-500/20 text-green-400' :
-                          project.status === 'ANALYZING' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          {project.status === 'READY' ? 'آماده' :
-                           project.status === 'ANALYZING' ? 'در حال تحلیل' : 'نامعلوم'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-white/60">تعداد فایل‌ها:</span>
-                        <span className="text-white mr-2">{stats.totalFiles.toLocaleString('fa-IR')}</span>
-                      </div>
-                      <div>
-                        <span className="text-white/60">حجم کل:</span>
-                        <span className="text-white mr-2">
-                          {stats.totalSize < 1024 ? `${stats.totalSize} بایت` :
-                           stats.totalSize < 1024 * 1024 ? `${(stats.totalSize / 1024).toFixed(1)} کیلوبایت` :
-                           `${(stats.totalSize / (1024 * 1024)).toFixed(1)} مگابایت`}
-                        </span>
-                      </div>
-                      <div className="col-span-2">
-                        <span className="text-white/60">مسیر اصلی:</span>
-                        <span className="text-white mr-2 font-mono text-xs">{project.originalPath || 'نامعلوم'}</span>
+                      <div className="bg-white/5 p-4 rounded-lg">
+                        <h4 className="text-white font-medium mb-2">زبان‌های برنامه‌نویسی</h4>
+                        <p className="text-2xl font-bold text-green-400">
+                          {Object.keys(project.analysisData.languages || {}).length}
+                        </p>
                       </div>
                     </div>
-                  </div>
+                    
+                    {project.analysisData.frameworks && project.analysisData.frameworks.length > 0 && (
+                      <div className="bg-white/5 p-4 rounded-lg">
+                        <h4 className="text-white font-medium mb-2">فریمورک‌های شناسایی شده</h4>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {project.analysisData.frameworks.map((framework: string) => (
+                            <span key={framework} className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-sm">
+                              {framework}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                  {/* File Types Statistics */}
-                  <div className="glass-card">
-                    <h3 className="text-lg font-semibold text-white mb-4">آمار انواع فایل‌ها</h3>
-                    <div className="grid grid-cols-3 gap-3">
-                      {Object.entries(stats.fileTypes)
-                        .sort(([,a], [,b]) => b - a)
-                        .slice(0, 9)
-                        .map(([type, count]) => (
-                        <div key={type} className="bg-white/5 rounded-lg p-3">
-                          <div className="text-blue-400 font-medium">.{type}</div>
-                          <div className="text-white/80 text-sm">{count} فایل</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Recent Activity */}
-                  <div className="glass-card">
-                    <h3 className="text-lg font-semibold text-white mb-4">فعالیت‌های اخیر</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                        <div>
-                          <div className="text-white font-medium">تحلیل پروژه</div>
-                          <div className="text-white/60 text-sm">
-                            {project.lastAnalyzed ? 
-                              new Intl.DateTimeFormat('fa-IR', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              }).format(new Date(project.lastAnalyzed)) : 
-                              'هنوز تحلیل نشده'
-                            }
-                          </div>
-                        </div>
-                        <div className="text-green-400">✓</div>
+                    {project.analysisData.summary && (
+                      <div className="bg-white/5 p-4 rounded-lg">
+                        <h4 className="text-white font-medium mb-2">خلاصه تحلیل</h4>
+                        <p className="text-white/70">{project.analysisData.summary}</p>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                        <div>
-                          <div className="text-white font-medium">ایجاد پروژه</div>
-                          <div className="text-white/60 text-sm">
-                            {new Intl.DateTimeFormat('fa-IR', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            }).format(new Date(project.createdAt))}
-                          </div>
-                        </div>
-                        <div className="text-blue-400">✓</div>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <CodeBracketIcon className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-white mb-2">تحلیل در دسترس نیست</h3>
+                    <p className="text-white/60 mb-4">تحلیل کد هنوز انجام نشده است</p>
+                    <button
+                      onClick={handleReanalyze}
+                      disabled={isReanalyzing}
+                      className="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200"
+                    >
+                      <ArrowPathIcon className={`w-4 h-4 ml-2 ${isReanalyzing ? 'animate-spin' : ''}`} />
+                      شروع تحلیل
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
-            {activeTab === 'manager' && (
-              <div className="p-6 overflow-auto">
-                <ProjectFileManager projectId={project.id} />
-              </div>
+            {activeTab === 'manage' && (
+              <ProjectFileManager
+                projectId={project.id}
+                onFileUpdate={loadProjectData}
+              />
             )}
           </div>
         </div>
-
-        {/* Collapsed Sidebar Toggle */}
-        {sidebarCollapsed && (
-          <button
-            onClick={() => setSidebarCollapsed(false)}
-            className="fixed left-4 top-1/2 transform -translate-y-1/2 z-10 p-2 bg-gray-800/90 hover:bg-gray-700/90 rounded-lg border border-white/10 transition-colors duration-200"
-          >
-            <Bars3Icon className="w-5 h-5 text-white/60" />
-          </button>
-        )}
       </div>
     </div>
   );
