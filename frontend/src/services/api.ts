@@ -1,4 +1,4 @@
-// frontend/src/services/api.ts - بهبود یافته
+// frontend/src/services/api.ts - برطرف شده
 
 import axios, { AxiosProgressEvent } from 'axios';
 
@@ -76,12 +76,12 @@ api.interceptors.response.use(
       // Try to re-authenticate with demo login
       try {
         const response = await api.post('/auth/demo-login');
-        if (response.success && response.token) {
-          localStorage.setItem('haderboon_token', response.token);
-          localStorage.setItem('haderboon_user', JSON.stringify(response.user));
+        if (response.success && response.data.token) {
+          localStorage.setItem('haderboon_token', response.data.token);
+          localStorage.setItem('haderboon_user', JSON.stringify(response.data.user));
           
           // Retry original request
-          originalRequest.headers.Authorization = `Bearer ${response.token}`;
+          originalRequest.headers.Authorization = `Bearer ${response.data.token}`;
           return api(originalRequest);
         }
       } catch (authError) {
@@ -199,9 +199,9 @@ export const apiService = {
     try {
       const data = await api.post('/auth/demo-login');
       
-      if (data.success && data.token) {
-        localStorage.setItem('haderboon_token', data.token);
-        localStorage.setItem('haderboon_user', JSON.stringify(data.user));
+      if (data.success && data.data.token) {
+        localStorage.setItem('haderboon_token', data.data.token);
+        localStorage.setItem('haderboon_user', JSON.stringify(data.data.user));
         console.log('✅ Demo login successful');
       }
       
@@ -216,9 +216,9 @@ export const apiService = {
     try {
       const data = await api.post('/auth/login', { email, password });
       
-      if (data.success && data.token) {
-        localStorage.setItem('haderboon_token', data.token);
-        localStorage.setItem('haderboon_user', JSON.stringify(data.user));
+      if (data.success && data.data.token) {
+        localStorage.setItem('haderboon_token', data.data.token);
+        localStorage.setItem('haderboon_user', JSON.stringify(data.data.user));
         console.log('✅ Login successful');
       }
       
@@ -233,9 +233,9 @@ export const apiService = {
     try {
       const data = await api.post('/auth/register', { name, email, password });
       
-      if (data.success && data.token) {
-        localStorage.setItem('haderboon_token', data.token);
-        localStorage.setItem('haderboon_user', JSON.stringify(data.user));
+      if (data.success && data.data.token) {
+        localStorage.setItem('haderboon_token', data.data.token);
+        localStorage.setItem('haderboon_user', JSON.stringify(data.data.user));
         console.log('✅ Registration successful');
       }
       
@@ -672,8 +672,9 @@ export const connectionHelpers = {
       const response = await fetch(`${API_BASE_URL}/health`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
+        // @ts-ignore
         timeout: 5000
-      } as any);
+      });
       return response.ok;
     } catch (error) {
       return false;
