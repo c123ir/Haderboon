@@ -39,8 +39,7 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
     const buildFileTree = useCallback((files: any[]): FileTreeNode[] => {
     const tree: { [key: string]: FileTreeNode } = {};
     
-    console.log('🌳 Building client-side file tree from', files.length, 'files');
-    console.log('📁 Sample files:', files.slice(0, 3).map(f => ({ path: f.path, name: f.name })));
+
     
     files.forEach(file => {
       const pathParts = file.path.split('/').filter(Boolean);
@@ -109,8 +108,7 @@ const FileTreeViewer: React.FC<FileTreeViewerProps> = ({
     // Return root level nodes
     const rootNodes = Object.values(tree).filter(node => !node.path.includes('/'));
     
-    console.log('✅ Built tree with', rootNodes.length, 'root nodes');
-    console.log('📄 Root level files:', rootNodes.map(n => n.name));
+
     return rootNodes;
   }, []);
 
