@@ -75,13 +75,13 @@ api.interceptors.response.use(
       
       // Try to re-authenticate with demo login
       try {
-        const response = await api.post('/auth/demo-login');
-        if (response.success && response.token) {
-          localStorage.setItem('haderboon_token', response.token);
-          localStorage.setItem('haderboon_user', JSON.stringify(response.user));
+        const responseData = await api.post('/auth/demo-login');
+        if (responseData.success && responseData.token) {
+          localStorage.setItem('haderboon_token', responseData.token);
+          localStorage.setItem('haderboon_user', JSON.stringify(responseData.user));
           
           // Retry original request
-          originalRequest.headers.Authorization = `Bearer ${response.token}`;
+          originalRequest.headers.Authorization = `Bearer ${responseData.token}`;
           return api(originalRequest);
         }
       } catch (authError) {
