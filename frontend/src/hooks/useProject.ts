@@ -35,8 +35,10 @@ export const useProject = (id: string) => {
       console.log('📡 useProject API response:', response);
       
       if (response.success) {
-        console.log('📡 useProject: Setting project data:', response.data);
-        setProject(response.data);
+        // Handle nested response structure
+        const projectData = response.data?.data || response.data;
+        console.log('📡 useProject: Setting project data:', projectData);
+        setProject(projectData);
       } else {
         console.error('📡 useProject: API returned error:', response.message);
         setError(response.message || 'خطا در دریافت پروژه');
