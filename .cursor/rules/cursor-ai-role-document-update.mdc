@@ -53,6 +53,6 @@ This document provides the core rules and architectural guidelines for the "Hade
 ## 6. File Header Comment
 - At the very top of every new file you create or modify, add a single-line comment containing the full path of the file from the project root. For example: `// frontend/src/components/Login.tsx`
 
-## 7. Always Test & Run  Haderboon
+## 7. Always Test & Run Project in frontend Haderboon
 For Test & Run frontend From Haderboon Directory ==> cd frontend  ==> npm start
 For Test & Run bacend From Haderboon Directory ==> cd backend ==> npm run dev
