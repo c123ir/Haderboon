@@ -178,12 +178,19 @@ const NewProjectPage: React.FC = () => {
         directoryPath = 'uploaded-directory';
       }
       
-      setSelectedDirectory(directoryPath);
-      localStorage.setItem('lastSelectedDirectory', directoryPath);
-      
-      const fileArray = Array.from(files);
-      setPendingFiles(fileArray);
-      setShowFileModal(true);
+      if (uploadMode === 'monitor') {
+        // For monitoring mode, just get the directory path
+        setSelectedMonitorPath(directoryPath);
+        console.log('👁️ Monitor path selected:', directoryPath);
+      } else {
+        // For directory upload mode
+        setSelectedDirectory(directoryPath);
+        localStorage.setItem('lastSelectedDirectory', directoryPath);
+        
+        const fileArray = Array.from(files);
+        setPendingFiles(fileArray);
+        setShowFileModal(true);
+      }
     }
   };
 
