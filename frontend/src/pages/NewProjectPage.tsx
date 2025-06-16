@@ -417,7 +417,7 @@ const NewProjectPage: React.FC = () => {
       }
       
       if (!uploadResponse.success) {
-        throw new Error(uploadResponse.error || 'خطا در آپلود فایل‌ها');
+        throw new Error(uploadResponse.message || 'خطا در آپلود فایل‌ها');
       }
 
       console.log('✅ آپلود فایل‌ها تکمیل شد');
