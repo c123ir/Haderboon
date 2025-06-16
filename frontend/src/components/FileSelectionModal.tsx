@@ -431,5 +431,223 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = ({
             <XMarkIcon className="w-5 h-5 text-white/60" />
           </button>
         </div>
+{/* Controls */}
+<div className="p-4 border-b border-white/10 space-y-4">
+          {/* Search and Filters */}
+          <div className="flex items-center space-x-4 space-x-reverse">
+            <div className="flex-1 relative">
+              <MagnifyingGlassIcon className="w-4 h-4 text-white/40 absolute right-3 top-1/2 transform -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="جستجو در فایل‌ها..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-white/10 border border-white/20 rounded-lg px-9 py-2 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm"
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2 space-x-reverse">
+              <button
+                onClick={() => setShowOnlyValid(!showOnlyValid)}
+                className={`px-3 py-2 rounded-lg text-sm transition-colors duration-200 ${
+                  showOnlyValid 
+                    ? 'bg-green-600/20 text-green-400 border border-green-500/30' 
+                    : 'bg-white/10 text-white/70 border border-white/20 hover:bg-white/20'
+                }`}
+              >
+                فقط معتبر
+              </button>
+              
+              <button
+                onClick={() => setShowOnlySelected(!showOnlySelected)}
+                className={`px-3 py-2 rounded-lg text-sm transition-colors duration-200 ${
+                  showOnlySelected 
+                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' 
+                    : 'bg-white/10 text-white/70 border border-white/20 hover:bg-white/20'
+                }`}
+              >
+                فقط انتخاب شده
+              </button>
+            </div>
+          </div>
 
-        {/* Controls */
+          {/* Selection Controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 space-x-reverse">
+              <button
+                onClick={handleSelectAll}
+                className="px-3 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded text-sm hover:bg-blue-600/30 transition-colors duration-200"
+              >
+                انتخاب همه
+              </button>
+              <button
+                onClick={handleDeselectAll}
+                className="px-3 py-1 bg-red-600/20 text-red-400 border border-red-500/30 rounded text-sm hover:bg-red-600/30 transition-colors duration-200"
+              >
+                لغو انتخاب همه
+              </button>
+            </div>
+            
+            <div className="text-sm text-white/60">
+              {statistics.selectedCount} از {statistics.totalFiles} فایل انتخاب شده
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-white/60">حجم انتخاب شده</span>
+              <span className={`text-sm ${
+                statistics.overSizeLimit ? 'text-red-400' : 'text-white/60'
+              }`}>
+                {formatFileSize(statistics.totalSize)} / {formatFileSize(MAX_TOTAL_SIZE)} 
+                ({statistics.sizePercentage}%)
+              </span>
+            </div>
+            <div className="w-full bg-white/10 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  statistics.overSizeLimit ? 'bg-red-500' : 'bg-blue-500'
+                }`}
+                style={{ width: `${Math.min(statistics.sizePercentage, 100)}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Warnings */}
+          {statistics.overSizeLimit && (
+            <div className="flex items-start p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <ExclamationTriangleIcon className="w-5 h-5 text-red-400 ml-2 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-red-400 font-medium text-sm">حجم بیش از حد مجاز</p>
+                <p className="text-red-300 text-xs mt-1">
+                  حجم انتخاب شده بیش از حد مجاز است. لطفاً تعدادی از فایل‌ها را حذف کنید.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* File Tree */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {filteredTree.length > 0 ? (
+            <div className="space-y-1">
+              {filteredTree.map(node => renderNode(node))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <DocumentIcon className="w-12 h-12 text-white/40 mx-auto mb-4" />
+              <p className="text-white/60">
+                {searchTerm || showOnlyValid || showOnlySelected 
+                  ? 'هیچ فایلی با این فیلتر یافت نشد' 
+                  : 'هیچ فایلی یافت نشد'
+                }
+              </p>
+              {(searchTerm || showOnlyValid || showOnlySelected) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setShowOnlyValid(false);
+                    setShowOnlySelected(false);
+                  }}
+                  className="mt-2 text-blue-400 hover:text-blue-300 text-sm underline"
+                >
+                  پاک کردن فیلترها
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Statistics Panel */}
+        <div className="p-4 border-t border-white/10 bg-white/5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <p className="text-lg font-bold text-white">{statistics.totalFiles}</p>
+              <p className="text-white/60 text-xs">کل فایل‌ها</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-blue-400">{statistics.selectedCount}</p>
+              <p className="text-white/60 text-xs">انتخاب شده</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-green-400">{statistics.validSelectedCount}</p>
+              <p className="text-white/60 text-xs">معتبر</p>
+            </div>
+            <div>
+              <p className={`text-lg font-bold ${
+                statistics.overSizeLimit ? 'text-red-400' : 'text-purple-400'
+              }`}>
+                {formatFileSize(statistics.totalSize)}
+              </p>
+              <p className="text-white/60 text-xs">حجم کل</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 border-t border-white/20 space-y-4 sm:space-y-0">
+          <div className="flex items-start">
+            <InformationCircleIcon className="w-5 h-5 text-blue-400 ml-2 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-white/70">
+              <p className="font-medium">نکات مهم:</p>
+              <ul className="text-xs text-white/50 mt-1 space-y-1">
+                <li>• فایل‌های نامعتبر به صورت خودکار حذف می‌شوند</li>
+                <li>• node_modules و فایل‌های بزرگ‌تر از {formatFileSize(MAX_FILE_SIZE)} شامل نمی‌شوند</li>
+                <li>• حداکثر حجم کل: {formatFileSize(MAX_TOTAL_SIZE)}</li>
+                <li>• ساختار پوشه‌ها حفظ می‌شود</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-3 space-x-reverse w-full sm:w-auto">
+            <button
+              onClick={onClose}
+              className="flex-1 sm:flex-none px-4 py-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors duration-200 text-center"
+            >
+              انصراف
+            </button>
+            <button
+              onClick={handleConfirm}
+              disabled={statistics.selectedCount === 0 || statistics.overSizeLimit}
+              className={`flex-1 sm:flex-none px-6 py-2 rounded-lg transition-all duration-200 font-medium text-center ${
+                statistics.selectedCount === 0 || statistics.overSizeLimit
+                  ? 'bg-gray-600 text-gray-300 cursor-not-allowed opacity-50'
+                  : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+              }`}
+              title={
+                statistics.selectedCount === 0 
+                  ? 'هیچ فایلی انتخاب نشده است'
+                  : statistics.overSizeLimit 
+                  ? 'حجم انتخاب شده بیش از حد مجاز است'
+                  : `${statistics.validSelectedCount} فایل معتبر اضافه خواهد شد`
+              }
+            >
+              {statistics.selectedCount === 0 ? (
+                'انتخاب فایل‌ها'
+              ) : statistics.overSizeLimit ? (
+                'حجم بیش از حد مجاز'
+              ) : (
+                `اضافه کردن (${statistics.validSelectedCount} فایل)`
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Additional Info Bar */}
+        {statistics.selectedCount > 0 && (
+          <div className="px-6 pb-4">
+            <div className="flex items-center justify-between text-xs text-white/50">
+              <span>
+                آخرین به‌روزرسانی: {new Date().toLocaleTimeString('fa-IR')}
+              </span>
+              <span>
+                {statistics.validSelectedCount} معتبر از {statistics.selectedCount} انتخاب شده
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
