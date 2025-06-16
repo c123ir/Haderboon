@@ -4,12 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   FolderIcon,
-  FolderOpenIcon,
   DocumentIcon,
   ChatBubbleLeftRightIcon,
   SparklesIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
   CodeBracketIcon,
   ClockIcon,
   CheckCircleIcon,
