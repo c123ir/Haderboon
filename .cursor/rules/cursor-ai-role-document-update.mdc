@@ -52,3 +52,4 @@ This document provides the core rules and architectural guidelines for the "Hade
   
 ## 6. File Header Comment
 - At the very top of every new file you create or modify, add a single-line comment containing the full path of the file from the project root. For example: `// frontend/src/components/Login.tsx`
+
