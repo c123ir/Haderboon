@@ -223,7 +223,11 @@ const ProjectsPage: React.FC = () => {
               {/* Created Date */}
               <div className="mt-4 pt-4 border-t border-white/10">
                 <p className="text-xs text-white/40">
-                  ایجاد شده: {new Date(project.createdAt).toLocaleDateString('fa-IR')}
+                  ایجاد شده: {
+                    project.createdAt && Object.keys(project.createdAt).length > 0
+                      ? new Date(project.createdAt).toLocaleDateString('fa-IR')
+                      : 'تاریخ نامشخص'
+                  }
                 </p>
               </div>
             </div>
