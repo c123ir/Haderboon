@@ -61,4 +61,4 @@ This document provides the core rules and architectural guidelines for the "Hade
 
 ## 8. Run backend & frontend
 - Please, whenever you want to run the project, such as npm run dev or npm start, ask me in Persian to exit the project if the project is already running. 
-- And always be careful to type CD backend in the root of the project to run the backend, then npm run dev, and to run the frontend, type CD frontend in the root of the project, then enter npm start to run.
+- always be careful to type CD backend in the root of the project to run the backend, then npm run dev, and to run the frontend, type CD frontend in the root of the project, then enter npm start to run.
