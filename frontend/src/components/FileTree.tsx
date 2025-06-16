@@ -84,7 +84,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     const paddingLeft = depth * 16 + 8;
 
     return (
-      <div key={node.path}>
+      <div key={`${node.id}-${node.path}-${depth}`}>
         <div
           className={`
             flex items-center cursor-pointer hover:bg-white/5 transition-colors duration-150 py-1
