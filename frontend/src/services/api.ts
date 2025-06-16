@@ -198,8 +198,7 @@ export const apiService = {
   // Authentication
   async demoLogin(): Promise<any> {
     try {
-      const response = await api.post('/auth/demo-login');
-      const data = response.data;
+      const data = await api.post('/auth/demo-login');
       
       if (data.success && data.token) {
         localStorage.setItem('haderboon_token', data.token);
