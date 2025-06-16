@@ -1,5 +1,5 @@
-// pages/ProjectDetailPage.tsx - نسخه رفع شده
-import React, { useState, useEffect, useCallback } from 'react';
+// pages/ProjectDetailPage.tsx - نسخه نهایی
+import React, { useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeftIcon,
@@ -12,65 +12,17 @@ import {
   CodeBracketIcon,
   DocumentTextIcon,
 } from '@heroicons/react/24/outline';
+
+// Import های محلی - از فایل‌هایی که قبلاً ایجاد کردیم
 import { apiService } from '../services/api';
+import { useProject } from '../hooks/useProject';
+import { useProjectFiles } from '../hooks/useProjectFiles';
+import FileTree from '../components/FileTree';
+import FileContentViewer from '../components/FileContentViewer';
+import WatchingStatus from '../components/WatchingStatus';
+import ProjectFileManager from '../components/ProjectFileManager';
 
-// اگر این hook ها موجود نیستند، باید ایجاد کنیم
-const useProject = (id: string) => {
-  const [project, setProject] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchProject = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await apiService.getProject(id);
-      if (response.success) {
-        setProject(response.data);
-      } else {
-        setError(response.message || 'خطا در دریافت پروژه');
-      }
-    } catch (err) {
-      setError('خطا در اتصال به سرور');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchProject();
-  }, [fetchProject]);
-
-  return { project, loading, error, refetch: fetchProject };
-};
-
-const useProjectFiles = (id: string) => {
-  const [files, setFiles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchFiles = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await apiService.getProjectFiles(id);
-      if (response.success) {
-        setFiles(response.data || []);
-      } else {
-        setError(response.message || 'خطا در دریافت فایل‌ها');
-      }
-    } catch (err) {
-      setError('خطا در اتصال به سرور');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchFiles();
-  }, [fetchFiles]);
-
-  return { files, loading, error, refetch: fetchFiles };
-};
-
+// Type definitions
 interface FileNode {
   id: string;
   name: string;
@@ -91,112 +43,14 @@ interface FileContent {
   type: string;
 }
 
-// Simple FileContentViewer component
-const FileContentViewer: React.FC<{ 
-  file: FileContent | null;
-  className?: string;
-}> = ({ file, className = '' }) => {
-  if (!file) {
-    return (
-      <div className={`flex items-center justify-center h-full ${className}`}>
-        <div className="text-center text-white/60">
-          <DocumentTextIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <p className="text-lg mb-2">فایلی انتخاب نشده</p>
-          <p className="text-sm">برای مشاهده محتوا، فایلی از درخت انتخاب کنید</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`flex flex-col h-full bg-gray-900/50 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10 bg-gray-800/30">
-        <div className="flex items-center space-x-3 space-x-reverse">
-          <DocumentTextIcon className="w-5 h-5 text-blue-400" />
-          <div>
-            <h3 className="text-white font-medium">{file.name}</h3>
-            <p className="text-white/60 text-sm">{file.path}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 p-4 overflow-auto">
-        <pre className="text-white text-sm font-mono whitespace-pre-wrap">
-          {file.content}
-        </pre>
-      </div>
-    </div>
-  );
-};
-
-// Simple FileTree component
-const FileTree: React.FC<{
-  files: FileNode[];
-  selectedFile: string | null;
-  onFileSelect: (file: FileNode) => void;
-  className?: string;
-}> = ({ files, selectedFile, onFileSelect, className = '' }) => {
-  return (
-    <div className={`overflow-auto h-full ${className}`} dir="ltr">
-      <div className="p-2">
-        {files.map(file => (
-          <div
-            key={file.id}
-            className={`
-              flex items-center cursor-pointer hover:bg-white/5 transition-colors duration-150 py-2 px-2 rounded
-              ${selectedFile === file.path ? 'bg-blue-500/20 border-r-2 border-blue-400' : ''}
-            `}
-            onClick={() => file.type === 'file' && onFileSelect(file)}
-          >
-            {file.type === 'directory' ? (
-              <FolderIcon className="w-4 h-4 text-blue-400 ml-2" />
-            ) : (
-              <DocumentTextIcon className="w-4 h-4 text-gray-400 ml-2" />
-            )}
-            <span className="text-white text-sm truncate">{file.name}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Simple WatchingStatus component
-const WatchingStatus: React.FC<{
-  projectId: string;
-  projectName: string;
-  projectPath?: string;
-  initialStatus?: string;
-}> = ({ projectId, projectName }) => {
-  return (
-    <div className="glass-card">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <div className="w-3 h-3 bg-green-400 rounded-full ml-3"></div>
-          <span className="text-white text-sm">پروژه {projectName} آماده است</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Simple ProjectFileManager component
-const ProjectFileManager: React.FC<{ projectId: string }> = ({ projectId }) => {
-  return (
-    <div className="p-4">
-      <h3 className="text-white text-lg mb-4">مدیریت فایل‌ها</h3>
-      <p className="text-white/60">این بخش برای مدیریت فایل‌های پروژه طراحی شده است.</p>
-    </div>
-  );
-};
-
 const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  
+  // استفاده از hook های محلی
   const { project, loading: projectLoading, error: projectError, refetch: refetchProject } = useProject(id!);
   const { files, loading: filesLoading, error: filesError, refetch: refetchFiles } = useProjectFiles(id!);
   
+  // State management
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<'files' | 'overview' | 'manager'>('files');
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -204,14 +58,15 @@ const ProjectDetailPage: React.FC = () => {
   const [loadingContent, setLoadingContent] = useState(false);
   const [isReanalyzing, setIsReanalyzing] = useState(false);
 
+  // Event handlers
   const handleFileSelect = useCallback(async (file: FileNode) => {
-    if (file.type === 'directory') return;
+    if (file.type === 'directory' || !project) return;
     
     setSelectedFile(file.path);
     setLoadingContent(true);
     
     try {
-      const response = await apiService.getFileContent(project!.id, file.id);
+      const response = await apiService.getFileContent(project.id, file.id);
       if (response.success && response.data) {
         setFileContent({
           name: file.name,
@@ -221,6 +76,9 @@ const ProjectDetailPage: React.FC = () => {
           lastModified: file.lastModified || new Date().toISOString(),
           type: file.fileType || 'text'
         });
+      } else {
+        console.error('Error getting file content:', response.message);
+        setFileContent(null);
       }
     } catch (error) {
       console.error('Error loading file content:', error);
@@ -235,9 +93,13 @@ const ProjectDetailPage: React.FC = () => {
     
     setIsReanalyzing(true);
     try {
-      await apiService.reAnalyzeProject(project.id);
-      await refetchProject();
-      await refetchFiles();
+      const response = await apiService.reAnalyzeProject(project.id);
+      if (response.success) {
+        await refetchProject();
+        await refetchFiles();
+      } else {
+        console.error('Re-analyze error:', response.message);
+      }
     } catch (error) {
       console.error('Error re-analyzing project:', error);
     } finally {
@@ -245,7 +107,7 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
-  // Convert flat files list to tree structure
+  // Data processing
   const fileTree: FileNode[] = React.useMemo(() => {
     if (!files || files.length === 0) return [];
     
@@ -261,7 +123,7 @@ const ProjectDetailPage: React.FC = () => {
     }));
   }, [files]);
 
-  const getProjectStats = () => {
+  const getProjectStats = useCallback(() => {
     if (!files) return { totalFiles: 0, totalSize: 0, fileTypes: {} };
     
     const stats = files.reduce((acc, file) => {
@@ -276,8 +138,28 @@ const ProjectDetailPage: React.FC = () => {
     }, { totalFiles: 0, totalSize: 0, fileTypes: {} as Record<string, number> });
     
     return stats;
+  }, [files]);
+
+  // Format helpers
+  const formatFileSize = (size: number): string => {
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    if (size < 1024 * 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   };
 
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('fa-IR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+
+  // Loading state
   if (projectLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -289,6 +171,7 @@ const ProjectDetailPage: React.FC = () => {
     );
   }
 
+  // Error state
   if (projectError || !project) {
     return (
       <div className="text-center py-16">
@@ -327,7 +210,7 @@ const ProjectDetailPage: React.FC = () => {
             <button
               onClick={handleReanalyze}
               disabled={isReanalyzing}
-              className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg transition-colors duration-200 text-sm"
+              className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 text-sm"
             >
               <ArrowPathIcon className={`w-4 h-4 ml-2 ${isReanalyzing ? 'animate-spin' : ''}`} />
               {isReanalyzing ? 'تحلیل...' : 'تحلیل مجدد'}
@@ -382,7 +265,7 @@ const ProjectDetailPage: React.FC = () => {
             </button>
           </div>
 
-          {/* File Tree */}
+          {/* File Tree Content */}
           {!sidebarCollapsed && (
             <div className="flex-1 overflow-hidden">
               {filesLoading ? (
@@ -395,10 +278,15 @@ const ProjectDetailPage: React.FC = () => {
                   <p className="text-red-400 text-sm mb-2">خطا در بارگذاری فایل‌ها</p>
                   <button
                     onClick={refetchFiles}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
+                    className="text-blue-400 hover:text-blue-300 text-sm underline"
                   >
                     تلاش مجدد
                   </button>
+                </div>
+              ) : fileTree.length === 0 ? (
+                <div className="p-4 text-center">
+                  <FolderIcon className="w-12 h-12 text-white/30 mx-auto mb-2" />
+                  <p className="text-white/60 text-sm">فایلی یافت نشد</p>
                 </div>
               ) : (
                 <FileTree
@@ -477,14 +365,82 @@ const ProjectDetailPage: React.FC = () => {
                   {/* Project Information */}
                   <div className="glass-card">
                     <h3 className="text-lg font-semibold text-white mb-4">اطلاعات پروژه</h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-white/60">نام پروژه:</span>
                         <span className="text-white mr-2">{project.name}</span>
                       </div>
                       <div>
+                        <span className="text-white/60">وضعیت:</span>
+                        <span className={`mr-2 px-2 py-1 rounded text-xs ${
+                          project.status === 'READY' ? 'bg-green-500/20 text-green-400' :
+                          project.status === 'ANALYZING' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {project.status === 'READY' ? 'آماده' :
+                           project.status === 'ANALYZING' ? 'در حال تحلیل' : 'نامعلوم'}
+                        </span>
+                      </div>
+                      <div>
                         <span className="text-white/60">تعداد فایل‌ها:</span>
-                        <span className="text-white mr-2">{stats.totalFiles}</span>
+                        <span className="text-white mr-2">{stats.totalFiles.toLocaleString('fa-IR')}</span>
+                      </div>
+                      <div>
+                        <span className="text-white/60">حجم کل:</span>
+                        <span className="text-white mr-2">{formatFileSize(stats.totalSize)}</span>
+                      </div>
+                      {project.originalPath && (
+                        <div className="col-span-1 sm:col-span-2">
+                          <span className="text-white/60">مسیر اصلی:</span>
+                          <span className="text-white mr-2 font-mono text-xs break-all">
+                            {project.originalPath}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* File Types Statistics */}
+                  {Object.keys(stats.fileTypes).length > 0 && (
+                    <div className="glass-card">
+                      <h3 className="text-lg font-semibold text-white mb-4">آمار انواع فایل‌ها</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {Object.entries(stats.fileTypes)
+                          .sort(([,a], [,b]) => b - a)
+                          .slice(0, 8)
+                          .map(([type, count]) => (
+                            <div key={type} className="bg-white/5 rounded-lg p-3">
+                              <div className="text-blue-400 font-medium">.{type}</div>
+                              <div className="text-white/80 text-sm">{count} فایل</div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Recent Activity */}
+                  <div className="glass-card">
+                    <h3 className="text-lg font-semibold text-white mb-4">فعالیت‌های اخیر</h3>
+                    <div className="space-y-3">
+                      {project.lastAnalyzed && (
+                        <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                          <div>
+                            <div className="text-white font-medium">تحلیل پروژه</div>
+                            <div className="text-white/60 text-sm">
+                              {formatDate(project.lastAnalyzed)}
+                            </div>
+                          </div>
+                          <div className="text-green-400">✓</div>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                        <div>
+                          <div className="text-white font-medium">ایجاد پروژه</div>
+                          <div className="text-white/60 text-sm">
+                            {formatDate(project.createdAt)}
+                          </div>
+                        </div>
+                        <div className="text-blue-400">✓</div>
                       </div>
                     </div>
                   </div>
@@ -505,6 +461,7 @@ const ProjectDetailPage: React.FC = () => {
           <button
             onClick={() => setSidebarCollapsed(false)}
             className="fixed left-4 top-1/2 transform -translate-y-1/2 z-10 p-2 bg-gray-800/90 hover:bg-gray-700/90 rounded-lg border border-white/10 transition-colors duration-200"
+            title="نمایش sidebar"
           >
             <Bars3Icon className="w-5 h-5 text-white/60" />
           </button>
