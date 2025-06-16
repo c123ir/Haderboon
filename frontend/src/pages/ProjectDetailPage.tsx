@@ -49,6 +49,10 @@ const ProjectDetailPage: React.FC = () => {
     }
   }, [id]);
 
+  useEffect(() => {
+    console.log('🐛 Files state updated:', files.length, files.slice(0, 2));
+  }, [files]);
+
   const loadProjectData = async () => {
     try {
       setLoading(true);
