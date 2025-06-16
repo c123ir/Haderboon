@@ -3,6 +3,14 @@ import React from 'react';
 import { FolderPlusIcon, DocumentPlusIcon } from '@heroicons/react/24/outline';
 import { apiService } from '../services/api';
 
+// Type declaration for webkitdirectory
+declare module 'react' {
+  interface InputHTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+    webkitdirectory?: string;
+    directory?: string;
+  }
+}
+
 interface ProjectFileManagerProps {
   projectId: string;
   onFileUpdate?: () => void;
