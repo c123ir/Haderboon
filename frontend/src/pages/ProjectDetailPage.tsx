@@ -77,6 +77,19 @@ const ProjectDetailPage: React.FC = () => {
 
   useEffect(() => {
     console.log('🐛 Files state updated:', files.length, files.slice(0, 2));
+    if (files.length > 0) {
+      console.log('📋 First 3 files structure:');
+      files.slice(0, 3).forEach((file, index) => {
+        console.log(`File ${index}:`, {
+          id: file.id,
+          name: file.name,
+          path: file.path,
+          type: file.type,
+          size: file.size,
+          isDirectory: file.isDirectory
+        });
+      });
+    }
   }, [files]);
 
   const handleFileSelect = async (node: FileTreeNode) => {
