@@ -350,6 +350,12 @@ const demoLogin = async () => {
   }
 };
 
+const clearStorageAndReload = () => {
+  localStorage.clear();
+  sessionStorage.clear();
+  window.location.reload();
+};
+
 // Export apiService object
 export const apiService = {
   getProject,
@@ -366,6 +372,7 @@ export const apiService = {
   getProjectStats,
   deleteProject,
   demoLogin,
+  clearStorageAndReload,
   
   // Helper functions
   auth: authHelpers,
