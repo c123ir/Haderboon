@@ -40,7 +40,7 @@ api.interceptors.response.use(
     if (process.env.NODE_ENV === 'development') {
       console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
     }
-    return response.data; // Return just the data part
+    return response; // Return the full response object for better type safety
   },
   async (error) => {
     const originalRequest = error.config;
