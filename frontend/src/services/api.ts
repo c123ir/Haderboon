@@ -470,6 +470,26 @@ export const apiService = {
     return await api.post(`/files/projects/${projectId}/reanalyze`);
   },
 
+  // Direct monitoring
+  async createMonitoredProject(data: { 
+    name: string; 
+    description?: string; 
+    directoryPath: string;
+  }): Promise<any> {
+    if (!data.name?.trim()) {
+      throw new Error('نام پروژه الزامی است');
+    }
+    if (!data.directoryPath?.trim()) {
+      throw new Error('مسیر پوشه الزامی است');
+    }
+    
+    return await api.post('/projects/create-monitored', {
+      name: data.name.trim(),
+      description: data.description?.trim(),
+      directoryPath: data.directoryPath.trim()
+    });
+  },
+
   // File watching
   async startProjectWatching(projectId: string): Promise<any> {
     if (!projectId) {
