@@ -12,7 +12,6 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import { apiService, authHelpers } from '../services/api';
-import FileTreeTest from '../components/FileTreeTest';
 
 const HomePage: React.FC = () => {
   // const navigate = useNavigate();
@@ -348,12 +347,6 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* File Tree Test */}
-      <div>
-        <h2 className="text-2xl font-bold text-white mb-6">تست File Tree</h2>
-        <FileTreeTest />
-      </div>
     </div>
   );
 };
