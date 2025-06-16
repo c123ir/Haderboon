@@ -41,6 +41,7 @@ const NewProjectPage: React.FC = () => {
   const [projectDescription, setProjectDescription] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [selectedDirectory, setSelectedDirectory] = useState<string>('');
+  const [selectedMonitorPath, setSelectedMonitorPath] = useState<string>('');
   const [uploadMode, setUploadMode] = useState<'files' | 'directory' | 'monitor'>('files');
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
